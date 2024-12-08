@@ -19,11 +19,13 @@ export default function Index() {
   const { data: recommendations, error: recommendationsError } = useQuery({
     queryKey: ["recommendations"],
     queryFn: async () => {
+      console.log("Fetching recommendations...");
       const response = await fetch(
         `${BASE_URL}?token=${API_TOKEN}&type=favorits`
       );
       if (!response.ok) throw new Error("Failed to fetch recommendations");
       const data = await response.json();
+      console.log("Recommendations data:", data);
       return data as Movie[];
     },
   });
@@ -31,12 +33,14 @@ export default function Index() {
   const { data: searchResults, error: searchError } = useQuery({
     queryKey: ["search", searchTerm],
     queryFn: async () => {
-      if (!searchTerm) return [];
+      console.log("Fetching search results for:", searchTerm);
+      if (!searchTerm) return null;
       const response = await fetch(
         `${BASE_URL}?token=${API_TOKEN}&name=${encodeURIComponent(searchTerm)}`
       );
       if (!response.ok) throw new Error("Failed to fetch search results");
       const data = await response.json();
+      console.log("Search results:", data);
       return data as Movie[];
     },
     enabled: searchTerm.length > 0,
@@ -61,14 +65,14 @@ export default function Index() {
       </header>
 
       <main className="space-y-8">
-        {searchTerm && searchResults && (
+        {searchTerm && (
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">Search Results</h2>
             <MovieGrid movies={searchResults} />
           </section>
         )}
 
-        {!searchTerm && recommendations && (
+        {!searchTerm && (
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">Recommended Movies</h2>
             <MovieGrid movies={recommendations} />
