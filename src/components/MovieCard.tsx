@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MovieCardProps {
   title: string;
@@ -9,9 +10,19 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ title, image, link, className }: MovieCardProps) {
+  const navigate = useNavigate();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate(`/movie/${encodeURIComponent(title)}`, {
+      state: { title, iframeUrl: link }
+    });
+  };
+
   return (
     <a
       href={link}
+      onClick={handleClick}
       className={cn(
         "group relative aspect-[2/3] overflow-hidden rounded-lg bg-secondary/30 transition-all duration-300 hover:scale-105",
         className
@@ -27,7 +38,7 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
           <h3 className="font-semibold text-lg truncate">{title}</h3>
           <div className="mt-2 flex items-center gap-2 text-primary">
             <Play className="h-4 w-4" />
-            <span className="text-sm">Watch Now</span>
+            <span className="text-sm">Смотреть</span>
           </div>
         </div>
       </div>
