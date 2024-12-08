@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/SearchBar";
 import { MovieGrid } from "@/components/MovieGrid";
+import { Navigation } from "@/components/Navigation";
 import { toast } from "sonner";
 
 interface Movie {
@@ -73,31 +74,38 @@ export default function Index() {
   }, [recommendationsError, searchError]);
 
   return (
-    <div className="min-h-screen p-6 space-y-8">
-      <header className="space-y-4">
-        <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
-          Movie Stream
-        </h1>
-        <SearchBar
-          onSearch={setSearchTerm}
-          className="mx-auto"
-        />
-      </header>
+    <div className="min-h-screen">
+      <Navigation />
+      
+      <main className="container pt-24 pb-16 space-y-8">
+        <header className="max-w-2xl mx-auto space-y-4">
+          <h2 className="text-4xl font-bold text-center">
+            Найди свой любимый фильм
+          </h2>
+          <p className="text-muted-foreground text-center">
+            Используйте поиск чтобы найти интересующий вас фильм
+          </p>
+          <SearchBar
+            onSearch={setSearchTerm}
+            className="mx-auto"
+          />
+        </header>
 
-      <main className="space-y-8">
-        {searchTerm && (
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold">Search Results</h2>
-            <MovieGrid movies={searchResults} />
-          </section>
-        )}
+        <div className="space-y-8">
+          {searchTerm && (
+            <section className="space-y-4 animate-fade-in">
+              <h2 className="text-2xl font-semibold">Результаты поиска</h2>
+              <MovieGrid movies={searchResults} />
+            </section>
+          )}
 
-        {!searchTerm && (
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold">Recommended Movies</h2>
-            <MovieGrid movies={recommendations} />
-          </section>
-        )}
+          {!searchTerm && (
+            <section className="space-y-4 animate-fade-in">
+              <h2 className="text-2xl font-semibold">Рекомендуемые фильмы</h2>
+              <MovieGrid movies={recommendations} />
+            </section>
+          )}
+        </div>
       </main>
     </div>
   );
