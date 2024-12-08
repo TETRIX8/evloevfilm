@@ -10,6 +10,16 @@ interface Movie {
   link: string;
 }
 
+interface ApiResponse {
+  total: number;
+  results: Array<{
+    id: number;
+    name: string;
+    poster: string;
+    iframe_url: string;
+  }>;
+}
+
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://api1650820663.bhcesh.me/list";
 
@@ -24,9 +34,14 @@ export default function Index() {
         `${BASE_URL}?token=${API_TOKEN}&type=favorits`
       );
       if (!response.ok) throw new Error("Failed to fetch recommendations");
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       console.log("Recommendations data:", data);
-      return data as Movie[];
+      
+      return data.results?.map(movie => ({
+        title: movie.name,
+        image: movie.poster,
+        link: movie.iframe_url
+      })) || [];
     },
   });
 
@@ -39,9 +54,14 @@ export default function Index() {
         `${BASE_URL}?token=${API_TOKEN}&name=${encodeURIComponent(searchTerm)}`
       );
       if (!response.ok) throw new Error("Failed to fetch search results");
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       console.log("Search results:", data);
-      return data as Movie[];
+      
+      return data.results?.map(movie => ({
+        title: movie.name,
+        image: movie.poster,
+        link: movie.iframe_url
+      })) || [];
     },
     enabled: searchTerm.length > 0,
   });
