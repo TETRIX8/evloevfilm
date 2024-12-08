@@ -1,4 +1,4 @@
-import { Menu, Search, UserPlus, LogIn } from "lucide-react";
+import { Menu, Search, UserPlus, LogIn, Bookmark } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -7,6 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
+import { Link } from "react-router-dom";
 
 export function Navigation() {
   return (
@@ -24,16 +25,18 @@ export function Navigation() {
                 <SheetTitle>Меню</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-2 mt-4">
-                <Button variant="ghost" className="justify-start gap-2">
-                  <Search className="h-4 w-4" />
-                  Поиск
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link to="/saved">
+                    <Bookmark className="h-4 w-4" />
+                    Сохраненные
+                  </Link>
                 </Button>
               </div>
             </SheetContent>
           </Sheet>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
-            Movie Stream
-          </h1>
+          <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
+            EVOLVEFILM
+          </Link>
         </div>
         
         <div className="flex items-center gap-2">

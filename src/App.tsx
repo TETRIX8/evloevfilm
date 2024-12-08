@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Movie from "./pages/Movie";
+import Saved from "./pages/Saved";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/movie/:title" element={<Movie />} />
+          <Route path="/saved" element={<Saved />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
