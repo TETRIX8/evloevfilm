@@ -46,6 +46,25 @@ export default function Index() {
     },
   });
 
+  const { data: randomMovies, error: randomMoviesError } = useQuery({
+    queryKey: ["random-movies"],
+    queryFn: async () => {
+      console.log("Fetching random movies...");
+      const response = await fetch(
+        `${BASE_URL}?token=${API_TOKEN}&type=films&sort=random&limit=10`
+      );
+      if (!response.ok) throw new Error("Failed to fetch random movies");
+      const data: ApiResponse = await response.json();
+      console.log("Random movies data:", data);
+      
+      return data.results?.map(movie => ({
+        title: movie.name,
+        image: movie.poster,
+        link: movie.iframe_url
+      })) || [];
+    },
+  });
+
   const { data: searchResults, error: searchError } = useQuery({
     queryKey: ["search", searchTerm],
     queryFn: async () => {
@@ -68,10 +87,10 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (recommendationsError || searchError) {
+    if (recommendationsError || searchError || randomMoviesError) {
       toast.error("Failed to fetch movies. Please try again later.");
     }
-  }, [recommendationsError, searchError]);
+  }, [recommendationsError, searchError, randomMoviesError]);
 
   return (
     <div className="min-h-screen">
@@ -100,10 +119,17 @@ export default function Index() {
           )}
 
           {!searchTerm && (
-            <section className="space-y-4 animate-fade-in">
-              <h2 className="text-2xl font-semibold">Рекомендуемые фильмы</h2>
-              <MovieGrid movies={recommendations} />
-            </section>
+            <>
+              <section className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-semibold">Рекомендуемые фильмы</h2>
+                <MovieGrid movies={recommendations} />
+              </section>
+
+              <section className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-semibold">Случайные подборки</h2>
+                <MovieGrid movies={randomMovies} />
+              </section>
+            </>
           )}
         </div>
       </main>
