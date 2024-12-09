@@ -1,4 +1,4 @@
-import { Menu, Search, UserPlus, LogIn, Bookmark } from "lucide-react";
+import { Menu, Bookmark, Film, Sun, Moon } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -8,8 +8,11 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/hooks/use-theme";
 
 export function Navigation() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container flex items-center justify-between h-16">
@@ -31,24 +34,46 @@ export function Navigation() {
                     Сохраненные
                   </Link>
                 </Button>
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link to="/new">
+                    <Film className="h-4 w-4" />
+                    Новинки
+                  </Link>
+                </Button>
               </div>
             </SheetContent>
           </Sheet>
           <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
             EVOLVEFILM
           </Link>
+          <div className="hidden lg:flex items-center gap-2">
+            <Button variant="ghost" className="gap-2" asChild>
+              <Link to="/saved">
+                <Bookmark className="h-4 w-4" />
+                Сохраненные
+              </Link>
+            </Button>
+            <Button variant="ghost" className="gap-2" asChild>
+              <Link to="/new">
+                <Film className="h-4 w-4" />
+                Новинки
+              </Link>
+            </Button>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            <span className="hidden sm:inline">Регистрация</span>
-          </Button>
-          <Button variant="default" className="gap-2">
-            <LogIn className="h-4 w-4" />
-            <span className="hidden sm:inline">Вход</span>
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="rounded-full transition-transform hover:scale-110"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          ) : (
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          )}
+        </Button>
       </div>
     </nav>
   );
