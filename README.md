@@ -1,69 +1,76 @@
-# Welcome to your Lovable project
+# Добро пожаловать в ваш проект!
 
-## Project info
+## Информация о проекте
 
-**URL**: https://lovable.dev/projects/39cb3029-1d97-442a-a2cc-53966cae5f24
+**URL**: https://lovable.dev/projects/39cb3029-1d97-442a-a2cc-53966cae5f24  
 
-## How can I edit this code?
+## Как редактировать код?  
 
-There are several ways of editing your application.
+### Использование веб-интерфейса  
+Вы можете использовать веб-интерфейс для внесения изменений. Просто откройте ссылку проекта и начните работу.  
 
-**Use Lovable**
+### Работа в любимом редакторе  
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/39cb3029-1d97-442a-a2cc-53966cae5f24) and start prompting.
+Чтобы работать локально через ваш редактор кода, выполните следующие шаги:  
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+1. Клонируйте репозиторий, используя URL проекта:  
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone <URL_РЕПОЗИТОРИЯ>
+```  
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Перейдите в папку проекта:  
 
-# Step 3: Install the necessary dependencies.
+```sh
+cd <ИМЯ_ПРОЕКТА>
+```  
+
+3. Установите зависимости:  
+
+```sh
 npm i
+```  
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Запустите сервер разработки с автоматической перезагрузкой:  
+
+```sh
 npm run dev
-```
+```  
 
-**Edit a file directly in GitHub**
+### Редактирование файлов напрямую на GitHub  
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Перейдите к нужному файлу.  
+- Нажмите на значок редактирования (карандаш).  
+- Внесите изменения и сохраните, добавив комментарий к коммиту.  
 
-**Use GitHub Codespaces**
+### Использование GitHub Codespaces  
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Перейдите на главную страницу репозитория.  
+2. Нажмите кнопку "Code" (зеленая кнопка).  
+3. Выберите вкладку "Codespaces".  
+4. Нажмите "New codespace", чтобы создать среду разработки.  
+5. Редактируйте файлы и отправляйте изменения в репозиторий.  
 
-## What technologies are used for this project?
+## Какие технологии используются в проекте?  
 
-This project is built with .
+Проект построен с использованием:  
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite**  
+- **TypeScript**  
+- **React**  
+- **shadcn-ui**  
+- **Tailwind CSS**  
 
-## How can I deploy this project?
+## Как опубликовать проект?  
 
-Simply open [Lovable](https://lovable.dev/projects/39cb3029-1d97-442a-a2cc-53966cae5f24) and click on Share -> Publish.
+Для публикации проекта выполните следующую команду:  
 
-## I want to use a custom domain - is that possible?
+```sh
+npm run build
+```  
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Собранные файлы будут готовы для развертывания на любом хостинге.  
+
+## Можно ли использовать собственный домен?  
+
+Да, вы можете использовать собственный домен. Мы рекомендуем развернуть проект на платформе вроде Netlify, что позволяет настроить домен быстро и просто. Более подробную информацию можно найти в [документации](https://docs.lovable.dev/tips-tricks/custom-domain/).  
