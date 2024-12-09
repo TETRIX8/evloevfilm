@@ -1,5 +1,8 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { toast } from "./ui/use-toast";
+import { useState, useEffect } from "react";
 
 interface MoviePlayerProps {
   title: string;
@@ -8,17 +11,76 @@ interface MoviePlayerProps {
 
 export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const navigate = useNavigate();
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
+    const isSaved = savedMovies.some((movie: any) => movie.title === title);
+    setIsLiked(isSaved);
+  }, [title]);
+
+  const handleLike = () => {
+    const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
+    if (!isLiked) {
+      savedMovies.push({
+        title,
+        link: iframeUrl,
+        savedAt: new Date().toISOString()
+      });
+      toast("Фильм добавлен в сохраненные");
+    } else {
+      const index = savedMovies.findIndex((movie: any) => movie.title === title);
+      if (index > -1) savedMovies.splice(index, 1);
+      toast("Фильм удален из сохраненных");
+    }
+    localStorage.setItem("savedMovies", JSON.stringify(savedMovies));
+    setIsLiked(!isLiked);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: title,
+        url: window.location.href
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast("Ссылка скопирована в буфер обмена");
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-background/95 z-50 flex flex-col">
       <div className="container mx-auto p-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-4 group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <span>Назад</span>
-        </button>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span>Назад</span>
+          </button>
+          
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-10 w-10"
+              onClick={handleLike}
+            >
+              <Heart className={`h-5 w-5 ${isLiked ? "fill-primary text-primary" : ""}`} />
+            </Button>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-10 w-10"
+              onClick={handleShare}
+            >
+              <Share2 className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+        
         <h1 className="text-2xl font-bold mb-6 animate-fade-in">{title}</h1>
       </div>
       
