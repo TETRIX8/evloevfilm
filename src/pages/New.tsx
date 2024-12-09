@@ -4,7 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { toast } from "sonner";
 
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
-const BASE_URL = "https://api1650820663.bhcesh.me/list";
+const BASE_URL = "https://api1673051707.bhcesh.me/list";
 
 export default function New() {
   const { data: newMovies, error } = useQuery({
@@ -12,7 +12,7 @@ export default function New() {
     queryFn: async () => {
       console.log("Fetching new movies...");
       const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&type=new`
+        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=2024`
       );
       if (!response.ok) throw new Error("Failed to fetch new movies");
       const data = await response.json();
@@ -37,10 +37,10 @@ export default function New() {
       <main className="container pt-24 pb-16 space-y-8">
         <header className="space-y-4">
           <h2 className="text-4xl font-bold">
-            Новинки
+            Новинки 2024
           </h2>
           <p className="text-muted-foreground">
-            Самые свежие фильмы
+            Самые свежие фильмы этого года
           </p>
         </header>
 
