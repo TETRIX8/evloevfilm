@@ -1,15 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/SearchBar";
-import { MovieGrid } from "@/components/MovieGrid";
 import { Navigation } from "@/components/Navigation";
 import { toast } from "sonner";
+import { MovieCarousel } from "@/components/MovieCarousel";
+import { SearchResults } from "@/components/SearchResults";
 
-interface Movie {
-  title: string;
-  image: string;
-  link: string;
-}
+const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
+const BASE_URL = "https://api1673051707.bhcesh.me/list";
+
+// Get current year in Moscow timezone
+const getCurrentYear = () => {
+  const moscowDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
+  return moscowDate.getFullYear();
+};
 
 interface ApiResponse {
   total: number;
@@ -20,15 +24,6 @@ interface ApiResponse {
     iframe_url: string;
   }>;
 }
-
-const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
-const BASE_URL = "https://api1673051707.bhcesh.me/list";
-
-// Get current year in Moscow timezone
-const getCurrentYear = () => {
-  const moscowDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
-  return moscowDate.getFullYear();
-};
 
 export default function Index() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,44 +80,6 @@ export default function Index() {
     },
   });
 
-  const { data: recommendations, error: recommendationsError } = useQuery({
-    queryKey: ["recommendations"],
-    queryFn: async () => {
-      console.log("Fetching recommendations...");
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&type=favorits`
-      );
-      if (!response.ok) throw new Error("Failed to fetch recommendations");
-      const data: ApiResponse = await response.json();
-      console.log("Recommendations data:", data);
-      
-      return data.results?.map(movie => ({
-        title: movie.name,
-        image: movie.poster,
-        link: movie.iframe_url
-      })) || [];
-    },
-  });
-
-  const { data: randomMovies, error: randomMoviesError } = useQuery({
-    queryKey: ["random-movies"],
-    queryFn: async () => {
-      console.log("Fetching random movies...");
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&type=films&sort=random&limit=10`
-      );
-      if (!response.ok) throw new Error("Failed to fetch random movies");
-      const data: ApiResponse = await response.json();
-      console.log("Random movies data:", data);
-      
-      return data.results?.map(movie => ({
-        title: movie.name,
-        image: movie.poster,
-        link: movie.iframe_url
-      })) || [];
-    },
-  });
-
   const { data: searchResults, error: searchError } = useQuery({
     queryKey: ["search", searchTerm],
     queryFn: async () => {
@@ -167,40 +124,25 @@ export default function Index() {
           />
         </header>
 
-        <div className="space-y-8">
-          {searchTerm && (
-            <section className="space-y-4 animate-fade-in">
-              <h2 className="text-2xl font-semibold">Результаты поиска</h2>
-              <MovieGrid movies={searchResults} />
-            </section>
-          )}
+        <div className="space-y-12">
+          <SearchResults searchTerm={searchTerm} results={searchResults} />
 
           {!searchTerm && (
             <>
-              <section className="space-y-4 animate-fade-in">
-                <h2 className="text-2xl font-semibold">Новые фильмы {currentYear}</h2>
-                <MovieGrid movies={newMovies} />
-              </section>
+              <MovieCarousel 
+                title={`Новые фильмы ${currentYear}`}
+                movies={newMovies}
+              />
 
-              <section className="space-y-4 animate-fade-in">
-                <h2 className="text-2xl font-semibold">Новые сериалы {currentYear}</h2>
-                <MovieGrid movies={newTVShows} />
-              </section>
+              <MovieCarousel 
+                title={`Новые сериалы ${currentYear}`}
+                movies={newTVShows}
+              />
 
-              <section className="space-y-4 animate-fade-in">
-                <h2 className="text-2xl font-semibold">Новые мультфильмы {currentYear}</h2>
-                <MovieGrid movies={newCartoons} />
-              </section>
-
-              <section className="space-y-4 animate-fade-in">
-                <h2 className="text-2xl font-semibold">Рекомендуемые фильмы</h2>
-                <MovieGrid movies={recommendations} />
-              </section>
-
-              <section className="space-y-4 animate-fade-in">
-                <h2 className="text-2xl font-semibold">Случайные подборки</h2>
-                <MovieGrid movies={randomMovies} />
-              </section>
+              <MovieCarousel 
+                title={`Новые мультфильмы ${currentYear}`}
+                movies={newCartoons}
+              />
             </>
           )}
         </div>
