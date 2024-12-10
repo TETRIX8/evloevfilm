@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import { Heart, Share2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import { toast } from "./ui/use-toast";
-import { useState } from "react";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 interface MovieCardProps {
   title: string;
@@ -15,6 +15,12 @@ interface MovieCardProps {
 export function MovieCard({ title, image, link, className }: MovieCardProps) {
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
+    const isSaved = savedMovies.some((movie: any) => movie.title === title);
+    setIsLiked(isSaved);
+  }, [title]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,7 +35,12 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
     setIsLiked(!isLiked);
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
     if (!isLiked) {
-      savedMovies.push({ title, image, link, savedAt: new Date().toISOString() });
+      savedMovies.push({ 
+        title, 
+        image, 
+        link, 
+        savedAt: new Date().toISOString() 
+      });
       toast("Фильм добавлен в сохраненные");
     } else {
       const index = savedMovies.findIndex((movie: any) => movie.title === title);
