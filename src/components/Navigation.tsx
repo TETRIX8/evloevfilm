@@ -9,6 +9,7 @@ import {
 } from "./ui/sheet";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/use-theme";
+import { motion } from "framer-motion";
 
 export function Navigation() {
   const { theme, setTheme } = useTheme();
@@ -43,37 +44,51 @@ export function Navigation() {
               </div>
             </SheetContent>
           </Sheet>
-          <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
-            EVOLVEFILM
-          </Link>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
+              EVOLVEFILM
+            </Link>
+          </motion.div>
           <div className="hidden lg:flex items-center gap-2">
-            <Button variant="ghost" className="gap-2" asChild>
-              <Link to="/saved">
-                <Bookmark className="h-4 w-4" />
-                Сохраненные
-              </Link>
-            </Button>
-            <Button variant="ghost" className="gap-2" asChild>
-              <Link to="/new">
-                <Film className="h-4 w-4" />
-                Новинки
-              </Link>
-            </Button>
+            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Button variant="ghost" className="gap-2" asChild>
+                <Link to="/saved">
+                  <Bookmark className="h-4 w-4" />
+                  Сохраненные
+                </Link>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Button variant="ghost" className="gap-2" asChild>
+                <Link to="/new">
+                  <Film className="h-4 w-4" />
+                  Новинки
+                </Link>
+              </Button>
+            </motion.div>
           </div>
         </div>
         
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="rounded-full transition-transform hover:scale-110"
+        <motion.div
+          whileHover={{ rotate: 180 }}
+          transition={{ duration: 0.3 }}
         >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          ) : (
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="rounded-full transition-transform hover:scale-110"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            ) : (
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            )}
+          </Button>
+        </motion.div>
       </div>
     </nav>
   );
