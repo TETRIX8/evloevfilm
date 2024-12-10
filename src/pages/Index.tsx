@@ -3,19 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/SearchBar";
 import { MovieGrid } from "@/components/MovieGrid";
 import { Navigation } from "@/components/Navigation";
-import { CollectionGrid } from "@/components/CollectionGrid";
 import { toast } from "sonner";
 
 interface Movie {
   title: string;
   image: string;
   link: string;
-}
-
-interface Collection {
-  id: number;
-  name: string;
-  poster: string;
 }
 
 interface ApiResponse {
@@ -28,37 +21,67 @@ interface ApiResponse {
   }>;
 }
 
-interface CollectionResponse {
-  total: number;
-  results: Collection[];
-}
-
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
-const BASE_URL = "https://api1650820663.bhcesh.me/list";
-const COLLECTION_URL = "https://api1662739038.bhcesh.me/collection";
+const BASE_URL = "https://api1673051707.bhcesh.me/list";
+
+// Get current year in Moscow timezone
+const getCurrentYear = () => {
+  const moscowDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
+  return moscowDate.getFullYear();
+};
 
 export default function Index() {
   const [searchTerm, setSearchTerm] = useState("");
+  const currentYear = getCurrentYear();
 
-  const { data: collections, error: collectionsError } = useQuery({
-    queryKey: ["collections"],
+  const { data: newMovies, error: moviesError } = useQuery({
+    queryKey: ["new-movies"],
     queryFn: async () => {
-      console.log("Fetching collections...");
-      const collections: Collection[] = [];
-      
-      // Fetch first 10 collections from multiple pages
-      for (let page = 1; page <= 3; page++) {
-        const response = await fetch(
-          `${COLLECTION_URL}?page=${page}&token=${API_TOKEN}`
-        );
-        if (!response.ok) throw new Error(`Failed to fetch collections page ${page}`);
-        const data: CollectionResponse = await response.json();
-        collections.push(...data.results);
-        
-        if (collections.length >= 10) break;
-      }
-      
-      return collections.slice(0, 10);
+      console.log("Fetching new movies...");
+      const response = await fetch(
+        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=${currentYear}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch new movies");
+      const data: ApiResponse = await response.json();
+      return data.results?.map(movie => ({
+        title: movie.name,
+        image: movie.poster,
+        link: movie.iframe_url
+      })) || [];
+    },
+  });
+
+  const { data: newTVShows, error: tvShowsError } = useQuery({
+    queryKey: ["new-tvshows"],
+    queryFn: async () => {
+      console.log("Fetching new TV shows...");
+      const response = await fetch(
+        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=serials&join_seasons=false&limit=50&year=${currentYear}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch new TV shows");
+      const data: ApiResponse = await response.json();
+      return data.results?.map(show => ({
+        title: show.name,
+        image: show.poster,
+        link: show.iframe_url
+      })) || [];
+    },
+  });
+
+  const { data: newCartoons, error: cartoonsError } = useQuery({
+    queryKey: ["new-cartoons"],
+    queryFn: async () => {
+      console.log("Fetching new cartoons...");
+      const response = await fetch(
+        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=cartoon&limit=50&year=${currentYear}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch new cartoons");
+      const data: ApiResponse = await response.json();
+      return data.results?.map(cartoon => ({
+        title: cartoon.name,
+        image: cartoon.poster,
+        link: cartoon.iframe_url
+      })) || [];
     },
   });
 
@@ -110,8 +133,6 @@ export default function Index() {
       );
       if (!response.ok) throw new Error("Failed to fetch search results");
       const data: ApiResponse = await response.json();
-      console.log("Search results:", data);
-      
       return data.results?.map(movie => ({
         title: movie.name,
         image: movie.poster,
@@ -122,10 +143,11 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (recommendationsError || searchError || randomMoviesError || collectionsError) {
+    const errors = [moviesError, tvShowsError, cartoonsError, searchError];
+    if (errors.some(error => error)) {
       toast.error("Failed to fetch data. Please try again later.");
     }
-  }, [recommendationsError, searchError, randomMoviesError, collectionsError]);
+  }, [moviesError, tvShowsError, cartoonsError, searchError]);
 
   return (
     <div className="min-h-screen">
@@ -146,13 +168,6 @@ export default function Index() {
         </header>
 
         <div className="space-y-8">
-          {!searchTerm && collections && collections.length > 0 && (
-            <section className="space-y-4 animate-fade-in">
-              <h2 className="text-2xl font-semibold">Подборки фильмов</h2>
-              <CollectionGrid collections={collections} />
-            </section>
-          )}
-
           {searchTerm && (
             <section className="space-y-4 animate-fade-in">
               <h2 className="text-2xl font-semibold">Результаты поиска</h2>
@@ -162,6 +177,21 @@ export default function Index() {
 
           {!searchTerm && (
             <>
+              <section className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-semibold">Новые фильмы {currentYear}</h2>
+                <MovieGrid movies={newMovies} />
+              </section>
+
+              <section className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-semibold">Новые сериалы {currentYear}</h2>
+                <MovieGrid movies={newTVShows} />
+              </section>
+
+              <section className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-semibold">Новые мультфильмы {currentYear}</h2>
+                <MovieGrid movies={newCartoons} />
+              </section>
+
               <section className="space-y-4 animate-fade-in">
                 <h2 className="text-2xl font-semibold">Рекомендуемые фильмы</h2>
                 <MovieGrid movies={recommendations} />
