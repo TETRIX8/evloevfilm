@@ -82,9 +82,7 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 240 4.9% 83.9%;
   }
-}
- 
-@layer base {
+
   * {
     @apply border-border;
   }
@@ -93,14 +91,19 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Add smooth transition for theme switching */
+  /* Theme switching animations */
   :root {
-    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    transition: color 0.5s ease-out, background-color 0.5s ease-out, border-color 0.5s ease-out;
   }
 
   :root * {
-    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease,
-                fill 0.3s ease, stroke 0.3s ease;
+    transition: color 0.5s ease-out, background-color 0.5s ease-out, border-color 0.5s ease-out,
+                fill 0.5s ease-out, stroke 0.5s ease-out;
+  }
+
+  /* Explosion animation */
+  .theme-explosion {
+    animation: explode 0.5s ease-out forwards;
   }
 }
 
@@ -112,6 +115,21 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 

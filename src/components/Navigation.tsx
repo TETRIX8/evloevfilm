@@ -11,12 +11,23 @@ import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/use-theme";
 import { motion } from "framer-motion";
 import { Switch } from "./ui/switch";
+import { useState } from "react";
 
 export function Navigation() {
   const { theme, setTheme } = useTheme();
+  const [isExploding, setIsExploding] = useState(false);
+
+  const handleThemeChange = (checked: boolean) => {
+    setIsExploding(true);
+    // Wait for explosion animation to complete
+    setTimeout(() => {
+      setTheme(checked ? "dark" : "light");
+      setIsExploding(false);
+    }, 500);
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <nav className={`fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b ${isExploding ? 'theme-explosion' : ''}`}>
       <div className="container flex items-center justify-between h-16">
         <div className="flex items-center gap-4">
           <Sheet>
@@ -79,7 +90,7 @@ export function Navigation() {
           </span>
           <Switch
             checked={theme === "dark"}
-            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+            onCheckedChange={handleThemeChange}
             className="data-[state=checked]:bg-primary"
           />
         </div>
