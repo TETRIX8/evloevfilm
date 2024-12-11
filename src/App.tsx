@@ -11,6 +11,8 @@ import Saved from "./pages/Saved";
 import New from "./pages/New";
 import { PageTransition } from "./components/PageTransition";
 import { LoadingScreen } from "./components/LoadingScreen";
+import { OnboardingTour } from "./components/OnboardingTour";
+import { getDeviceInfo } from "./utils/deviceDetection";
 
 const queryClient = new QueryClient();
 
@@ -61,10 +63,18 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Save device info on first visit
+    const hasVisited = localStorage.getItem("hasVisited");
+    if (!hasVisited) {
+      const deviceInfo = getDeviceInfo();
+      localStorage.setItem("deviceInfo", JSON.stringify(deviceInfo));
+      localStorage.setItem("hasVisited", "true");
+    }
+
     // Simulate initial loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000); // Show loading screen for 2 seconds
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -79,6 +89,7 @@ const App = () => {
           </AnimatePresence>
           <BrowserRouter>
             <AnimatedRoutes />
+            <OnboardingTour />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
