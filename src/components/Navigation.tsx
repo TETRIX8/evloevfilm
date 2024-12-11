@@ -1,4 +1,4 @@
-import { Menu, Bookmark, Film, Sun, Moon } from "lucide-react";
+import { Menu, Bookmark, Film } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -10,6 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/use-theme";
 import { motion } from "framer-motion";
+import { Switch } from "./ui/switch";
 
 export function Navigation() {
   const { theme, setTheme } = useTheme();
@@ -72,23 +73,16 @@ export function Navigation() {
           </div>
         </div>
         
-        <motion.div
-          whileHover={{ rotate: 180 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-full transition-transform hover:scale-110"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            ) : (
-              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            )}
-          </Button>
-        </motion.div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {theme === "dark" ? "Темная" : "Светлая"}
+          </span>
+          <Switch
+            checked={theme === "dark"}
+            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+            className="data-[state=checked]:bg-primary"
+          />
+        </div>
       </div>
     </nav>
   );
