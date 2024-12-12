@@ -5,7 +5,6 @@ import { Navigation } from "@/components/Navigation";
 import { toast } from "sonner";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { SearchResults } from "@/components/SearchResults";
-import { VideoBackground } from "@/components/VideoBackground";
 
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://api1673051707.bhcesh.me/list";
@@ -109,7 +108,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen">
-      <VideoBackground />
       <Navigation />
       
       <main className="container pt-24 pb-16 space-y-8">
