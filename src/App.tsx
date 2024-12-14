@@ -12,7 +12,9 @@ import { PageTransition } from "./components/PageTransition";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { OnboardingTour } from "./components/OnboardingTour";
 import { getDeviceInfo } from "./utils/deviceDetection";
+import { requestNotificationPermission, scheduleNotification } from "./utils/notifications";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const queryClient = new QueryClient();
 
@@ -59,20 +61,33 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Save device info on first visit
-    const hasVisited = localStorage.getItem("hasVisited");
-    if (!hasVisited) {
-      const deviceInfo = getDeviceInfo();
-      localStorage.setItem("deviceInfo", JSON.stringify(deviceInfo));
-      localStorage.setItem("hasVisited", "true");
-    }
+    const initializeApp = async () => {
+      // Save device info on first visit
+      const hasVisited = localStorage.getItem("hasVisited");
+      if (!hasVisited) {
+        const deviceInfo = getDeviceInfo();
+        localStorage.setItem("deviceInfo", JSON.stringify(deviceInfo));
+        localStorage.setItem("hasVisited", "true");
+        
+        // Request notification permission on first visit
+        const permissionGranted = await requestNotificationPermission();
+        if (permissionGranted) {
+          toast.success("Уведомления включены! Мы будем держать вас в курсе новинок.");
+          scheduleNotification();
+        }
+      } else if (localStorage.getItem("notificationPermission") === "granted") {
+        scheduleNotification();
+      }
 
-    // Simulate initial loading for 5 seconds
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 5000);
+      // Simulate initial loading for 5 seconds
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 5000);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    };
+
+    initializeApp();
   }, []);
 
   return (
