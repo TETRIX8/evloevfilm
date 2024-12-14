@@ -67,10 +67,10 @@ function AppContent() {
       localStorage.setItem("hasVisited", "true");
     }
 
-    // Simulate initial loading
+    // Simulate initial loading for 5 seconds
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);

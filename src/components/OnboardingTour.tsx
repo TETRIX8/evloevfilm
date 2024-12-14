@@ -14,19 +14,36 @@ const steps = [
   {
     title: "Добро пожаловать в EVOLVEFILM",
     description: "Ваш персональный помощник в мире кино и сериалов. Давайте познакомимся с основными функциями.",
+    position: "center",
   },
   {
-    title: "Поиск",
-    description: "Используйте поисковую строку для быстрого поиска любимых фильмов и сериалов.",
+    title: "Поиск фильмов",
+    description: "Используйте поисковую строку для быстрого поиска любимых фильмов и сериалов. Просто введите название!",
+    position: "top",
+    element: ".search-bar",
+    arrow: { direction: "up", offset: -20 }
   },
   {
-    title: "Сохранение",
-    description: "Нажмите на иконку сердечка, чтобы сохранить фильм в избранное.",
+    title: "Навигация",
+    description: "Используйте меню навигации для перехода между разделами: Главная, Сохраненное и Новинки.",
+    position: "left",
+    element: "nav",
+    arrow: { direction: "left", offset: 20 }
+  },
+  {
+    title: "Сохранение фильмов",
+    description: "Нажмите на иконку сердечка рядом с фильмом, чтобы добавить его в избранное. Все сохраненные фильмы доступны в разделе 'Сохраненное'.",
+    position: "right",
+    element: ".movie-card",
+    arrow: { direction: "right", offset: -20 }
   },
   {
     title: "Новинки",
-    description: "В разделе 'Новинки' вы найдете последние поступления фильмов, сериалов и мультфильмов.",
-  },
+    description: "В разделе 'Новинки' вы найдете последние поступления фильмов, сериалов и мультфильмов. Регулярно проверяйте обновления!",
+    position: "bottom",
+    element: ".new-releases",
+    arrow: { direction: "down", offset: 20 }
+  }
 ];
 
 export function OnboardingTour() {
@@ -49,6 +66,24 @@ export function OnboardingTour() {
     }
   };
 
+  const renderArrow = (direction: string, offset: number) => {
+    const arrowStyles: Record<string, React.CSSProperties> = {
+      up: { bottom: offset, left: '50%', transform: 'translateX(-50%) rotate(-45deg)' },
+      down: { top: offset, left: '50%', transform: 'translateX(-50%) rotate(135deg)' },
+      left: { right: offset, top: '50%', transform: 'translateY(-50%) rotate(-135deg)' },
+      right: { left: offset, top: '50%', transform: 'translateY(-50%) rotate(45deg)' }
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="absolute w-6 h-6 border-t-4 border-r-4 border-primary"
+        style={arrowStyles[direction]}
+      />
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[425px]">
@@ -59,11 +94,17 @@ export function OnboardingTour() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
+            className="relative"
           >
             <DialogHeader>
               <DialogTitle>{steps[currentStep].title}</DialogTitle>
               <DialogDescription>{steps[currentStep].description}</DialogDescription>
             </DialogHeader>
+
+            {steps[currentStep].arrow && renderArrow(
+              steps[currentStep].arrow.direction,
+              steps[currentStep].arrow.offset
+            )}
           </motion.div>
         </AnimatePresence>
 
