@@ -15,14 +15,6 @@ export function LoadingScreen() {
     };
   }, []);
 
-  const bounceTransition = {
-    y: {
-      duration: 0.6,
-      yoyo: 3,
-      ease: "easeOut"
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -30,37 +22,25 @@ export function LoadingScreen() {
       className="fixed inset-0 z-50 flex items-center justify-center bg-background"
     >
       <div className="text-center space-y-8">
-        <div className="relative h-24">
-          {/* Bouncing E animation */}
+        <motion.div 
+          className="text-6xl font-bold"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <motion.span
-            initial={{ y: -100, opacity: 0 }}
-            animate={{
-              y: [null, 20, -20, 0],
-              opacity: 1,
-              scale: [1, 0.8, 1.2, 1]
-            }}
-            transition={{
+            className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60"
+            initial={{ letterSpacing: "1em" }}
+            animate={{ letterSpacing: "normal" }}
+            transition={{ 
               duration: 1.5,
-              times: [0, 0.4, 0.7, 1],
-              ease: "easeInOut"
+              ease: "easeOut",
+              delay: 0.2
             }}
-            className="absolute text-6xl font-bold text-primary"
-            style={{ left: "50%", transform: "translateX(-50%)" }}
           >
-            E
+            EvloevFilm
           </motion.span>
-
-          {/* Rest of the text that fades in */}
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-            className="absolute text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60"
-            style={{ left: "50%", transform: "translateX(-50%)" }}
-          >
-            vloevFilm
-          </motion.span>
-        </div>
+        </motion.div>
 
         {/* Animated circles */}
         <div className="relative w-32 h-32 mx-auto">
