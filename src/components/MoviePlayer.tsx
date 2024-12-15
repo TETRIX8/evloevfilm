@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "./ui/use-toast";
 import { useState, useEffect } from "react";
+import { soundEffects } from "../utils/soundEffects";
 
 interface MoviePlayerProps {
   title: string;
@@ -20,6 +21,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   }, [title]);
 
   const handleLike = () => {
+    soundEffects.play("click");
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
     if (!isLiked) {
       savedMovies.push({
@@ -38,6 +40,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   };
 
   const handleShare = () => {
+    soundEffects.play("click");
     if (navigator.share) {
       navigator.share({
         title: title,
@@ -49,12 +52,17 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     }
   };
 
+  const handleBack = () => {
+    soundEffects.play("click");
+    navigate(-1);
+  };
+
   return (
     <div className="fixed inset-0 bg-background/95 z-50 flex flex-col">
       <div className="container mx-auto p-4">
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

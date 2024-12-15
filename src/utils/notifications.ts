@@ -1,9 +1,12 @@
+import { soundEffects } from "./soundEffects";
+
 export const requestNotificationPermission = async () => {
   try {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       console.log("Notification permission granted");
       localStorage.setItem("notificationPermission", "granted");
+      soundEffects.play("notification");
       return true;
     }
     return false;
@@ -49,6 +52,7 @@ const notificationMessages = [
 
 const sendNotification = () => {
   if (Notification.permission === "granted") {
+    soundEffects.play("notification");
     const randomMessage = notificationMessages[Math.floor(Math.random() * notificationMessages.length)];
     new Notification("EvloevFilm", {
       body: randomMessage,
