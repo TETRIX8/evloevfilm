@@ -27,7 +27,7 @@ export default function History() {
         addSuffix: true,
         locale: ru 
       })})`,
-      image: movie.image,
+      image: movie.image || "/placeholder.svg", // Add fallback image
       link: movie.link
     }));
   };
