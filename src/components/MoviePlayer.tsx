@@ -1,9 +1,10 @@
 import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import { toast } from "./ui/use-toast";
-import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useState, useEffect, useRef } from "react";
 import { soundEffects } from "../utils/soundEffects";
+import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
 
 interface MoviePlayerProps {
   title: string;
@@ -15,12 +16,32 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const location = useLocation();
   const [isLiked, setIsLiked] = useState(false);
   const imageUrl = location.state?.image || "/placeholder.svg";
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
     const isSaved = savedMovies.some((movie: any) => movie.title === title);
     setIsLiked(isSaved);
-  }, [title]);
+
+    // Add to watch history when starting to watch
+    addToWatchHistory({
+      title,
+      image: imageUrl,
+      link: iframeUrl
+    });
+
+    // Set up progress tracking
+    const interval = setInterval(() => {
+      if (iframeRef.current) {
+        // This is a simplified progress tracking.
+        // In reality, you might want to use the video player's API if available
+        const progress = Math.random(); // This should be replaced with actual progress
+        updateWatchProgress(title, progress);
+      }
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [title, imageUrl, iframeUrl]);
 
   const handleLike = () => {
     soundEffects.play("click");
@@ -98,6 +119,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       <div className="flex-1 relative w-full max-w-[1200px] mx-auto px-4">
         <div className="relative w-full rounded-lg overflow-hidden shadow-2xl animate-scale-in" style={{ paddingBottom: "56.25%" }}>
           <iframe
+            ref={iframeRef}
             src={iframeUrl}
             className="absolute inset-0 w-full h-full"
             allowFullScreen

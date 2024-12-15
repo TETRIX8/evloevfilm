@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Movie from "./pages/Movie";
 import Saved from "./pages/Saved";
 import New from "./pages/New";
+import History from "./pages/History";
 import { PageTransition } from "./components/PageTransition";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { OnboardingTour } from "./components/OnboardingTour";
@@ -50,6 +51,14 @@ function AnimatedRoutes() {
         element={
           <PageTransition>
             <New />
+          </PageTransition>
+        } 
+      />
+      <Route 
+        path="/history" 
+        element={
+          <PageTransition>
+            <History />
           </PageTransition>
         } 
       />

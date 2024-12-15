@@ -1,4 +1,4 @@
-import { Menu, Bookmark, Film } from "lucide-react";
+import { Menu, Bookmark, Film, History } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -19,7 +19,6 @@ export function Navigation() {
 
   const handleThemeChange = (checked: boolean) => {
     setIsExploding(true);
-    // Wait for explosion animation to complete
     setTimeout(() => {
       setTheme(checked ? "dark" : "light");
       setIsExploding(false);
@@ -53,6 +52,12 @@ export function Navigation() {
                     Новинки
                   </Link>
                 </Button>
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link to="/history">
+                    <History className="h-4 w-4" />
+                    История просмотров
+                  </Link>
+                </Button>
               </div>
             </SheetContent>
           </Sheet>
@@ -78,6 +83,14 @@ export function Navigation() {
                 <Link to="/new">
                   <Film className="h-4 w-4" />
                   Новинки
+                </Link>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Button variant="ghost" className="gap-2" asChild>
+                <Link to="/history">
+                  <History className="h-4 w-4" />
+                  История просмотров
                 </Link>
               </Button>
             </motion.div>
