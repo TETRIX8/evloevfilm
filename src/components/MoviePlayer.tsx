@@ -1,5 +1,5 @@
 import { ArrowLeft, Heart, Share2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "./ui/use-toast";
 import { useState, useEffect } from "react";
@@ -12,7 +12,9 @@ interface MoviePlayerProps {
 
 export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLiked, setIsLiked] = useState(false);
+  const imageUrl = location.state?.image || "/placeholder.svg";
 
   useEffect(() => {
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
@@ -26,6 +28,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     if (!isLiked) {
       savedMovies.push({
         title,
+        image: imageUrl,
         link: iframeUrl,
         savedAt: new Date().toISOString()
       });
