@@ -4,6 +4,7 @@ import { getWatchHistory } from "@/utils/watchHistory";
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Snowfall } from "@/components/Snowfall";
 
 interface WatchHistoryItem {
   title: string;
@@ -33,10 +34,11 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <Snowfall />
       <Navigation />
       
-      <main className="container pt-24 pb-16 space-y-8">
+      <main className="container pt-24 pb-16 space-y-8 relative z-10">
         <header>
           <h1 className="text-3xl font-bold">История просмотров</h1>
         </header>
