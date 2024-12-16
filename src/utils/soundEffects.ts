@@ -7,13 +7,17 @@ class SoundEffects {
     this.sounds = {
       notification: new Audio("/loading-sound.mp3"),
       click: new Audio("/loading-sound.mp3"),
-      hover: new Audio("/loading-sound.mp3")
+      hover: new Audio("/loading-sound.mp3"),
+      save: new Audio("/loading-sound.mp3"),
+      load: new Audio("/loading-sound.mp3")
     };
 
-    // Set volume for all sounds
-    Object.values(this.sounds).forEach(sound => {
-      sound.volume = 0.2;
-    });
+    // Set custom volume for each sound
+    this.sounds.notification.volume = 0.2;
+    this.sounds.click.volume = 0.15;
+    this.sounds.hover.volume = 0.1;
+    this.sounds.save.volume = 0.25;
+    this.sounds.load.volume = 0.3;
   }
 
   public static getInstance(): SoundEffects {
