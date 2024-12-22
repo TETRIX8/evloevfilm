@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
@@ -9,6 +9,7 @@ import Movie from "./pages/Movie";
 import Saved from "./pages/Saved";
 import New from "./pages/New";
 import History from "./pages/History";
+import Auth from "./pages/Auth";
 import { PageTransition } from "./components/PageTransition";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { OnboardingTour } from "./components/OnboardingTour";
@@ -16,12 +17,49 @@ import { getDeviceInfo } from "./utils/deviceDetection";
 import { requestNotificationPermission, scheduleNotification } from "./utils/notifications";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return children;
+}
 
 function AnimatedRoutes() {
   return (
     <Routes>
+      <Route 
+        path="/auth" 
+        element={
+          <PageTransition>
+            <Auth />
+          </PageTransition>
+        } 
+      />
       <Route 
         path="/" 
         element={
@@ -41,9 +79,11 @@ function AnimatedRoutes() {
       <Route 
         path="/saved" 
         element={
-          <PageTransition>
-            <Saved />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <Saved />
+            </PageTransition>
+          </ProtectedRoute>
         } 
       />
       <Route 
@@ -57,9 +97,11 @@ function AnimatedRoutes() {
       <Route 
         path="/history" 
         element={
-          <PageTransition>
-            <History />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <History />
+            </PageTransition>
+          </ProtectedRoute>
         } 
       />
     </Routes>
@@ -88,10 +130,10 @@ function AppContent() {
         scheduleNotification();
       }
 
-      // Simulate initial loading for 5 seconds
+      // Simulate initial loading for 2 seconds
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 5000);
+      }, 2000);
 
       return () => clearTimeout(timer);
     };

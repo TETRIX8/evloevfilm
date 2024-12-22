@@ -9,7 +9,97 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      saved_movies: {
+        Row: {
+          id: string
+          image: string | null
+          link: string
+          saved_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          image?: string | null
+          link: string
+          saved_at?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          image?: string | null
+          link?: string
+          saved_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_movies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watch_history: {
+        Row: {
+          id: string
+          image: string | null
+          last_watched: string
+          link: string
+          progress: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          image?: string | null
+          last_watched?: string
+          link: string
+          progress?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          image?: string | null
+          last_watched?: string
+          link?: string
+          progress?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
