@@ -13,8 +13,6 @@ export default function AuthPage() {
       if (event === "SIGNED_IN") {
         toast.success("Добро пожаловать!");
         navigate("/");
-      } else if (event === "USER_DELETED") {
-        toast.error("Аккаунт был удален");
       } else if (event === "PASSWORD_RECOVERY") {
         toast.info("Проверьте вашу почту для восстановления пароля");
       }

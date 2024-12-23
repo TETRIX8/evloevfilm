@@ -32,7 +32,7 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
           .select()
           .eq('user_id', session.user.id)
           .eq('title', title)
-          .single()
+          .maybeSingle() // Changed from .single() to .maybeSingle()
           .then(({ data }) => {
             setIsLiked(!!data);
           });
