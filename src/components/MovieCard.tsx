@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { soundEffects } from "@/utils/soundEffects";
 import { supabase } from "@/integrations/supabase/client";
+import { Session } from '@supabase/supabase-js';
 
 interface MovieCardProps {
   title: string;
@@ -24,8 +25,10 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
   useEffect(() => {
     const checkSavedStatus = async () => {
       try {
-        const { data: session } = await supabase.auth.getSession();
-        if (session?.user) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const session = sessionData.session as Session | null;
+        
+        if (session?.user?.id) {
           setUserId(session.user.id);
           const { data, error } = await supabase
             .from('saved_movies')
