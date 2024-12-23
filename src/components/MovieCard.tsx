@@ -22,22 +22,31 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get current user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-        // Check if movie is saved
-        supabase
-          .from('saved_movies')
-          .select()
-          .eq('user_id', session.user.id)
-          .eq('title', title)
-          .maybeSingle() // Changed from .single() to .maybeSingle()
-          .then(({ data }) => {
-            setIsLiked(!!data);
-          });
+    const checkSavedStatus = async () => {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUserId(session.user.id);
+          const { data, error } = await supabase
+            .from('saved_movies')
+            .select()
+            .eq('user_id', session.user.id)
+            .eq('title', title)
+            .maybeSingle();
+
+          if (error) {
+            console.error('Error checking saved status:', error);
+            return;
+          }
+
+          setIsLiked(!!data);
+        }
+      } catch (error) {
+        console.error('Error in checkSavedStatus:', error);
       }
-    });
+    };
+
+    checkSavedStatus();
   }, [title]);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -60,35 +69,42 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
 
     soundEffects.play("save");
     
-    if (!isLiked) {
-      const { error } = await supabase
-        .from('saved_movies')
-        .insert([
-          { user_id: userId, title, image, link }
-        ]);
-      
-      if (error) {
-        toast.error("Ошибка при сохранении фильма");
-        return;
+    try {
+      if (!isLiked) {
+        const { error } = await supabase
+          .from('saved_movies')
+          .insert([
+            { user_id: userId, title, image, link }
+          ]);
+        
+        if (error) {
+          console.error('Error saving movie:', error);
+          toast.error("Ошибка при сохранении фильма");
+          return;
+        }
+        
+        toast.success("Фильм добавлен в сохраненные");
+      } else {
+        const { error } = await supabase
+          .from('saved_movies')
+          .delete()
+          .eq('user_id', userId)
+          .eq('title', title);
+        
+        if (error) {
+          console.error('Error removing movie:', error);
+          toast.error("Ошибка при удалении фильма");
+          return;
+        }
+        
+        toast.success("Фильм удален из сохраненных");
       }
       
-      toast.success("Фильм добавлен в сохраненные");
-    } else {
-      const { error } = await supabase
-        .from('saved_movies')
-        .delete()
-        .eq('user_id', userId)
-        .eq('title', title);
-      
-      if (error) {
-        toast.error("Ошибка при удалении фильма");
-        return;
-      }
-      
-      toast.success("Фильм удален из сохраненных");
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error('Error in handleLike:', error);
+      toast.error("Произошла ошибка");
     }
-    
-    setIsLiked(!isLiked);
   };
 
   const handleShare = (e: React.MouseEvent) => {
