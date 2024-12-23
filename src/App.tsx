@@ -50,30 +50,61 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedRoutes() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // If auth state is not yet determined, don't render routes
+  if (isAuthenticated === null) {
+    return null;
+  }
+
   return (
     <Routes>
       <Route 
         path="/auth" 
         element={
-          <PageTransition>
-            <Auth />
-          </PageTransition>
+          isAuthenticated ? (
+            <Navigate to="/" replace />
+          ) : (
+            <PageTransition>
+              <Auth />
+            </PageTransition>
+          )
         } 
       />
       <Route 
         path="/" 
         element={
-          <PageTransition>
-            <Index />
-          </PageTransition>
+          !isAuthenticated ? (
+            <Navigate to="/auth" replace />
+          ) : (
+            <PageTransition>
+              <Index />
+            </PageTransition>
+          )
         } 
       />
       <Route 
         path="/movie/:title" 
         element={
-          <PageTransition>
-            <Movie />
-          </PageTransition>
+          !isAuthenticated ? (
+            <Navigate to="/auth" replace />
+          ) : (
+            <PageTransition>
+              <Movie />
+            </PageTransition>
+          )
         } 
       />
       <Route 
@@ -89,9 +120,13 @@ function AnimatedRoutes() {
       <Route 
         path="/new" 
         element={
-          <PageTransition>
-            <New />
-          </PageTransition>
+          !isAuthenticated ? (
+            <Navigate to="/auth" replace />
+          ) : (
+            <PageTransition>
+              <New />
+            </PageTransition>
+          )
         } 
       />
       <Route 
@@ -110,6 +145,7 @@ function AnimatedRoutes() {
 
 function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -133,6 +169,7 @@ function AppContent() {
       // Simulate initial loading for 2 seconds
       const timer = setTimeout(() => {
         setIsLoading(false);
+        setIsInitialized(true);
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -146,10 +183,12 @@ function AppContent() {
       <AnimatePresence mode="wait">
         {isLoading && <LoadingScreen />}
       </AnimatePresence>
-      <BrowserRouter>
-        <AnimatedRoutes />
-        <OnboardingTour />
-      </BrowserRouter>
+      {isInitialized && (
+        <BrowserRouter>
+          <AnimatedRoutes />
+          <OnboardingTour />
+        </BrowserRouter>
+      )}
     </>
   );
 }
