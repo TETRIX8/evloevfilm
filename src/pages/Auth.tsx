@@ -9,11 +9,14 @@ export default function AuthPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         toast.success("Добро пожаловать!");
         navigate("/");
+      } else if (event === "USER_DELETED") {
+        toast.error("Аккаунт был удален");
+      } else if (event === "PASSWORD_RECOVERY") {
+        toast.info("Проверьте вашу почту для восстановления пароля");
       }
     });
 
@@ -40,6 +43,14 @@ export default function AuthPage() {
                   colors: {
                     brand: 'hsl(var(--primary))',
                     brandAccent: 'hsl(var(--primary))',
+                    brandButtonText: 'white',
+                    defaultButtonBackground: 'hsl(var(--secondary))',
+                    defaultButtonBackgroundHover: 'hsl(var(--secondary))',
+                  },
+                  radii: {
+                    borderRadiusButton: '0.5rem',
+                    buttonBorderRadius: '0.5rem',
+                    inputBorderRadius: '0.5rem',
                   },
                 },
               },
@@ -47,23 +58,42 @@ export default function AuthPage() {
                 container: 'w-full',
                 button: 'w-full px-4 py-2 rounded-md',
                 input: 'w-full px-3 py-2 rounded-md border',
+                label: 'text-foreground',
+                loader: 'text-primary',
               },
             }}
-            providers={[]}
             localization={{
               variables: {
                 sign_in: {
                   email_label: "Email",
                   password_label: "Пароль",
+                  email_input_placeholder: "Ваш email",
+                  password_input_placeholder: "Ваш пароль",
                   button_label: "Войти",
+                  loading_button_label: "Вход...",
+                  social_provider_text: "Войти через {{provider}}",
+                  link_text: "Уже есть аккаунт? Войти",
                 },
                 sign_up: {
                   email_label: "Email",
                   password_label: "Пароль",
+                  email_input_placeholder: "Ваш email",
+                  password_input_placeholder: "Ваш пароль",
                   button_label: "Зарегистрироваться",
+                  loading_button_label: "Регистрация...",
+                  social_provider_text: "Зарегистрироваться через {{provider}}",
+                  link_text: "Нет аккаунта? Зарегистрироваться",
+                },
+                forgotten_password: {
+                  link_text: "Забыли пароль?",
+                  button_label: "Отправить инструкции",
+                  loading_button_label: "Отправка инструкций...",
+                  confirmation_text: "Проверьте ваш email для восстановления пароля",
                 },
               },
             }}
+            theme="dark"
+            providers={[]}
           />
         </div>
       </div>
