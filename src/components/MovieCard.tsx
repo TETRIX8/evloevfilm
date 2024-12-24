@@ -21,11 +21,19 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkSavedStatus = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
+        setIsLoading(true);
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          return;
+        }
+
         const session = sessionData.session as Session | null;
         
         if (session?.user?.id) {
@@ -46,6 +54,9 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
         }
       } catch (error) {
         console.error('Error in checkSavedStatus:', error);
+        toast.error("Произошла ошибка при проверке статуса фильма");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -54,10 +65,15 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    soundEffects.play("click");
-    navigate(`/movie/${encodeURIComponent(title)}`, {
-      state: { title, image, iframeUrl: link }
-    });
+    try {
+      soundEffects.play("click");
+      navigate(`/movie/${encodeURIComponent(title)}`, {
+        state: { title, image, iframeUrl: link }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast.error("Произошла ошибка при переходе к фильму");
+    }
   };
 
   const handleLike = async (e: React.MouseEvent) => {
@@ -70,9 +86,10 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       return;
     }
 
-    soundEffects.play("save");
-    
     try {
+      soundEffects.play("save");
+      setIsLoading(true);
+      
       if (!isLiked) {
         const { error } = await supabase
           .from('saved_movies')
@@ -107,21 +124,33 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
     } catch (error) {
       console.error('Error in handleLike:', error);
       toast.error("Произошла ошибка");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    soundEffects.play("click");
-    if (navigator.share) {
-      navigator.share({
-        title: title,
-        url: window.location.origin + `/movie/${encodeURIComponent(title)}`
-      }).catch(console.error);
-    } else {
-      navigator.clipboard.writeText(window.location.origin + `/movie/${encodeURIComponent(title)}`);
-      toast("Ссылка скопирована в буфер обмена");
+    try {
+      soundEffects.play("click");
+      const shareUrl = `${window.location.origin}/movie/${encodeURIComponent(title)}`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: title,
+          url: shareUrl
+        }).catch(error => {
+          console.error('Error sharing:', error);
+          toast.error("Ошибка при попытке поделиться");
+        });
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success("Ссылка скопирована в буфер обмена");
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error("Произошла ошибка при попытке поделиться");
     }
   };
 
@@ -207,4 +236,4 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       </motion.div>
     </motion.div>
   );
-}
+};
