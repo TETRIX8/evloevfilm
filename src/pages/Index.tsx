@@ -25,6 +25,26 @@ interface ApiResponse {
   }>;
 }
 
+async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, {
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      if (response.ok) return response;
+    } catch (error) {
+      console.error(`Attempt ${i + 1} failed:`, error);
+      if (i === retries - 1) throw error;
+    }
+    // Wait before retrying
+    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+  }
+  throw new Error('Failed to fetch after retries');
+}
+
 export default function Index() {
   const [searchTerm, setSearchTerm] = useState("");
   const currentYear = getCurrentYear();
@@ -33,51 +53,71 @@ export default function Index() {
     queryKey: ["new-movies"],
     queryFn: async () => {
       console.log("Fetching new movies...");
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=${currentYear}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch new movies");
-      const data: ApiResponse = await response.json();
-      return data.results?.map(movie => ({
-        title: movie.name,
-        image: movie.poster,
-        link: movie.iframe_url
-      })) || [];
+      try {
+        const response = await fetchWithRetry(
+          `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=${currentYear}`
+        );
+        const data: ApiResponse = await response.json();
+        console.log("New movies data:", data);
+        
+        return data.results?.map(movie => ({
+          title: movie.name,
+          image: movie.poster,
+          link: movie.iframe_url
+        })) || [];
+      } catch (error) {
+        console.error("Error fetching new movies:", error);
+        throw error;
+      }
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
   });
 
   const { data: newTVShows, error: tvShowsError } = useQuery({
     queryKey: ["new-tvshows"],
     queryFn: async () => {
       console.log("Fetching new TV shows...");
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=serials&join_seasons=false&limit=50&year=${currentYear}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch new TV shows");
-      const data: ApiResponse = await response.json();
-      return data.results?.map(show => ({
-        title: show.name,
-        image: show.poster,
-        link: show.iframe_url
-      })) || [];
+      try {
+        const response = await fetchWithRetry(
+          `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=serials&join_seasons=false&limit=50&year=${currentYear}`
+        );
+        const data: ApiResponse = await response.json();
+        return data.results?.map(show => ({
+          title: show.name,
+          image: show.poster,
+          link: show.iframe_url
+        })) || [];
+      } catch (error) {
+        console.error("Error fetching TV shows:", error);
+        throw error;
+      }
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
   });
 
   const { data: newCartoons, error: cartoonsError } = useQuery({
     queryKey: ["new-cartoons"],
     queryFn: async () => {
       console.log("Fetching new cartoons...");
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=cartoon&limit=50&year=${currentYear}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch new cartoons");
-      const data: ApiResponse = await response.json();
-      return data.results?.map(cartoon => ({
-        title: cartoon.name,
-        image: cartoon.poster,
-        link: cartoon.iframe_url
-      })) || [];
+      try {
+        const response = await fetchWithRetry(
+          `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=cartoon&limit=50&year=${currentYear}`
+        );
+        const data: ApiResponse = await response.json();
+        return data.results?.map(cartoon => ({
+          title: cartoon.name,
+          image: cartoon.poster,
+          link: cartoon.iframe_url
+        })) || [];
+      } catch (error) {
+        console.error("Error fetching cartoons:", error);
+        throw error;
+      }
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
   });
 
   const { data: searchResults, error: searchError } = useQuery({
@@ -85,24 +125,30 @@ export default function Index() {
     queryFn: async () => {
       console.log("Fetching search results for:", searchTerm);
       if (!searchTerm) return null;
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&name=${encodeURIComponent(searchTerm)}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch search results");
-      const data: ApiResponse = await response.json();
-      return data.results?.map(movie => ({
-        title: movie.name,
-        image: movie.poster,
-        link: movie.iframe_url
-      })) || [];
+      try {
+        const response = await fetchWithRetry(
+          `${BASE_URL}?token=${API_TOKEN}&name=${encodeURIComponent(searchTerm)}`
+        );
+        const data: ApiResponse = await response.json();
+        return data.results?.map(movie => ({
+          title: movie.name,
+          image: movie.poster,
+          link: movie.iframe_url
+        })) || [];
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+        throw error;
+      }
     },
     enabled: searchTerm.length > 0,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
   });
 
   useEffect(() => {
     const errors = [moviesError, tvShowsError, cartoonsError, searchError];
     if (errors.some(error => error)) {
-      toast.error("Failed to fetch data. Please try again later.");
+      toast.error("Не удалось загрузить данные. Пожалуйста, попробуйте позже.");
     }
   }, [moviesError, tvShowsError, cartoonsError, searchError]);
 
