@@ -29,18 +29,25 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, {
-        mode: 'cors',
         headers: {
           'Accept': 'application/json',
-        }
+          'Origin': window.location.origin
+        },
+        mode: 'cors'
       });
-      if (response.ok) return response;
+      
+      if (response.ok) {
+        return response;
+      }
+      
+      // If response is not ok, throw an error to trigger retry
+      throw new Error(`HTTP error! status: ${response.status}`);
     } catch (error) {
       console.error(`Attempt ${i + 1} failed:`, error);
       if (i === retries - 1) throw error;
+      // Wait before retrying, with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, i), 5000)));
     }
-    // Wait before retrying
-    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
   }
   throw new Error('Failed to fetch after retries');
 }
@@ -54,9 +61,14 @@ export default function Index() {
     queryFn: async () => {
       console.log("Fetching new movies...");
       try {
-        const response = await fetchWithRetry(
-          `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=${currentYear}`
-        );
+        const url = new URL(BASE_URL);
+        url.searchParams.append('token', API_TOKEN);
+        url.searchParams.append('sort', '-views');
+        url.searchParams.append('type', 'films');
+        url.searchParams.append('limit', '50');
+        url.searchParams.append('year', currentYear.toString());
+
+        const response = await fetchWithRetry(url.toString());
         const data: ApiResponse = await response.json();
         console.log("New movies data:", data);
         
@@ -71,7 +83,7 @@ export default function Index() {
       }
     },
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
   const { data: newTVShows, error: tvShowsError } = useQuery({
@@ -79,9 +91,15 @@ export default function Index() {
     queryFn: async () => {
       console.log("Fetching new TV shows...");
       try {
-        const response = await fetchWithRetry(
-          `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=serials&join_seasons=false&limit=50&year=${currentYear}`
-        );
+        const url = new URL(BASE_URL);
+        url.searchParams.append('token', API_TOKEN);
+        url.searchParams.append('sort', '-views');
+        url.searchParams.append('type', 'serials');
+        url.searchParams.append('join_seasons', 'false');
+        url.searchParams.append('limit', '50');
+        url.searchParams.append('year', currentYear.toString());
+
+        const response = await fetchWithRetry(url.toString());
         const data: ApiResponse = await response.json();
         return data.results?.map(show => ({
           title: show.name,
@@ -94,7 +112,7 @@ export default function Index() {
       }
     },
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
   const { data: newCartoons, error: cartoonsError } = useQuery({
@@ -102,9 +120,14 @@ export default function Index() {
     queryFn: async () => {
       console.log("Fetching new cartoons...");
       try {
-        const response = await fetchWithRetry(
-          `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=cartoon&limit=50&year=${currentYear}`
-        );
+        const url = new URL(BASE_URL);
+        url.searchParams.append('token', API_TOKEN);
+        url.searchParams.append('sort', '-views');
+        url.searchParams.append('type', 'cartoon');
+        url.searchParams.append('limit', '50');
+        url.searchParams.append('year', currentYear.toString());
+
+        const response = await fetchWithRetry(url.toString());
         const data: ApiResponse = await response.json();
         return data.results?.map(cartoon => ({
           title: cartoon.name,
@@ -117,7 +140,7 @@ export default function Index() {
       }
     },
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
   const { data: searchResults, error: searchError } = useQuery({
@@ -126,9 +149,11 @@ export default function Index() {
       console.log("Fetching search results for:", searchTerm);
       if (!searchTerm) return null;
       try {
-        const response = await fetchWithRetry(
-          `${BASE_URL}?token=${API_TOKEN}&name=${encodeURIComponent(searchTerm)}`
-        );
+        const url = new URL(BASE_URL);
+        url.searchParams.append('token', API_TOKEN);
+        url.searchParams.append('name', searchTerm);
+
+        const response = await fetchWithRetry(url.toString());
         const data: ApiResponse = await response.json();
         return data.results?.map(movie => ({
           title: movie.name,
@@ -142,7 +167,7 @@ export default function Index() {
     },
     enabled: searchTerm.length > 0,
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
   useEffect(() => {
