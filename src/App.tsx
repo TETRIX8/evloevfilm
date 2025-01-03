@@ -10,6 +10,9 @@ import Saved from "./pages/Saved";
 import New from "./pages/New";
 import History from "./pages/History";
 import Auth from "./pages/Auth";
+import About from "./pages/About";
+import Support from "./pages/Support";
+import Profile from "./pages/Profile";
 import { PageTransition } from "./components/PageTransition";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { OnboardingTour } from "./components/OnboardingTour";
@@ -64,7 +67,6 @@ function AnimatedRoutes() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // If auth state is not yet determined, don't render routes
   if (isAuthenticated === null) {
     return null;
   }
@@ -135,6 +137,34 @@ function AnimatedRoutes() {
           <ProtectedRoute>
             <PageTransition>
               <History />
+            </PageTransition>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/about" 
+        element={
+          <PageTransition>
+            <About />
+          </PageTransition>
+        } 
+      />
+      <Route 
+        path="/support" 
+        element={
+          <ProtectedRoute>
+            <PageTransition>
+              <Support />
+            </PageTransition>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <PageTransition>
+              <Profile />
             </PageTransition>
           </ProtectedRoute>
         } 

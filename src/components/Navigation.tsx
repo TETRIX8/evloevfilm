@@ -1,4 +1,4 @@
-import { Menu, Bookmark, Film, History } from "lucide-react";
+import { Menu, Bookmark, Film, History, User, HelpCircle, Info } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -12,6 +12,14 @@ import { useTheme } from "@/hooks/use-theme";
 import { motion } from "framer-motion";
 import { Switch } from "./ui/switch";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function Navigation() {
   const { theme, setTheme } = useTheme();
@@ -23,6 +31,15 @@ export function Navigation() {
       setTheme(checked ? "dark" : "light");
       setIsExploding(false);
     }, 500);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Вы успешно вышли из системы");
+    } catch (error) {
+      toast.error("Ошибка при выходе из системы");
+    }
   };
 
   return (
@@ -56,6 +73,18 @@ export function Navigation() {
                   <Link to="/history">
                     <History className="h-4 w-4" />
                     История просмотров
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link to="/about">
+                    <Info className="h-4 w-4" />
+                    О нас
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link to="/support">
+                    <HelpCircle className="h-4 w-4" />
+                    Поддержка
                   </Link>
                 </Button>
               </div>
@@ -94,10 +123,26 @@ export function Navigation() {
                 </Link>
               </Button>
             </motion.div>
+            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Button variant="ghost" className="gap-2" asChild>
+                <Link to="/about">
+                  <Info className="h-4 w-4" />
+                  О нас
+                </Link>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Button variant="ghost" className="gap-2" asChild>
+                <Link to="/support">
+                  <HelpCircle className="h-4 w-4" />
+                  Поддержка
+                </Link>
+              </Button>
+            </motion.div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
             {theme === "dark" ? "Темная" : "Светлая"}
           </span>
@@ -106,6 +151,22 @@ export function Navigation() {
             onCheckedChange={handleThemeChange}
             className="data-[state=checked]:bg-primary"
           />
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/profile">Профиль</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </nav>
