@@ -1,13 +1,25 @@
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function Profile() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email);
+      }
+    };
+    
+    getUserEmail();
+  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +55,13 @@ export default function Profile() {
           </div>
 
           <div className="space-y-6">
+            {userEmail && (
+              <div className="p-6 rounded-lg bg-card">
+                <h2 className="text-xl font-semibold mb-2">Email</h2>
+                <p className="text-muted-foreground">{userEmail}</p>
+              </div>
+            )}
+
             <div className="p-6 rounded-lg bg-card">
               <h2 className="text-xl font-semibold mb-4">Изменить пароль</h2>
               <form onSubmit={handleUpdatePassword} className="space-y-4">
