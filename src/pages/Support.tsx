@@ -29,14 +29,28 @@ export default function Support() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Try to parse the error message from Resend if available
+        let errorMessage = "Произошла ошибка при отправке сообщения.";
+        try {
+          const parsedError = JSON.parse(error.message);
+          if (parsedError.error) {
+            const resendError = JSON.parse(parsedError.error);
+            errorMessage = resendError.message || errorMessage;
+          }
+        } catch {
+          // If parsing fails, use the original error message
+          errorMessage = error.message;
+        }
+        throw new Error(errorMessage);
+      }
 
       toast.success("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
       setSubject("");
       setMessage("");
     } catch (error) {
       console.error("Error sending support email:", error);
-      toast.error("Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.");
+      toast.error(error instanceof Error ? error.message : "Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.");
     } finally {
       setIsSubmitting(false);
     }

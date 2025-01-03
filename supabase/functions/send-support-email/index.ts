@@ -22,6 +22,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, subject, message }: SupportEmailRequest = await req.json();
 
+    // For testing, we'll send to the user's email address until domain verification is complete
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -29,40 +30,40 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "EVOLVEFILM Support <onboarding@resend.dev>",
-        to: ["support@evolvefilm.ru"], // Replace this with your actual support email
-        reply_to: email,
+        from: "onboarding@resend.dev",
+        to: [email], // Send to the user's email for testing
         subject: `Support Request: ${subject}`,
         html: `
-          <h2>New Support Request</h2>
+          <h2>Your Support Request</h2>
           <p><strong>From:</strong> ${email}</p>
           <p><strong>Subject:</strong> ${subject}</p>
           <p><strong>Message:</strong></p>
           <p>${message}</p>
+          <p>We will review your request and get back to you soon.</p>
         `,
       }),
     });
 
-    if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error);
-    }
-
     const data = await res.json();
     
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
+    if (!res.ok) {
+      console.error("Resend API error:", data);
+      return new Response(JSON.stringify({ error: data }), {
+        status: res.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+      });
+    }
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    console.error("Error in send-support-email function:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 };
 
