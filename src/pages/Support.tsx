@@ -21,26 +21,15 @@ export default function Support() {
         throw new Error("Пользователь не авторизован");
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-support-email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            email: user.email,
-            subject,
-            message,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('send-support-email', {
+        body: {
+          email: user.email,
+          subject,
+          message,
+        },
+      });
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
-      }
+      if (error) throw error;
 
       toast.success("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
       setSubject("");
