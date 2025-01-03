@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Support() {
   const [email, setEmail] = useState("");
@@ -16,14 +17,37 @@ export default function Support() {
     setIsSubmitting(true);
 
     try {
-      // Here you would typically send the support request to your backend
-      // For now, we'll just show a success message
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Пользователь не авторизован");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-support-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            email: user.email,
+            subject,
+            message,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+
       toast.success("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
-      setEmail("");
       setSubject("");
       setMessage("");
     } catch (error) {
+      console.error("Error sending support email:", error);
       toast.error("Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.");
     } finally {
       setIsSubmitting(false);
@@ -44,20 +68,6 @@ export default function Support() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ваш@email.com"
-                required
-              />
-            </div>
-
             <div className="space-y-2">
               <label htmlFor="subject" className="text-sm font-medium">
                 Тема
