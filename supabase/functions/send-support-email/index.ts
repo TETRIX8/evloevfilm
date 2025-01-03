@@ -29,8 +29,8 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "EVOLVEFILM Support <support@resend.dev>",
-        to: ["your-support-email@example.com"], // Replace with your actual support email
+        from: "EVOLVEFILM Support <onboarding@resend.dev>",
+        to: ["support@evolvefilm.ru"], // Replace this with your actual support email
         reply_to: email,
         subject: `Support Request: ${subject}`,
         html: `
@@ -55,6 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
     });
   } catch (error) {
+    console.error("Error sending email:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
