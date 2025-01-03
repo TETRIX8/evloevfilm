@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
@@ -46,68 +46,39 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    toast.error("Для доступа к этому разделу необходимо войти в систему");
+    return <Navigate to="/" replace />;
   }
 
   return children;
 }
 
 function AnimatedRoutes() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isAuthenticated === null) {
-    return null;
-  }
-
   return (
     <Routes>
       <Route 
         path="/auth" 
         element={
-          isAuthenticated ? (
-            <Navigate to="/" replace />
-          ) : (
-            <PageTransition>
-              <Auth />
-            </PageTransition>
-          )
+          <PageTransition>
+            <Auth />
+          </PageTransition>
         } 
       />
       <Route 
         path="/" 
         element={
-          !isAuthenticated ? (
-            <Navigate to="/auth" replace />
-          ) : (
-            <PageTransition>
-              <Index />
-            </PageTransition>
-          )
-        } 
+          <PageTransition>
+            <Index />
+          </PageTransition>
+        }
       />
       <Route 
         path="/movie/:title" 
         element={
-          !isAuthenticated ? (
-            <Navigate to="/auth" replace />
-          ) : (
-            <PageTransition>
-              <Movie />
-            </PageTransition>
-          )
-        } 
+          <PageTransition>
+            <Movie />
+          </PageTransition>
+        }
       />
       <Route 
         path="/saved" 
@@ -122,14 +93,10 @@ function AnimatedRoutes() {
       <Route 
         path="/new" 
         element={
-          !isAuthenticated ? (
-            <Navigate to="/auth" replace />
-          ) : (
-            <PageTransition>
-              <New />
-            </PageTransition>
-          )
-        } 
+          <PageTransition>
+            <New />
+          </PageTransition>
+        }
       />
       <Route 
         path="/history" 
@@ -162,12 +129,10 @@ function AnimatedRoutes() {
       <Route 
         path="/profile" 
         element={
-          <ProtectedRoute>
-            <PageTransition>
-              <Profile />
-            </PageTransition>
-          </ProtectedRoute>
-        } 
+          <PageTransition>
+            <Profile />
+          </PageTransition>
+        }
       />
     </Routes>
   );

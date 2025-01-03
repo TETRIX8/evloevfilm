@@ -1,4 +1,4 @@
-import { Menu, Bookmark, Film, History, User, HelpCircle, Info } from "lucide-react";
+import { Menu, Bookmark, Film, History, User, HelpCircle, Info, LogIn } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/use-theme";
 import { motion } from "framer-motion";
 import { Switch } from "./ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,19 @@ import { toast } from "sonner";
 export function Navigation() {
   const { theme, setTheme } = useTheme();
   const [isExploding, setIsExploding] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleThemeChange = (checked: boolean) => {
     setIsExploding(true);
@@ -155,16 +168,28 @@ export function Navigation() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
+                {isAuthenticated ? (
+                  <User className="h-5 w-5" />
+                ) : (
+                  <LogIn className="h-5 w-5" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to="/profile">Профиль</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                Выйти
-              </DropdownMenuItem>
+              {isAuthenticated ? (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Профиль</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Выйти
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Войти</Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

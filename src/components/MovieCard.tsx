@@ -81,8 +81,12 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
     e.stopPropagation();
     
     if (!userId) {
-      toast.error("Войдите, чтобы сохранять фильмы");
-      navigate("/auth");
+      toast.error("Войдите в систему, чтобы сохранять фильмы", {
+        action: {
+          label: "Войти",
+          onClick: () => navigate("/profile")
+        }
+      });
       return;
     }
 
@@ -236,4 +240,4 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       </motion.div>
     </motion.div>
   );
-};
+}
