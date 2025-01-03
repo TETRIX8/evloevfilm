@@ -21,19 +21,20 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, {
+        method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Origin': window.location.origin,
-          'Access-Control-Allow-Origin': '*'
+          'Origin': window.location.origin
         },
-        mode: 'cors'
+        mode: 'cors',
+        credentials: 'omit'
       });
       
-      if (response.ok) {
-        return response;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      throw new Error(`HTTP error! status: ${response.status}`);
+      return response;
     } catch (error) {
       console.error(`Attempt ${i + 1} failed:`, error);
       if (i === retries - 1) throw error;
@@ -44,18 +45,18 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
 }
 
 export async function fetchMovies(type: 'films' | 'serials' | 'cartoon', year: string): Promise<MovieData[]> {
-  const url = new URL(BASE_URL);
-  url.searchParams.append('token', API_TOKEN);
-  url.searchParams.append('sort', '-views');
-  url.searchParams.append('type', type);
-  url.searchParams.append('limit', '50');
-  url.searchParams.append('year', year);
-  
-  if (type === 'serials') {
-    url.searchParams.append('join_seasons', 'false');
-  }
-
   try {
+    const url = new URL(BASE_URL);
+    url.searchParams.append('token', API_TOKEN);
+    url.searchParams.append('sort', '-views');
+    url.searchParams.append('type', type);
+    url.searchParams.append('limit', '50');
+    url.searchParams.append('year', year);
+    
+    if (type === 'serials') {
+      url.searchParams.append('join_seasons', 'false');
+    }
+
     const response = await fetchWithRetry(url.toString());
     const data: MovieApiResponse = await response.json();
     
@@ -73,11 +74,11 @@ export async function fetchMovies(type: 'films' | 'serials' | 'cartoon', year: s
 export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
   if (!searchTerm) return [];
   
-  const url = new URL(BASE_URL);
-  url.searchParams.append('token', API_TOKEN);
-  url.searchParams.append('name', searchTerm);
-
   try {
+    const url = new URL(BASE_URL);
+    url.searchParams.append('token', API_TOKEN);
+    url.searchParams.append('name', searchTerm);
+
     const response = await fetchWithRetry(url.toString());
     const data: MovieApiResponse = await response.json();
     
