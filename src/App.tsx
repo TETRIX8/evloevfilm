@@ -114,17 +114,15 @@ function AnimatedRoutes() {
           <PageTransition>
             <About />
           </PageTransition>
-        } 
+        }
       />
       <Route 
         path="/support" 
         element={
-          <ProtectedRoute>
-            <PageTransition>
-              <Support />
-            </PageTransition>
-          </ProtectedRoute>
-        } 
+          <PageTransition>
+            <Support />
+          </PageTransition>
+        }
       />
       <Route 
         path="/profile" 

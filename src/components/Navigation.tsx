@@ -70,22 +70,39 @@ export function Navigation() {
                 <SheetTitle>Меню</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-2 mt-4">
-                <Button variant="ghost" className="justify-start gap-2" asChild>
-                  <Link to="/saved">
-                    <Bookmark className="h-4 w-4" />
-                    Сохраненные
-                  </Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Button variant="ghost" className="justify-start gap-2" asChild>
+                      <Link to="/profile">
+                        <User className="h-4 w-4" />
+                        Профиль
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" className="justify-start gap-2" asChild>
+                      <Link to="/saved">
+                        <Bookmark className="h-4 w-4" />
+                        Сохраненные
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" className="justify-start gap-2" asChild>
+                      <Link to="/history">
+                        <History className="h-4 w-4" />
+                        История просмотров
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" className="justify-start gap-2" asChild>
+                    <Link to="/profile">
+                      <LogIn className="h-4 w-4" />
+                      Войти
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" className="justify-start gap-2" asChild>
                   <Link to="/new">
                     <Film className="h-4 w-4" />
                     Новинки
-                  </Link>
-                </Button>
-                <Button variant="ghost" className="justify-start gap-2" asChild>
-                  <Link to="/history">
-                    <History className="h-4 w-4" />
-                    История просмотров
                   </Link>
                 </Button>
                 <Button variant="ghost" className="justify-start gap-2" asChild>
@@ -112,27 +129,31 @@ export function Navigation() {
             </Link>
           </motion.div>
           <div className="hidden lg:flex items-center gap-2">
-            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-              <Button variant="ghost" className="gap-2" asChild>
-                <Link to="/saved">
-                  <Bookmark className="h-4 w-4" />
-                  Сохраненные
-                </Link>
-              </Button>
-            </motion.div>
+            {isAuthenticated ? (
+              <>
+                <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+                  <Button variant="ghost" className="gap-2" asChild>
+                    <Link to="/saved">
+                      <Bookmark className="h-4 w-4" />
+                      Сохраненные
+                    </Link>
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+                  <Button variant="ghost" className="gap-2" asChild>
+                    <Link to="/history">
+                      <History className="h-4 w-4" />
+                      История просмотров
+                    </Link>
+                  </Button>
+                </motion.div>
+              </>
+            ) : null}
             <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
               <Button variant="ghost" className="gap-2" asChild>
                 <Link to="/new">
                   <Film className="h-4 w-4" />
                   Новинки
-                </Link>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-              <Button variant="ghost" className="gap-2" asChild>
-                <Link to="/history">
-                  <History className="h-4 w-4" />
-                  История просмотров
                 </Link>
               </Button>
             </motion.div>
@@ -165,33 +186,35 @@ export function Navigation() {
             className="data-[state=checked]:bg-primary"
           />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+          <div className="hidden lg:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  {isAuthenticated ? (
+                    <User className="h-5 w-5" />
+                  ) : (
+                    <LogIn className="h-5 w-5" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
                 {isAuthenticated ? (
-                  <User className="h-5 w-5" />
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile">Профиль</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Выйти
+                    </DropdownMenuItem>
+                  </>
                 ) : (
-                  <LogIn className="h-5 w-5" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isAuthenticated ? (
-                <>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile">Профиль</Link>
+                    <Link to="/profile">Войти</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Выйти
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">Войти</Link>
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </nav>
