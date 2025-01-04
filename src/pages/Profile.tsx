@@ -13,12 +13,12 @@ import {
   CardHeader,
   CardTitle 
 } from "@/components/ui/card";
+import { PasswordChangeForm } from "@/components/PasswordChangeForm";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -35,8 +35,6 @@ export default function Profile() {
       } else if (event === "SIGNED_OUT") {
         toast.success("Вы успешно вышли из системы");
         navigate("/");
-      } else if (event === "PASSWORD_RECOVERY") {
-        toast.info("Проверьте вашу почту для восстановления пароля");
       }
     });
 
@@ -48,38 +46,6 @@ export default function Profile() {
       await supabase.auth.signOut();
     } catch (error) {
       toast.error("Ошибка при выходе из системы");
-    }
-  };
-
-  const handlePasswordReset = async () => {
-    if (isResettingPassword) {
-      toast.error("Пожалуйста, подождите 60 секунд перед повторной попыткой");
-      return;
-    }
-
-    try {
-      setIsResettingPassword(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        session?.user?.email,
-        { redirectTo: `${window.location.origin}/profile` }
-      );
-      
-      if (error) {
-        if (error.message.includes("rate_limit")) {
-          toast.error("Пожалуйста, подождите 60 секунд перед повторной попыткой");
-        } else {
-          throw error;
-        }
-      } else {
-        toast.success("Инструкции по смене пароля отправлены на вашу почту");
-      }
-    } catch (error) {
-      toast.error("Ошибка при отправке инструкций");
-    } finally {
-      // Set a timeout to re-enable the button after 60 seconds
-      setTimeout(() => {
-        setIsResettingPassword(false);
-      }, 60000);
     }
   };
 
@@ -116,15 +82,8 @@ export default function Profile() {
                     Email: {session.user.email}
                   </p>
                 </div>
-                <div className="flex flex-col space-y-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={handlePasswordReset}
-                    disabled={isResettingPassword}
-                    className="w-full"
-                  >
-                    {isResettingPassword ? "Подождите 60 секунд..." : "Сменить пароль"}
-                  </Button>
+                <div className="space-y-4">
+                  <PasswordChangeForm />
                   <Button 
                     variant="destructive" 
                     onClick={handleSignOut}
@@ -194,12 +153,6 @@ export default function Profile() {
                         loading_button_label: "Регистрация...",
                         social_provider_text: "Зарегистрироваться через {{provider}}",
                         link_text: "Нет аккаунта? Зарегистрироваться",
-                      },
-                      forgotten_password: {
-                        link_text: "Забыли пароль?",
-                        button_label: "Отправить инструкции",
-                        loading_button_label: "Отправка инструкций...",
-                        confirmation_text: "Проверьте ваш email для восстановления пароля",
                       },
                     },
                   }}
