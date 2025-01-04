@@ -1,45 +1,26 @@
 import { Navigation } from "@/components/Navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 export default function Profile() {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const getUserEmail = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        toast.success("Добро пожаловать!");
+        navigate("/");
+      } else if (event === "PASSWORD_RECOVERY") {
+        toast.info("Проверьте вашу почту для восстановления пароля");
       }
-    };
-    
-    getUserEmail();
-  }, []);
+    });
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdating(true);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) throw error;
-
-      toast.success("Пароль успешно обновлен!");
-      setNewPassword("");
-    } catch (error) {
-      toast.error("Ошибка при обновлении пароля. Пожалуйста, попробуйте позже.");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen">
@@ -50,40 +31,72 @@ export default function Profile() {
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold">Профиль</h1>
             <p className="text-muted-foreground">
-              Управляйте своими настройками
+              Войдите или зарегистрируйтесь, чтобы получить доступ к дополнительным возможностям
             </p>
           </div>
 
-          <div className="space-y-6">
-            {userEmail && (
-              <div className="p-6 rounded-lg bg-card">
-                <h2 className="text-xl font-semibold mb-2">Email</h2>
-                <p className="text-muted-foreground">{userEmail}</p>
-              </div>
-            )}
-
-            <div className="p-6 rounded-lg bg-card">
-              <h2 className="text-xl font-semibold mb-4">Изменить пароль</h2>
-              <form onSubmit={handleUpdatePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="new-password" className="text-sm font-medium">
-                    Новый пароль
-                  </label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Введите новый пароль"
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <Button type="submit" disabled={isUpdating}>
-                  {isUpdating ? "Обновление..." : "Обновить пароль"}
-                </Button>
-              </form>
-            </div>
+          <div className="bg-card p-6 rounded-lg shadow-lg border">
+            <Auth
+              supabaseClient={supabase}
+              appearance={{
+                theme: ThemeSupa,
+                variables: {
+                  default: {
+                    colors: {
+                      brand: 'hsl(var(--primary))',
+                      brandAccent: 'hsl(var(--primary))',
+                      brandButtonText: 'white',
+                      defaultButtonBackground: 'hsl(var(--secondary))',
+                      defaultButtonBackgroundHover: 'hsl(var(--secondary))',
+                    },
+                    radii: {
+                      borderRadiusButton: '0.5rem',
+                      buttonBorderRadius: '0.5rem',
+                      inputBorderRadius: '0.5rem',
+                    },
+                  },
+                },
+                className: {
+                  container: 'w-full',
+                  button: 'w-full px-4 py-2 rounded-md',
+                  input: 'w-full px-3 py-2 rounded-md border',
+                  label: 'text-foreground',
+                  loader: 'text-primary',
+                },
+              }}
+              localization={{
+                variables: {
+                  sign_in: {
+                    email_label: "Email",
+                    password_label: "Пароль",
+                    email_input_placeholder: "Ваш email",
+                    password_input_placeholder: "Ваш пароль",
+                    button_label: "Войти",
+                    loading_button_label: "Вход...",
+                    social_provider_text: "Войти через {{provider}}",
+                    link_text: "Уже есть аккаунт? Войти",
+                  },
+                  sign_up: {
+                    email_label: "Email",
+                    password_label: "Пароль",
+                    email_input_placeholder: "Ваш email",
+                    password_input_placeholder: "Ваш пароль",
+                    button_label: "Зарегистрироваться",
+                    loading_button_label: "Регистрация...",
+                    social_provider_text: "Зарегистрироваться через {{provider}}",
+                    link_text: "Нет аккаунта? Зарегистрироваться",
+                  },
+                  forgotten_password: {
+                    link_text: "Забыли пароль?",
+                    button_label: "Отправить инструкции",
+                    loading_button_label: "Отправка инструкций...",
+                    confirmation_text: "Проверьте ваш email для восстановления пароля",
+                  },
+                },
+              }}
+              theme="dark"
+              providers={[]}
+            />
           </div>
         </div>
       </main>
