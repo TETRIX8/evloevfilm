@@ -18,6 +18,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -51,15 +52,34 @@ export default function Profile() {
   };
 
   const handlePasswordReset = async () => {
+    if (isResettingPassword) {
+      toast.error("Пожалуйста, подождите 60 секунд перед повторной попыткой");
+      return;
+    }
+
     try {
+      setIsResettingPassword(true);
       const { error } = await supabase.auth.resetPasswordForEmail(
         session?.user?.email,
         { redirectTo: `${window.location.origin}/profile` }
       );
-      if (error) throw error;
-      toast.success("Инструкции по смене пароля отправлены на вашу почту");
+      
+      if (error) {
+        if (error.message.includes("rate_limit")) {
+          toast.error("Пожалуйста, подождите 60 секунд перед повторной попыткой");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Инструкции по смене пароля отправлены на вашу почту");
+      }
     } catch (error) {
       toast.error("Ошибка при отправке инструкций");
+    } finally {
+      // Set a timeout to re-enable the button after 60 seconds
+      setTimeout(() => {
+        setIsResettingPassword(false);
+      }, 60000);
     }
   };
 
@@ -100,9 +120,10 @@ export default function Profile() {
                   <Button 
                     variant="outline" 
                     onClick={handlePasswordReset}
+                    disabled={isResettingPassword}
                     className="w-full"
                   >
-                    Сменить пароль
+                    {isResettingPassword ? "Подождите 60 секунд..." : "Сменить пароль"}
                   </Button>
                   <Button 
                     variant="destructive" 
