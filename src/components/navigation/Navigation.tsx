@@ -1,37 +1,50 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useTheme } from "@/hooks/use-theme";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MobileMenu } from "./MobileMenu";
-import { DesktopMenu } from "./DesktopMenu";
-import { UserMenu } from "./UserMenu";
-import { ThemeToggle } from "./ThemeToggle";
+import { MobileMenu } from "./navigation/MobileMenu";
+import { DesktopMenu } from "./navigation/DesktopMenu";
+import { ThemeToggle } from "./navigation/ThemeToggle";
+import { UserMenu } from "./navigation/UserMenu";
 
 export function Navigation() {
-  const { theme, setTheme } = useTheme();
-  const [isExploding, setIsExploding] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      if (session) {
+        checkAdminStatus(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
+      if (session) {
+        checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleThemeChange = (checked: boolean) => {
-    setIsExploding(true);
-    setTimeout(() => {
-      setTheme(checked ? "dark" : "light");
-      setIsExploding(false);
-    }, 500);
+  const checkAdminStatus = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking admin status:", error);
+      return;
+    }
+
+    setIsAdmin(data?.role === 'admin');
   };
 
   const handleLogout = async () => {
@@ -44,11 +57,10 @@ export function Navigation() {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b ${isExploding ? 'theme-explosion' : ''}`}>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container flex items-center justify-between h-16">
         <div className="flex items-center gap-4">
-          <MobileMenu isAuthenticated={isAuthenticated} />
-          
+          <MobileMenu isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -57,12 +69,11 @@ export function Navigation() {
               EVOLVEFILM
             </Link>
           </motion.div>
-          
-          <DesktopMenu isAuthenticated={isAuthenticated} />
+          <DesktopMenu isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
         </div>
         
         <div className="flex items-center gap-4">
-          <ThemeToggle theme={theme} onThemeChange={handleThemeChange} />
+          <ThemeToggle />
           <UserMenu isAuthenticated={isAuthenticated} onLogout={handleLogout} />
         </div>
       </div>
