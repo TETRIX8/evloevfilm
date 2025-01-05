@@ -62,6 +62,48 @@ export type Database = {
           },
         ]
       }
+      site_statistics: {
+        Row: {
+          id: string
+          page_views: number | null
+          unique_visitors: number | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          page_views?: number | null
+          unique_visitors?: number | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          page_views?: number | null
+          unique_visitors?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       watch_history: {
         Row: {
           id: string
@@ -108,7 +150,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never

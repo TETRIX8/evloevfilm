@@ -1,4 +1,4 @@
-import { Menu, Bookmark, Film, History, User, HelpCircle, Info, LogIn } from "lucide-react";
+import { Menu, Bookmark, Film, History, User, HelpCircle, Info, LogIn, BarChart } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -25,18 +25,42 @@ export function Navigation() {
   const { theme, setTheme } = useTheme();
   const [isExploding, setIsExploding] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      if (session) {
+        checkAdminStatus(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
+      if (session) {
+        checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAdminStatus = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      console.error("Error checking admin status:", error);
+      return;
+    }
+
+    setIsAdmin(data?.role === 'admin');
+  };
 
   const handleThemeChange = (checked: boolean) => {
     setIsExploding(true);
@@ -90,6 +114,14 @@ export function Navigation() {
                         История просмотров
                       </Link>
                     </Button>
+                    {isAdmin && (
+                      <Button variant="ghost" className="justify-start gap-2" asChild>
+                        <Link to="/admin">
+                          <BarChart className="h-4 w-4" />
+                          Админ панель
+                        </Link>
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <Button variant="ghost" className="justify-start gap-2" asChild>
@@ -147,6 +179,16 @@ export function Navigation() {
                     </Link>
                   </Button>
                 </motion.div>
+                {isAdmin && (
+                  <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+                    <Button variant="ghost" className="gap-2" asChild>
+                      <Link to="/admin">
+                        <BarChart className="h-4 w-4" />
+                        Админ панель
+                      </Link>
+                    </Button>
+                  </motion.div>
+                )}
               </>
             ) : null}
             <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
