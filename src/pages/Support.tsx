@@ -4,53 +4,37 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import emailjs from '@emailjs/browser';
+import { useRef } from "react";
 
 export default function Support() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("Пользователь не авторизован");
+      const result = await emailjs.sendForm(
+        'service_vcaxptx',
+        'template_91c1fvw',
+        formRef.current!,
+        'aoak44iftoobsH4Xm'
+      );
+
+      if (result.text === 'OK') {
+        toast.success("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
+        setSubject("");
+        setMessage("");
+      } else {
+        throw new Error("Не удалось отправить сообщение");
       }
-
-      const { data, error } = await supabase.functions.invoke('send-support-email', {
-        body: {
-          email: user.email,
-          subject,
-          message,
-        },
-      });
-
-      if (error) {
-        // Try to parse the error message from Resend if available
-        let errorMessage = "Произошла ошибка при отправке сообщения.";
-        try {
-          const parsedError = JSON.parse(error.message);
-          if (parsedError.error) {
-            const resendError = JSON.parse(parsedError.error);
-            errorMessage = resendError.message || errorMessage;
-          }
-        } catch {
-          // If parsing fails, use the original error message
-          errorMessage = error.message;
-        }
-        throw new Error(errorMessage);
-      }
-
-      toast.success("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
-      setSubject("");
-      setMessage("");
     } catch (error) {
       console.error("Error sending support email:", error);
-      toast.error(error instanceof Error ? error.message : "Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.");
+      toast.error("Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,13 +53,14 @@ export default function Support() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="subject" className="text-sm font-medium">
                 Тема
               </label>
               <Input
                 id="subject"
+                name="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="О чем вы хотите сообщить?"
@@ -89,6 +74,7 @@ export default function Support() {
               </label>
               <Textarea
                 id="message"
+                name="message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Опишите вашу проблему или вопрос..."
