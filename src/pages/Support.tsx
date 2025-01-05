@@ -2,16 +2,26 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import emailjs from '@emailjs/browser';
-import { useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Support() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    // Get user email from session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +64,23 @@ export default function Support() {
           </div>
 
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                placeholder="Ваш email"
+                required
+                readOnly={!!userEmail}
+                className={userEmail ? "bg-muted" : ""}
+              />
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="subject" className="text-sm font-medium">
                 Тема

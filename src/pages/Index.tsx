@@ -5,6 +5,7 @@ import { Navigation } from "@/components/Navigation";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { SearchResults } from "@/components/SearchResults";
 import { useMovies, useMovieSearch } from "@/hooks/use-movies";
+import { MovieSuggestion } from "@/components/MovieSuggestion";
 
 // Get current year in Moscow timezone
 const getCurrentYear = () => {
@@ -27,6 +28,7 @@ export default function Index() {
   return (
     <div className="min-h-screen">
       <Navigation />
+      <MovieSuggestion />
       
       <main className="container pt-24 pb-16 space-y-8">
         <header className="max-w-2xl mx-auto space-y-4">

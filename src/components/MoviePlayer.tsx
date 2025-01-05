@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
+import { fetchMovieDetails } from "@/services/api"; // Import the function to fetch movie details
 
 interface MoviePlayerProps {
   title: string;
@@ -17,11 +18,20 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const [isLiked, setIsLiked] = useState(false);
   const imageUrl = location.state?.image || "/placeholder.svg";
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [movieDetails, setMovieDetails] = useState<any>(null); // State to hold movie details
 
   useEffect(() => {
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
     const isSaved = savedMovies.some((movie: any) => movie.title === title);
     setIsLiked(isSaved);
+
+    // Fetch movie details from API
+    const fetchDetails = async () => {
+      const details = await fetchMovieDetails(title); // Fetch movie details
+      setMovieDetails(details);
+    };
+
+    fetchDetails();
 
     // Add to watch history when starting to watch
     addToWatchHistory({
@@ -65,14 +75,19 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
 
   const handleShare = () => {
     soundEffects.play("click");
+    const shareUrl = window.location.href;
+    
     if (navigator.share) {
       navigator.share({
         title: title,
-        url: window.location.href
-      }).catch(console.error);
+        url: shareUrl
+      }).catch(error => {
+        console.error('Error sharing:', error);
+        toast.error("Ошибка при попытке поделиться");
+      });
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast("Ссылка скопирована в буфер обмена");
+      navigator.clipboard.writeText(shareUrl);
+      toast.success("Ссылка скопирована в буфер обмена");
     }
   };
 
@@ -114,6 +129,15 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
         </div>
         
         <h1 className="text-2xl font-bold mb-6 animate-fade-in">{title}</h1>
+        
+        {movieDetails && ( // Display movie details if available
+          <div className="mb-4">
+            <p className="text-sm">{movieDetails.description}</p>
+            <p className="text-sm">Год: {movieDetails.year}</p>
+            <p className="text-sm">Рейтинг: {movieDetails.rating}</p>
+            <p className="text-sm">Жанры: {movieDetails.genres.join(", ")}</p>
+          </div>
+        )}
       </div>
       
       <div className="flex-1 relative w-full max-w-[1200px] mx-auto px-4">
