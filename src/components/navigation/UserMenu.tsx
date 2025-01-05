@@ -33,7 +33,7 @@ export function UserMenu({ isAuthenticated, onLogout }: UserMenuProps) {
             </>
           ) : (
             <DropdownMenuItem asChild>
-              <Link to="/profile">Войти</Link>
+              <Link to="/auth">Войти</Link>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

@@ -52,7 +52,7 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
             </>
           ) : (
             <Button variant="ghost" className="justify-start gap-2" asChild>
-              <Link to="/profile">
+              <Link to="/auth">
                 <LogIn className="h-4 w-4" />
                 Войти
               </Link>
