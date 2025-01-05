@@ -1,13 +1,14 @@
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface MobileMenuProps {
   isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
-export function MobileMenu({ isAuthenticated }: MobileMenuProps) {
+export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -40,6 +41,14 @@ export function MobileMenu({ isAuthenticated }: MobileMenuProps) {
                   История просмотров
                 </Link>
               </Button>
+              {isAdmin && (
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link to="/admin">
+                    <BarChart className="h-4 w-4" />
+                    Админ панель
+                  </Link>
+                </Button>
+              )}
             </>
           ) : (
             <Button variant="ghost" className="justify-start gap-2" asChild>

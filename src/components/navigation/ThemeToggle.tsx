@@ -1,11 +1,19 @@
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/hooks/use-theme";
+import { useState } from "react";
 
-interface ThemeToggleProps {
-  theme: string;
-  onThemeChange: (checked: boolean) => void;
-}
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [isExploding, setIsExploding] = useState(false);
 
-export function ThemeToggle({ theme, onThemeChange }: ThemeToggleProps) {
+  const handleThemeChange = (checked: boolean) => {
+    setIsExploding(true);
+    setTimeout(() => {
+      setTheme(checked ? "dark" : "light");
+      setIsExploding(false);
+    }, 500);
+  };
+
   return (
     <div className="flex items-center gap-4">
       <span className="text-sm text-muted-foreground">
@@ -13,7 +21,7 @@ export function ThemeToggle({ theme, onThemeChange }: ThemeToggleProps) {
       </span>
       <Switch
         checked={theme === "dark"}
-        onCheckedChange={onThemeChange}
+        onCheckedChange={handleThemeChange}
         className="data-[state=checked]:bg-primary"
       />
     </div>

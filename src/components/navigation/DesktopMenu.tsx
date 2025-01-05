@@ -1,16 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Bookmark, Film, History, Info, HelpCircle } from "lucide-react";
+import { Bookmark, Film, History, Info, HelpCircle, BarChart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 interface DesktopMenuProps {
   isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
-export function DesktopMenu({ isAuthenticated }: DesktopMenuProps) {
+export function DesktopMenu({ isAuthenticated, isAdmin }: DesktopMenuProps) {
   return (
     <div className="hidden lg:flex items-center gap-2">
-      {isAuthenticated ? (
+      {isAuthenticated && (
         <>
           <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
             <Button variant="ghost" className="gap-2" asChild>
@@ -28,8 +29,18 @@ export function DesktopMenu({ isAuthenticated }: DesktopMenuProps) {
               </Link>
             </Button>
           </motion.div>
+          {isAdmin && (
+            <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Button variant="ghost" className="gap-2" asChild>
+                <Link to="/admin">
+                  <BarChart className="h-4 w-4" />
+                  Админ панель
+                </Link>
+              </Button>
+            </motion.div>
+          )}
         </>
-      ) : null}
+      )}
       <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
         <Button variant="ghost" className="gap-2" asChild>
           <Link to="/new">

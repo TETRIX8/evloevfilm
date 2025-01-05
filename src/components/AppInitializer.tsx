@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AppRoutes } from "./AppRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { requestNotificationPermission } from "@/utils/notifications";
+import { toast } from "sonner";
 
 export function AppInitializer() {
   useEffect(() => {
@@ -18,16 +19,31 @@ export function AppInitializer() {
       // Update site statistics
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const { error } = await supabase
+        // First get the statistics record
+        const { data: statsData, error: fetchError } = await supabase
           .from('site_statistics')
-          .update({
-            page_views: supabase.rpc('increment', { column_name: 'page_views' }),
-            unique_visitors: supabase.rpc('increment', { column_name: 'unique_visitors' })
-          })
-          .eq('id', 1);
+          .select('*')
+          .limit(1)
+          .maybeSingle();
 
-        if (error) {
-          console.error("Error updating site statistics:", error);
+        if (fetchError) {
+          console.error("Error fetching site statistics:", fetchError);
+          return;
+        }
+
+        if (statsData) {
+          // Then update it
+          const { error: updateError } = await supabase
+            .from('site_statistics')
+            .update({
+              page_views: (statsData.page_views || 0) + 1,
+              unique_visitors: (statsData.unique_visitors || 0) + 1
+            })
+            .eq('id', statsData.id);
+
+          if (updateError) {
+            console.error("Error updating site statistics:", updateError);
+          }
         }
       }
     };
