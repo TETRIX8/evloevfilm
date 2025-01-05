@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
-import { fetchMovieDetails } from "@/services/api"; // Import the function to fetch movie details
+import { fetchMovieDetails } from "@/services/api";
 
 interface MoviePlayerProps {
   title: string;
@@ -18,37 +18,32 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const [isLiked, setIsLiked] = useState(false);
   const imageUrl = location.state?.image || "/placeholder.svg";
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [movieDetails, setMovieDetails] = useState<any>(null); // State to hold movie details
+  const [movieDetails, setMovieDetails] = useState<any>(null);
 
   useEffect(() => {
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
     const isSaved = savedMovies.some((movie: any) => movie.title === title);
     setIsLiked(isSaved);
 
-    // Fetch movie details from API
     const fetchDetails = async () => {
-      const details = await fetchMovieDetails(title); // Fetch movie details
+      const details = await fetchMovieDetails(title);
       setMovieDetails(details);
     };
 
     fetchDetails();
 
-    // Add to watch history when starting to watch
     addToWatchHistory({
       title,
       image: imageUrl,
       link: iframeUrl
     });
 
-    // Set up progress tracking
     const interval = setInterval(() => {
       if (iframeRef.current) {
-        // This is a simplified progress tracking.
-        // In reality, you might want to use the video player's API if available
-        const progress = Math.random(); // This should be replaced with actual progress
+        const progress = Math.random();
         updateWatchProgress(title, progress);
       }
-    }, 30000); // Update every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [title, imageUrl, iframeUrl]);
@@ -130,12 +125,20 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
         
         <h1 className="text-2xl font-bold mb-6 animate-fade-in">{title}</h1>
         
-        {movieDetails && ( // Display movie details if available
+        {movieDetails && (
           <div className="mb-4">
-            <p className="text-sm">{movieDetails.description}</p>
-            <p className="text-sm">Год: {movieDetails.year}</p>
-            <p className="text-sm">Рейтинг: {movieDetails.rating}</p>
-            <p className="text-sm">Жанры: {movieDetails.genres.join(", ")}</p>
+            {movieDetails.description && (
+              <p className="text-sm mb-2">{movieDetails.description}</p>
+            )}
+            {movieDetails.year && (
+              <p className="text-sm">Год: {movieDetails.year}</p>
+            )}
+            {movieDetails.rating && (
+              <p className="text-sm">Рейтинг: {movieDetails.rating}</p>
+            )}
+            {movieDetails.genres && movieDetails.genres.length > 0 && (
+              <p className="text-sm">Жанры: {movieDetails.genres.join(", ")}</p>
+            )}
           </div>
         )}
       </div>
