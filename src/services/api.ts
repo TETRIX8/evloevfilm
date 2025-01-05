@@ -8,6 +8,10 @@ export interface MovieApiResponse {
     name: string;
     poster: string;
     iframe_url: string;
+    description?: string;
+    year?: number;
+    rating?: number;
+    genres?: string[];
   }>;
 }
 
@@ -15,6 +19,13 @@ export interface MovieData {
   title: string;
   image: string;
   link: string;
+}
+
+export interface MovieDetails {
+  description?: string;
+  year?: number;
+  rating?: number;
+  genres?: string[];
 }
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
@@ -42,6 +53,31 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
     }
   }
   throw new Error('Failed to fetch after retries');
+}
+
+export async function fetchMovieDetails(title: string): Promise<MovieDetails | null> {
+  try {
+    const url = new URL(BASE_URL);
+    url.searchParams.append('token', API_TOKEN);
+    url.searchParams.append('name', title);
+    url.searchParams.append('limit', '1');
+
+    const response = await fetchWithRetry(url.toString());
+    const data: MovieApiResponse = await response.json();
+    
+    if (!data.results?.[0]) return null;
+    
+    const movie = data.results[0];
+    return {
+      description: movie.description,
+      year: movie.year,
+      rating: movie.rating,
+      genres: movie.genres
+    };
+  } catch (error) {
+    console.error('Error fetching movie details:', error);
+    return null;
+  }
 }
 
 export async function fetchMovies(type: 'films' | 'serials' | 'cartoon', year: string): Promise<MovieData[]> {
