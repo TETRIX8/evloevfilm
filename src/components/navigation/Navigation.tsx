@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MobileMenu } from "./navigation/MobileMenu";
-import { DesktopMenu } from "./navigation/DesktopMenu";
-import { ThemeToggle } from "./navigation/ThemeToggle";
-import { UserMenu } from "./navigation/UserMenu";
+import { MobileMenu } from "./MobileMenu";
+import { DesktopMenu } from "./DesktopMenu";
+import { ThemeToggle } from "./ThemeToggle";
+import { UserMenu } from "./UserMenu";
 
 export function Navigation() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
