@@ -13,18 +13,28 @@ export function Navigation() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session error:", error);
+        return;
+      }
       setIsAuthenticated(!!session);
       if (session) {
         checkAdminStatus(session.user.id);
       }
-    });
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-      if (session) {
-        checkAdminStatus(session.user.id);
-      } else {
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        setIsAuthenticated(true);
+        if (session) {
+          checkAdminStatus(session.user.id);
+        }
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setIsAuthenticated(false);
         setIsAdmin(false);
       }
     });
@@ -49,9 +59,11 @@ export function Navigation() {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       toast.success("Вы успешно вышли из системы");
     } catch (error) {
+      console.error("Logout error:", error);
       toast.error("Ошибка при выходе из системы");
     }
   };
