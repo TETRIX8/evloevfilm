@@ -1,4 +1,4 @@
-import { Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/navigation/Navigation";
 import { MovieGrid } from "@/components/MovieGrid";
 import { getWatchHistory } from "@/utils/watchHistory";
 import { useEffect, useState } from "react";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { SearchBar } from "@/components/SearchBar";
-import { Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/navigation/Navigation";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { SearchResults } from "@/components/SearchResults";
 import { useMovies, useMovieSearch } from "@/hooks/use-movies";

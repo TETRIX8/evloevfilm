@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MovieGrid } from "@/components/MovieGrid";
-import { Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/navigation/Navigation";
 import { toast } from "sonner";
 
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";

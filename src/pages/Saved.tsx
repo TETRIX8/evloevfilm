@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { MovieGrid } from "@/components/MovieGrid";
-import { Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/navigation/Navigation";
 import { Button } from "@/components/ui/button";
 
 interface SavedMovie {
