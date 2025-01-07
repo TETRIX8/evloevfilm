@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { soundEffects } from "@/utils/soundEffects";
-import { Session } from '@supabase/supabase-js';
 
 export function useMovieCard(title: string, image: string, link: string) {
   const navigate = useNavigate();
@@ -16,31 +15,33 @@ export function useMovieCard(title: string, image: string, link: string) {
     const checkSavedStatus = async () => {
       try {
         setIsLoading(true);
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Session error:', sessionError);
           return;
         }
 
-        const session = sessionData.session as Session | null;
-        
-        if (session?.user?.id) {
-          setUserId(session.user.id);
-          const { data, error } = await supabase
-            .from('saved_movies')
-            .select()
-            .eq('user_id', session.user.id)
-            .eq('title', title)
-            .maybeSingle();
-
-          if (error) {
-            console.error('Error checking saved status:', error);
-            return;
-          }
-
-          setIsLiked(!!data);
+        if (!session?.user?.id) {
+          setIsLoading(false);
+          return;
         }
+
+        setUserId(session.user.id);
+        const { data, error } = await supabase
+          .from('saved_movies')
+          .select()
+          .eq('user_id', session.user.id)
+          .eq('title', title)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking saved status:', error);
+          toast.error("Ошибка при проверке статуса фильма");
+          return;
+        }
+
+        setIsLiked(!!data);
       } catch (error) {
         console.error('Error in checkSavedStatus:', error);
         toast.error("Произошла ошибка при проверке статуса фильма");
@@ -50,6 +51,12 @@ export function useMovieCard(title: string, image: string, link: string) {
     };
 
     checkSavedStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkSavedStatus();
+    });
+
+    return () => subscription.unsubscribe();
   }, [title]);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -80,7 +87,6 @@ export function useMovieCard(title: string, image: string, link: string) {
     }
 
     try {
-      soundEffects.play("save");
       setIsLoading(true);
       
       if (!isLiked) {
@@ -96,6 +102,7 @@ export function useMovieCard(title: string, image: string, link: string) {
           return;
         }
         
+        soundEffects.play("save");
         toast.success("Фильм добавлен в сохраненные");
       } else {
         const { error } = await supabase
@@ -110,6 +117,7 @@ export function useMovieCard(title: string, image: string, link: string) {
           return;
         }
         
+        soundEffects.play("save");
         toast.success("Фильм удален из сохраненных");
       }
       
