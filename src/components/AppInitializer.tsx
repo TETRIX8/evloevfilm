@@ -17,34 +17,39 @@ export function AppInitializer() {
       }
 
       // Update site statistics
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // First get the statistics record
-        const { data: statsData, error: fetchError } = await supabase
-          .from('site_statistics')
-          .select('*')
-          .limit(1)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error("Error fetching site statistics:", fetchError);
-          return;
-        }
-
-        if (statsData) {
-          // Then update it
-          const { error: updateError } = await supabase
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // First get the statistics record
+          const { data: statsData, error: fetchError } = await supabase
             .from('site_statistics')
-            .update({
-              page_views: (statsData.page_views || 0) + 1,
-              unique_visitors: (statsData.unique_visitors || 0) + 1
-            })
-            .eq('id', statsData.id);
+            .select('*')
+            .limit(1)
+            .maybeSingle();
 
-          if (updateError) {
-            console.error("Error updating site statistics:", updateError);
+          if (fetchError) {
+            console.error("Error fetching site statistics:", fetchError);
+            return;
+          }
+
+          if (statsData) {
+            // Then update it
+            const { error: updateError } = await supabase
+              .from('site_statistics')
+              .update({
+                page_views: (statsData.page_views || 0) + 1,
+                unique_visitors: (statsData.unique_visitors || 0) + 1,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', statsData.id);
+
+            if (updateError) {
+              console.error("Error updating site statistics:", updateError);
+            }
           }
         }
+      } catch (error) {
+        console.error("Error in initializeApp:", error);
       }
     };
 

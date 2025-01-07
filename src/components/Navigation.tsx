@@ -21,7 +21,7 @@ export function Navigation() {
       }
       setIsAuthenticated(!!session);
       if (session) {
-        checkAdminStatus(session.user.id);
+        await checkAdminStatus(session.user.id);
       }
     };
 
@@ -31,7 +31,7 @@ export function Navigation() {
       if (event === 'SIGNED_IN') {
         setIsAuthenticated(true);
         if (session) {
-          checkAdminStatus(session.user.id);
+          await checkAdminStatus(session.user.id);
         }
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
@@ -43,18 +43,22 @@ export function Navigation() {
   }, []);
 
   const checkAdminStatus = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (error) {
+      if (error) {
+        console.error("Error checking admin status:", error);
+        return;
+      }
+
+      setIsAdmin(data?.role === 'admin');
+    } catch (error) {
       console.error("Error checking admin status:", error);
-      return;
     }
-
-    setIsAdmin(data?.role === 'admin');
   };
 
   const handleLogout = async () => {
