@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { User, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
+import { useState, useEffect } from "react";
 
 interface UserMenuProps {
   isAuthenticated: boolean;
@@ -9,6 +11,14 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ isAuthenticated, onLogout }: UserMenuProps) {
+  const [adBlockEnabled, setAdBlockEnabled] = useState(() => {
+    return localStorage.getItem("adBlockEnabled") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("adBlockEnabled", String(adBlockEnabled));
+  }, [adBlockEnabled]);
+
   return (
     <div className="hidden lg:block">
       <DropdownMenu>
@@ -27,6 +37,17 @@ export function UserMenu({ isAuthenticated, onLogout }: UserMenuProps) {
               <DropdownMenuItem asChild>
                 <Link to="/profile">Профиль</Link>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <div className="flex items-center justify-between w-full">
+                  <span>Блокировать рекламу</span>
+                  <Switch
+                    checked={adBlockEnabled}
+                    onCheckedChange={setAdBlockEnabled}
+                  />
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onLogout}>
                 Выйти
               </DropdownMenuItem>

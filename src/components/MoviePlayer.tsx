@@ -19,6 +19,9 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const imageUrl = location.state?.image || "/placeholder.svg";
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
+  const [adBlockEnabled] = useState(() => {
+    return localStorage.getItem("adBlockEnabled") === "true";
+  });
 
   useEffect(() => {
     const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
@@ -45,8 +48,32 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       }
     }, 30000);
 
+    // Apply ad blocking if enabled
+    if (adBlockEnabled && iframeRef.current) {
+      const iframe = iframeRef.current;
+      iframe.onload = () => {
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDoc) {
+            // Add CSS to hide common ad elements
+            const style = iframeDoc.createElement('style');
+            style.textContent = `
+              [class*="ad-"], [class*="ads-"], [id*="ad-"], [id*="ads-"],
+              [class*="advertisement"], [id*="advertisement"],
+              iframe[src*="doubleclick.net"], iframe[src*="googlesyndication.com"],
+              div[data-ad], div[data-ads], div[data-adunit],
+              .video-ads, .adsbygoogle { display: none !important; }
+            `;
+            iframeDoc.head.appendChild(style);
+          }
+        } catch (error) {
+          console.log("Ad blocking failed due to same-origin policy");
+        }
+      };
+    }
+
     return () => clearInterval(interval);
-  }, [title, imageUrl, iframeUrl]);
+  }, [title, imageUrl, iframeUrl, adBlockEnabled]);
 
   const handleLike = () => {
     soundEffects.play("click");
