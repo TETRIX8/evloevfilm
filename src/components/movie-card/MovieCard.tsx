@@ -1,8 +1,15 @@
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { Heart, Share2, Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { soundEffects } from "@/utils/soundEffects";
+import { supabase } from "@/integrations/supabase/client";
+import { MovieTrailerPreview } from "./MovieTrailerPreview";
 import { MovieCardActions } from "./MovieCardActions";
 import { MovieCardOverlay } from "./MovieCardOverlay";
-import { useMovieCard } from "./useMovieCard";
 
 interface MovieCardProps {
   title: string;
@@ -12,14 +19,20 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ title, image, link, className }: MovieCardProps) {
-  const {
-    isLiked,
-    isHovered,
-    setIsHovered,
-    handleClick,
-    handleLike,
-    handleShare
-  } = useMovieCard(title, image, link);
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    // Delay trailer preview to prevent immediate load
+    setTimeout(() => setShowTrailer(true), 1000);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setShowTrailer(false);
+  };
 
   return (
     <motion.div
@@ -29,28 +42,31 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       )}
       whileHover={{ scale: 1.05 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <motion.img
         src={image || "/placeholder.svg"}
         alt={title}
         className="h-full w-full object-cover"
-        onClick={handleClick}
         whileHover={{ scale: 1.1 }}
         transition={{ duration: 0.5 }}
       />
-      
-      <MovieCardActions
-        isHovered={isHovered}
-        isLiked={isLiked}
-        onLike={handleLike}
-        onShare={handleShare}
+
+      <MovieTrailerPreview 
+        isHovered={showTrailer} 
+        link={link}
       />
-      
-      <MovieCardOverlay
+
+      <MovieCardActions 
+        isHovered={isHovered}
         title={title}
-        onClick={handleClick}
+        link={link}
+      />
+
+      <MovieCardOverlay 
+        title={title}
+        link={link}
       />
     </motion.div>
   );
