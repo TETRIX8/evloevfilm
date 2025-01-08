@@ -1,12 +1,8 @@
 import { cn } from "@/lib/utils";
-import { Heart, Share2, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../ui/button";
-import { toast } from "sonner";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { soundEffects } from "@/utils/soundEffects";
-import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 import { MovieTrailerPreview } from "./MovieTrailerPreview";
 import { MovieCardActions } from "./MovieCardActions";
 import { MovieCardOverlay } from "./MovieCardOverlay";
@@ -25,13 +21,18 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    // Delay trailer preview to prevent immediate load
     setTimeout(() => setShowTrailer(true), 1000);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
     setShowTrailer(false);
+  };
+
+  const handleClick = () => {
+    navigate(`/movie/${encodeURIComponent(title)}`, {
+      state: { title, image, iframeUrl: link }
+    });
   };
 
   return (
@@ -44,6 +45,7 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       transition={{ duration: 0.3, ease: "easeOut" }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       <motion.img
         src={image || "/placeholder.svg"}
@@ -61,12 +63,12 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       <MovieCardActions 
         isHovered={isHovered}
         title={title}
+        image={image}
         link={link}
       />
 
       <MovieCardOverlay 
         title={title}
-        link={link}
       />
     </motion.div>
   );

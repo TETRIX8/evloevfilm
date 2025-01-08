@@ -1,30 +1,17 @@
 import { motion } from "framer-motion";
 import { Play } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { soundEffects } from "@/utils/soundEffects";
 
 interface MovieCardOverlayProps {
   title: string;
-  link: string;
 }
 
-export function MovieCardOverlay({ title, link }: MovieCardOverlayProps) {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    soundEffects.play("click");
-    navigate(`/movie/${encodeURIComponent(title)}`, {
-      state: { title, link }
-    });
-  };
-
+export function MovieCardOverlay({ title }: MovieCardOverlayProps) {
   return (
     <motion.div
       className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent"
       initial={{ opacity: 0 }}
       whileHover={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      onClick={handleClick}
     >
       <div className="absolute bottom-0 p-6 w-full">
         <motion.h3
