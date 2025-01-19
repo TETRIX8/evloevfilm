@@ -5,6 +5,7 @@ import { Navigation } from "@/components/navigation/Navigation";
 import { MovieCarousel } from "@/components/MovieCarousel";
 import { SearchResults } from "@/components/SearchResults";
 import { useMovies, useMovieSearch } from "@/hooks/use-movies";
+import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 
 // Get current year in Moscow timezone
 const getCurrentYear = () => {
@@ -65,6 +66,8 @@ export default function Index() {
           )}
         </div>
       </main>
+
+      <AIAssistant />
     </div>
   );
 }
