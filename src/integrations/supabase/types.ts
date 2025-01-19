@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assignments: {
+        Row: {
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          teacher_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          teacher_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          teacher_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_room_participants: {
         Row: {
           chat_room_id: string
@@ -51,6 +86,27 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          title?: string
         }
         Relationships: []
       }
@@ -234,6 +290,54 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      submissions: {
+        Row: {
+          assignment_id: string
+          content: string | null
+          feedback: string | null
+          file_url: string | null
+          grade: number | null
+          id: string
+          student_id: string
+          submitted_at: string
+        }
+        Insert: {
+          assignment_id: string
+          content?: string | null
+          feedback?: string | null
+          file_url?: string | null
+          grade?: number | null
+          id?: string
+          student_id: string
+          submitted_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          content?: string | null
+          feedback?: string | null
+          file_url?: string | null
+          grade?: number | null
+          id?: string
+          student_id?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
