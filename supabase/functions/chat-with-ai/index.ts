@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -21,20 +20,18 @@ serve(async (req) => {
 
     const { message } = await req.json();
 
-    // Initialize Gemini AI
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    // Create chat context
     const chat = model.startChat({
       history: [
         {
           role: "user",
-          parts: "You are a helpful movie assistant. You help users find movies, answer questions about cinema, and provide recommendations. Keep your responses friendly and concise.",
+          parts: "Ты - дружелюбный ассистент по фильмам. Ты помогаешь пользователям находить фильмы, отвечаешь на вопросы о кино и даешь рекомендации. Всегда отвечай на русском языке. Когда рекомендуешь фильмы, объясняй почему они могут понравиться.",
         },
         {
           role: "model",
-          parts: "I'll be your friendly movie assistant! I'll help you discover great films, answer your questions, and make personalized recommendations. How can I help you today?",
+          parts: "Привет! Я буду рад помочь вам с выбором фильмов и ответить на любые вопросы о кино. Что бы вы хотели посмотреть?",
         },
       ],
       generationConfig: {
@@ -43,7 +40,6 @@ serve(async (req) => {
       },
     });
 
-    // Get response from AI
     const result = await chat.sendMessage(message);
     const response = await result.response;
     const text = response.text();

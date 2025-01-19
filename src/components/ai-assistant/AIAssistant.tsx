@@ -29,7 +29,7 @@ export function AIAssistant() {
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              <h3 className="font-semibold">Movie Assistant</h3>
+              <h3 className="font-semibold">Киноассистент</h3>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
               <X className="h-4 w-4" />
@@ -51,11 +51,11 @@ export function AIAssistant() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me anything about movies..."
+                placeholder="Спросите что-нибудь о фильмах..."
                 disabled={isLoading}
               />
               <Button type="submit" disabled={isLoading}>
-                Send
+                Отправить
               </Button>
             </div>
           </form>

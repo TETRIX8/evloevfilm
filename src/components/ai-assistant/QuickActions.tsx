@@ -6,18 +6,18 @@ interface QuickActionsProps {
 
 export function QuickActions({ onAction }: QuickActionsProps) {
   const actions = [
-    "What should I watch tonight?",
-    "Find me a good comedy",
-    "Recommend similar movies to Inception",
-    "What are the top rated movies?",
-    "Help me use this app",
+    "Что посмотреть сегодня вечером?",
+    "Найти хорошую комедию",
+    "Посоветуй фильмы похожие на Inception",
+    "Какие фильмы самые популярные?",
+    "Помоги разобраться с приложением",
   ];
 
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-muted-foreground mb-2">
-        👋 Hi! I'm your movie assistant. I can help you find movies, answer questions, and more.
-        Try one of these:
+        👋 Привет! Я ваш киноассистент. Я помогу найти фильмы, отвечу на вопросы и дам рекомендации.
+        Попробуйте спросить:
       </p>
       {actions.map((action) => (
         <Button

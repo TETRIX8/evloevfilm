@@ -1,4 +1,4 @@
-import { ArrowLeft, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, Heart, Share2, Search } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -118,6 +118,24 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     navigate(-1);
   };
 
+  const handleFindSimilar = async () => {
+    soundEffects.play("click");
+    const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож.`;
+    
+    // Get the chat iframe element
+    const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
+    if (chatIframe?.contentWindow) {
+      // Open chat and send message
+      chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
+      setTimeout(() => {
+        chatIframe.contentWindow.postMessage({ 
+          type: 'SEND_MESSAGE',
+          message
+        }, '*');
+      }, 500);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-background/95 z-50 flex flex-col">
       <div className="container mx-auto p-4">
@@ -131,6 +149,14 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
           </button>
           
           <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              className="flex items-center gap-2"
+              onClick={handleFindSimilar}
+            >
+              <Search className="h-5 w-5" />
+              <span>Похожие фильмы</span>
+            </Button>
             <Button
               size="icon"
               variant="secondary"
