@@ -48,14 +48,12 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       }
     }, 30000);
 
-    // Apply ad blocking if enabled
     if (adBlockEnabled && iframeRef.current) {
       const iframe = iframeRef.current;
       iframe.onload = () => {
         try {
           const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
           if (iframeDoc) {
-            // Add CSS to hide common ad elements
             const style = iframeDoc.createElement('style');
             style.textContent = `
               [class*="ad-"], [class*="ads-"], [id*="ad-"], [id*="ads-"],
@@ -118,9 +116,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     navigate(-1);
   };
 
-  const handleFindSimilar = async () => {
+  const handleFindSimilar = () => {
     soundEffects.play("click");
-    const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож.`;
     
     // Get the chat iframe element
     const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
@@ -128,11 +125,14 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       // Open chat and send message
       chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
       setTimeout(() => {
+        const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож. Пожалуйста, отвечай на русском языке.`;
         chatIframe.contentWindow.postMessage({ 
           type: 'SEND_MESSAGE',
           message
         }, '*');
       }, 500);
+    } else {
+      toast.error("Не удалось открыть чат с ассистентом");
     }
   };
 
