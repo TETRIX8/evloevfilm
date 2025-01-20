@@ -17,9 +17,11 @@ export function AIMessage({ message }: AIMessageProps) {
     // Find the search input element
     const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
     if (searchInput) {
+      // Set the value
       searchInput.value = movieTitle;
-      // Trigger the input event to activate the search
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      // Create and dispatch an input event to trigger the search
+      const event = new Event('input', { bubbles: true });
+      searchInput.dispatchEvent(event);
       // Focus the input
       searchInput.focus();
     }
