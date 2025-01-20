@@ -125,7 +125,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       // Open chat and send message
       chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
       setTimeout(() => {
-        const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож. Пожалуйста, отвечай на русском языке.`;
+        const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож. Пожалуйста, отвечай на русском языке и добавляй перед каждым названием фильма 'evloevfilm'.`;
         chatIframe.contentWindow.postMessage({ 
           type: 'SEND_MESSAGE',
           message
