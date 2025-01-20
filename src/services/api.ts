@@ -29,18 +29,15 @@ export interface MovieDetails {
 }
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
-  let lastError: Error | null = null;
-  
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Origin': window.location.origin,
+          'Origin': window.location.origin
         },
         mode: 'cors',
-        cache: 'no-cache',
         credentials: 'omit'
       });
       
@@ -51,44 +48,24 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
       return response;
     } catch (error) {
       console.error(`Attempt ${i + 1} failed:`, error);
-      lastError = error as Error;
-      
-      if (i === retries - 1) {
-        break;
-      }
-      
-      await new Promise(resolve => 
-        setTimeout(resolve, Math.min(1000 * Math.pow(2, i), 5000))
-      );
+      if (i === retries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, i), 5000)));
     }
   }
-  
-  throw lastError || new Error('Failed to fetch after retries');
+  throw new Error('Failed to fetch after retries');
 }
 
 export async function fetchMovieDetails(title: string): Promise<MovieDetails | null> {
   try {
-    // Decode first in case the title is already encoded from the URL
-    const decodedTitle = decodeURIComponent(title);
-    // Then encode properly for the API request
-    const encodedTitle = encodeURIComponent(decodedTitle);
-    
     const url = new URL(BASE_URL);
     url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('name', encodedTitle);
+    url.searchParams.append('name', title);
     url.searchParams.append('limit', '1');
 
-    console.log('Fetching movie details for URL:', url.toString());
-    
     const response = await fetchWithRetry(url.toString());
     const data: MovieApiResponse = await response.json();
     
-    console.log('Movie details response:', data);
-    
-    if (!data.results?.[0]) {
-      console.log('No movie details found');
-      return null;
-    }
+    if (!data.results?.[0]) return null;
     
     const movie = data.results[0];
     return {
@@ -116,8 +93,6 @@ export async function fetchMovies(type: 'films' | 'serials' | 'cartoon', year: s
       url.searchParams.append('join_seasons', 'false');
     }
 
-    console.log('Fetching movies for URL:', url.toString());
-    
     const response = await fetchWithRetry(url.toString());
     const data: MovieApiResponse = await response.json();
     
@@ -136,17 +111,10 @@ export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
   if (!searchTerm) return [];
   
   try {
-    // Decode first in case the search term is already encoded
-    const decodedTerm = decodeURIComponent(searchTerm);
-    // Then encode properly for the API request
-    const encodedSearchTerm = encodeURIComponent(decodedTerm);
-    
     const url = new URL(BASE_URL);
     url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('name', encodedSearchTerm);
+    url.searchParams.append('name', searchTerm);
 
-    console.log('Searching movies for URL:', url.toString());
-    
     const response = await fetchWithRetry(url.toString());
     const data: MovieApiResponse = await response.json();
     
