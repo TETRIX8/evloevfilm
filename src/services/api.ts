@@ -40,6 +40,7 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
           'Origin': window.location.origin,
         },
         mode: 'cors',
+        cache: 'no-cache',
         credentials: 'omit'
       });
       
@@ -56,7 +57,6 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
         break;
       }
       
-      // Exponential backoff with max delay of 5 seconds
       await new Promise(resolve => 
         setTimeout(resolve, Math.min(1000 * Math.pow(2, i), 5000))
       );
@@ -68,7 +68,11 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
 
 export async function fetchMovieDetails(title: string): Promise<MovieDetails | null> {
   try {
-    const encodedTitle = encodeURIComponent(title);
+    // Decode first in case the title is already encoded from the URL
+    const decodedTitle = decodeURIComponent(title);
+    // Then encode properly for the API request
+    const encodedTitle = encodeURIComponent(decodedTitle);
+    
     const url = new URL(BASE_URL);
     url.searchParams.append('token', API_TOKEN);
     url.searchParams.append('name', encodedTitle);
@@ -132,7 +136,11 @@ export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
   if (!searchTerm) return [];
   
   try {
-    const encodedSearchTerm = encodeURIComponent(searchTerm);
+    // Decode first in case the search term is already encoded
+    const decodedTerm = decodeURIComponent(searchTerm);
+    // Then encode properly for the API request
+    const encodedSearchTerm = encodeURIComponent(decodedTerm);
+    
     const url = new URL(BASE_URL);
     url.searchParams.append('token', API_TOKEN);
     url.searchParams.append('name', encodedSearchTerm);
