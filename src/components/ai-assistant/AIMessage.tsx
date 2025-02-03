@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Bot, User } from "lucide-react";
+import { toast } from "sonner";
 
 interface Message {
   role: "assistant" | "user";
@@ -27,21 +28,40 @@ export function AIMessage({ message }: AIMessageProps) {
     }
   };
 
+  const handleMovieTitleClick = (movieTitle: string) => {
+    // Copy to clipboard
+    navigator.clipboard.writeText(movieTitle).then(() => {
+      toast.success("Название фильма скопировано в буфер обмена");
+    }).catch(() => {
+      toast.error("Не удалось скопировать название фильма");
+    });
+    // Also perform the search
+    handleMovieClick(movieTitle);
+  };
+
   const renderContent = () => {
     if (!isBot) return message.content;
 
-    // Replace evloevfilm mentions with clickable spans
-    const parts = message.content.split(/\b(evloevfilm\s+[^.,!?;\n]+)/g);
+    // Replace movie titles with clickable spans
+    // Looking for patterns like "Movie Title (year)" or just "Movie Title"
+    const parts = message.content.split(/(".*?"|«.*?»|\b[^.,!?;\n]+(?:\s+\(\d{4}\))?)/g);
+    
     return parts.map((part, index) => {
-      if (part.startsWith('evloevfilm ')) {
-        const movieTitle = part.replace('evloevfilm ', '').trim();
+      // Skip empty parts and punctuation
+      if (!part.trim() || /^[.,!?;\s]+$/.test(part)) return part;
+      
+      // Check if this part looks like a movie title
+      const isMovieTitle = /^["«].*?[»"]$/.test(part) || /.*?\(\d{4}\)$/.test(part);
+      
+      if (isMovieTitle) {
+        const movieTitle = part.replace(/^["«]|[»"]$/g, '').trim();
         return (
           <span
             key={index}
-            className="text-primary underline cursor-pointer hover:text-primary/80"
-            onClick={() => handleMovieClick(movieTitle)}
+            className="text-primary font-medium cursor-pointer hover:text-primary/80 hover:underline"
+            onClick={() => handleMovieTitleClick(movieTitle)}
           >
-            {movieTitle}
+            {part}
           </span>
         );
       }
