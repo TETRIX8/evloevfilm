@@ -119,8 +119,9 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleFindSimilar = () => {
     soundEffects.play("click");
     
-    // Get the chat iframe element
-    const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
+    // Find the chat iframe in the parent window
+    const chatIframe = window.parent.document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
+    
     if (chatIframe?.contentWindow) {
       // Open chat and send message
       chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
