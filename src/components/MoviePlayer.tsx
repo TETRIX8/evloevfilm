@@ -119,22 +119,11 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleFindSimilar = () => {
     soundEffects.play("click");
     
-    // Find the chat iframe in the parent window
-    const chatIframe = window.parent.document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
-    
-    if (chatIframe?.contentWindow) {
-      // Open chat and send message
-      chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
-      setTimeout(() => {
-        const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож. Пожалуйста, отвечай на русском языке.`;
-        chatIframe.contentWindow.postMessage({ 
-          type: 'SEND_MESSAGE',
-          message
-        }, '*');
-      }, 500);
-    } else {
-      toast.error("Не удалось открыть чат с ассистентом");
-    }
+    // Send message to parent window
+    window.postMessage({ 
+      type: 'MOVIE_SIMILAR_REQUEST',
+      message: `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож. Пожалуйста, отвечай на русском языке.`
+    }, '*');
   };
 
   return (
