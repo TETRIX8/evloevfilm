@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
 import { fetchMovieDetails } from "@/services/api";
+import { VPNAdvertisement } from "./VPNAdvertisement";
 
 interface MoviePlayerProps {
   title: string;
@@ -16,6 +17,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLiked, setIsLiked] = useState(false);
+  const [showVPNAd, setShowVPNAd] = useState(true);
   const imageUrl = location.state?.image || "/placeholder.svg";
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
@@ -119,10 +121,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleFindSimilar = () => {
     soundEffects.play("click");
     
-    // Get the chat iframe element
     const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
     if (chatIframe?.contentWindow) {
-      // Open chat and send message
       chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
       setTimeout(() => {
         const message = `Порекомендуй похожие фильмы на "${title}". Для каждого фильма укажи краткое описание почему он похож. Пожалуйста, отвечай на русском языке.`;
@@ -138,6 +138,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
 
   return (
     <div className="fixed inset-0 bg-background/95 z-50 flex flex-col">
+      {showVPNAd && <VPNAdvertisement onComplete={() => setShowVPNAd(false)} />}
+      
       <div className="container mx-auto p-4">
         <div className="flex items-center justify-between mb-6">
           <button
@@ -197,15 +199,17 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       </div>
       
       <div className="flex-1 relative w-full max-w-[1200px] mx-auto px-4">
-        <div className="relative w-full rounded-lg overflow-hidden shadow-2xl animate-scale-in" style={{ paddingBottom: "56.25%" }}>
-          <iframe
-            ref={iframeRef}
-            src={iframeUrl}
-            className="absolute inset-0 w-full h-full"
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          />
-        </div>
+        {!showVPNAd && (
+          <div className="relative w-full rounded-lg overflow-hidden shadow-2xl animate-scale-in" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              ref={iframeRef}
+              src={iframeUrl}
+              className="absolute inset-0 w-full h-full"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
