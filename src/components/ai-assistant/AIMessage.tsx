@@ -44,15 +44,22 @@ export function AIMessage({ message, isThinking = false }: AIMessageProps) {
     if (!isBot) return message.content;
 
     // Replace movie titles with clickable spans
-    // Looking for patterns like "Movie Title (year)" or just "Movie Title"
-    const parts = message.content.split(/(".*?"|«.*?»|\b[^.,!?;\n]+(?:\s+\(\d{4}\))?)/g);
+    // Looking for patterns like:
+    // 1. "Movie Title" or «Movie Title»
+    // 2. Movie Title (year)
+    // 3. Movie Title [year]
+    const parts = message.content.split(/(".*?"|«.*?»|\b[^.,!?;\n]+(?:\s+[\(\[]\d{4}[\)\]])?)/g);
     
     return parts.map((part, index) => {
       // Skip empty parts and punctuation
       if (!part.trim() || /^[.,!?;\s]+$/.test(part)) return part;
       
       // Check if this part looks like a movie title
-      const isMovieTitle = /^["«].*?[»"]$/.test(part) || /.*?\(\d{4}\)$/.test(part);
+      const isMovieTitle = (
+        /^["«].*?[»"]$/.test(part) || // Quoted titles
+        /.*?[\(\[]\d{4}[\)\]]$/.test(part) || // Titles with year
+        /^[А-ЯA-Z].*/.test(part.trim()) // Capitalized phrases
+      );
       
       if (isMovieTitle) {
         const movieTitle = part.replace(/^["«]|[»"]$/g, '').trim();
