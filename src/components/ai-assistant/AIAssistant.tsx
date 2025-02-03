@@ -40,9 +40,21 @@ export function AIAssistant() {
             {messages.length === 0 ? (
               <QuickActions onAction={sendMessage} />
             ) : (
-              messages.map((message, index) => (
-                <AIMessage key={index} message={message} />
-              ))
+              <>
+                {messages.map((message, index) => (
+                  <AIMessage 
+                    key={index} 
+                    message={message} 
+                    isThinking={index === messages.length - 1 && isLoading && message.role === "user"}
+                  />
+                ))}
+                {isLoading && (
+                  <AIMessage 
+                    message={{ role: "assistant", content: "" }} 
+                    isThinking={true}
+                  />
+                )}
+              </>
             )}
           </ScrollArea>
 

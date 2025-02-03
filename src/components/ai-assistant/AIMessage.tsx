@@ -9,9 +9,10 @@ interface Message {
 
 interface AIMessageProps {
   message: Message;
+  isThinking?: boolean;
 }
 
-export function AIMessage({ message }: AIMessageProps) {
+export function AIMessage({ message, isThinking = false }: AIMessageProps) {
   const isBot = message.role === "assistant";
 
   const handleMovieClick = (movieTitle: string) => {
@@ -78,8 +79,9 @@ export function AIMessage({ message }: AIMessageProps) {
     >
       <div
         className={cn(
-          "h-8 w-8 rounded-full flex items-center justify-center",
-          isBot ? "bg-primary text-primary-foreground" : "bg-muted"
+          "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300",
+          isBot ? "bg-primary text-primary-foreground" : "bg-muted",
+          isThinking && "animate-pulse"
         )}
       >
         {isBot ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
@@ -90,7 +92,15 @@ export function AIMessage({ message }: AIMessageProps) {
           isBot ? "bg-muted" : "bg-primary text-primary-foreground"
         )}
       >
-        {renderContent()}
+        {isThinking ? (
+          <div className="flex items-center gap-2">
+            <span className="animate-bounce">•</span>
+            <span className="animate-bounce delay-100">•</span>
+            <span className="animate-bounce delay-200">•</span>
+          </div>
+        ) : (
+          renderContent()
+        )}
       </div>
     </div>
   );
