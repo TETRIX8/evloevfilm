@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bookmark, Film, History, Info, HelpCircle, BarChart, Users } from "lucide-react";
+import { Bookmark, Film, History, Info, HelpCircle, BarChart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -26,14 +26,6 @@ export function DesktopMenu({ isAuthenticated, isAdmin }: DesktopMenuProps) {
               <Link to="/history">
                 <History className="h-4 w-4" />
                 История просмотров
-              </Link>
-            </Button>
-          </motion.div>
-          <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-            <Button variant="ghost" className="gap-2" asChild>
-              <Link to="/referrals">
-                <Users className="h-4 w-4" />
-                Рефералы
               </Link>
             </Button>
           </motion.div>
