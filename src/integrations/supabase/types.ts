@@ -273,6 +273,48 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string | null
+          referrer_id: string
+          status: Database["public"]["Enums"]["referral_status"] | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id?: string | null
+          referrer_id: string
+          status?: Database["public"]["Enums"]["referral_status"] | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string | null
+          referrer_id?: string
+          status?: Database["public"]["Enums"]["referral_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_movies: {
         Row: {
           id: string
@@ -441,9 +483,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
+      referral_status: "pending" | "completed"
       user_role: "admin" | "user"
     }
     CompositeTypes: {

@@ -11,6 +11,7 @@ import About from "@/pages/About";
 import Support from "@/pages/Support";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
+import Referrals from "@/pages/Referrals";
 
 export function AppRoutes() {
   return (
@@ -100,6 +101,16 @@ export function AppRoutes() {
             </PageTransition>
           </ProtectedRoute>
         }
+      />
+      <Route 
+        path="/referrals" 
+        element={
+          <ProtectedRoute>
+            <PageTransition>
+              <Referrals />
+            </PageTransition>
+          </ProtectedRoute>
+        } 
       />
     </Routes>
   );
