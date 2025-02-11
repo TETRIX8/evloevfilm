@@ -77,9 +77,11 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
               Поддержка
             </Link>
           </Button>
-          <Button variant="ghost" className="justify-start gap-2">
-            <ShieldOff className="h-4 w-4" />
-            Блокировка рекламы
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link to="/adblock">
+              <ShieldOff className="h-4 w-4" />
+              Блокировка рекламы
+            </Link>
           </Button>
         </div>
       </SheetContent>
