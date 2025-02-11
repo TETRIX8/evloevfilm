@@ -1,3 +1,4 @@
+
 import { Navigation } from "@/components/navigation/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import emailjs from '@emailjs/browser';
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 
 export default function Support() {
   const [subject, setSubject] = useState("");
@@ -15,7 +17,6 @@ export default function Support() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    // Get user email from session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.email) {
         setUserEmail(session.user.email);
@@ -51,20 +52,50 @@ export default function Support() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-background via-purple-500/5 to-background">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+      </div>
+      
       <Navigation />
       
-      <main className="container pt-24 pb-16">
-        <div className="max-w-xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-4xl font-bold">Поддержка</h1>
+      <main className="container pt-24 pb-16 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-xl mx-auto space-y-8"
+        >
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-center space-y-2"
+          >
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500">
+              Поддержка
+            </h1>
             <p className="text-muted-foreground">
               У вас есть вопросы? Мы здесь, чтобы помочь!
             </p>
-          </div>
+          </motion.div>
 
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+          <motion.form 
+            ref={formRef} 
+            onSubmit={handleSubmit} 
+            className="space-y-6 bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-primary/10 shadow-xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <motion.div 
+              className="space-y-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               <label htmlFor="email" className="text-sm font-medium">
                 Email
               </label>
@@ -77,11 +108,16 @@ export default function Support() {
                 placeholder="Ваш email"
                 required
                 readOnly={!!userEmail}
-                className={userEmail ? "bg-muted" : ""}
+                className={`${userEmail ? "bg-muted" : ""} transition-all duration-300 hover:shadow-md focus:shadow-lg`}
               />
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div 
+              className="space-y-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
               <label htmlFor="subject" className="text-sm font-medium">
                 Тема
               </label>
@@ -92,10 +128,16 @@ export default function Support() {
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="О чем вы хотите сообщить?"
                 required
+                className="transition-all duration-300 hover:shadow-md focus:shadow-lg"
               />
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div 
+              className="space-y-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
               <label htmlFor="message" className="text-sm font-medium">
                 Сообщение
               </label>
@@ -106,15 +148,25 @@ export default function Support() {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Опишите вашу проблему или вопрос..."
                 required
-                className="min-h-[150px]"
+                className="min-h-[150px] transition-all duration-300 hover:shadow-md focus:shadow-lg"
               />
-            </div>
+            </motion.div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Отправка..." : "Отправить сообщение"}
-            </Button>
-          </form>
-        </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+            >
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-[1.02]" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Отправка..." : "Отправить сообщение"}
+              </Button>
+            </motion.div>
+          </motion.form>
+        </motion.div>
       </main>
     </div>
   );
