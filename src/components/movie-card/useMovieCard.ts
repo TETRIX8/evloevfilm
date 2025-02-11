@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -12,15 +13,19 @@ export function useMovieCard(title: string, image: string, link: string) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isSubscribed = true;
+
     const checkSavedStatus = async () => {
       try {
-        setIsLoading(true);
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Session error:', sessionError);
           return;
         }
+
+        // Only proceed if the component is still mounted
+        if (!isSubscribed) return;
 
         if (!session?.user?.id) {
           setIsLoading(false);
@@ -37,26 +42,34 @@ export function useMovieCard(title: string, image: string, link: string) {
 
         if (error) {
           console.error('Error checking saved status:', error);
-          toast.error("Ошибка при проверке статуса фильма");
           return;
         }
 
-        setIsLiked(!!data);
+        // Only update state if the component is still mounted
+        if (isSubscribed) {
+          setIsLiked(!!data);
+        }
       } catch (error) {
         console.error('Error in checkSavedStatus:', error);
-        toast.error("Произошла ошибка при проверке статуса фильма");
       } finally {
-        setIsLoading(false);
+        if (isSubscribed) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkSavedStatus();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      checkSavedStatus();
+      if (isSubscribed) {
+        checkSavedStatus();
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isSubscribed = false;
+      subscription.unsubscribe();
+    };
   }, [title]);
 
   const handleClick = (e: React.MouseEvent) => {
