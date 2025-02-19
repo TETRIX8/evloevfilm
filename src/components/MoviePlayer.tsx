@@ -1,3 +1,4 @@
+
 import { ArrowLeft, Heart, Share2, Search, Star, Clock, Globe, Award, Play } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -7,8 +8,15 @@ import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
 import { fetchMovieDetails } from "@/services/api";
 import { VPNAdvertisement } from "./VPNAdvertisement";
-import { fetchKinopoiskMovie, type KinopoiskMovie } from "@/services/kinopoisk";
+import { fetchKinopoiskMovie, fetchMovieStills, type KinopoiskMovie, type MovieStill } from "@/services/kinopoisk";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface MoviePlayerProps {
   title: string;
@@ -25,6 +33,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
   const [kinopoiskData, setKinopoiskData] = useState<KinopoiskMovie | null>(null);
+  const [movieStills, setMovieStills] = useState<MovieStill[]>([]);
   const [adBlockEnabled] = useState(() => {
     return localStorage.getItem("adBlockEnabled") === "true";
   });
@@ -41,6 +50,9 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       if (details?.kinopoisk_id) {
         const kinopoiskDetails = await fetchKinopoiskMovie(details.kinopoisk_id);
         setKinopoiskData(kinopoiskDetails);
+        
+        const stills = await fetchMovieStills(details.kinopoisk_id);
+        setMovieStills(stills);
       }
     };
 
@@ -202,6 +214,42 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 <p className="leading-relaxed text-muted-foreground">
                   {kinopoiskData.description}
                 </p>
+              </motion.div>
+            )}
+
+            {movieStills.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="space-y-4"
+              >
+                <h3 className="text-xl font-semibold">Кадры из фильма</h3>
+                <div className="relative">
+                  <Carousel
+                    opts={{
+                      align: "start",
+                      loop: true,
+                    }}
+                    className="w-full"
+                  >
+                    <CarouselContent className="-ml-2 md:-ml-4">
+                      {movieStills.map((still, index) => (
+                        <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                          <div className="relative aspect-video rounded-xl overflow-hidden">
+                            <img
+                              src={still.imageUrl}
+                              alt={`Кадр ${index + 1}`}
+                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="hidden md:flex -left-12" />
+                    <CarouselNext className="hidden md:flex -right-12" />
+                  </Carousel>
+                </div>
               </motion.div>
             )}
           </div>
