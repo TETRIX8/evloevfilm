@@ -176,13 +176,12 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
           <span>Назад</span>
         </button>
 
-        <div className="grid lg:grid-cols-[1fr_400px] gap-4 sm:gap-6 lg:gap-8 items-start">
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+        <div className="grid lg:grid-cols-[1fr_400px] gap-8 items-start">
+          <div className="space-y-8">
             {showPlayer ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
                 className="relative w-full rounded-xl overflow-hidden shadow-2xl"
                 style={{ paddingBottom: "56.25%" }}
               >
@@ -195,30 +194,24 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 />
               </motion.div>
             ) : (
-              <motion.div
+              <motion.img
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="relative rounded-xl overflow-hidden shadow-2xl"
-              >
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  className="w-full aspect-[2/3] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </motion.div>
+                src={imageUrl}
+                alt={title}
+                className="w-full rounded-xl shadow-2xl aspect-[2/3] object-cover"
+              />
             )}
 
             {kinopoiskData?.description && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-                className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+                transition={{ delay: 0.4 }}
+                className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10"
               >
-                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Описание</h3>
-                <p className="leading-relaxed text-muted-foreground text-sm sm:text-base">
+                <h3 className="text-xl font-semibold mb-4">Описание</h3>
+                <p className="leading-relaxed text-muted-foreground">
                   {kinopoiskData.description}
                 </p>
               </motion.div>
@@ -228,70 +221,53 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
+                transition={{ delay: 0.5 }}
                 className="space-y-4"
               >
-                <h3 className="text-lg sm:text-xl font-semibold">Кадры из фильма</h3>
-                <div className="relative -mx-4 sm:mx-0">
+                <h3 className="text-xl font-semibold">Кадры из фильма</h3>
+                <div className="relative">
                   <Carousel
                     opts={{
                       align: "start",
                       loop: true,
-                      skipSnaps: false,
-                      containScroll: "trimSnaps",
                     }}
                     className="w-full"
                   >
-                    <CarouselContent className="-ml-1 sm:-ml-2 md:-ml-4">
+                    <CarouselContent className="-ml-2 md:-ml-4">
                       {movieStills.map((still, index) => (
-                        <CarouselItem 
-                          key={index} 
-                          className="pl-1 sm:pl-2 md:pl-4 basis-[85%] sm:basis-[45%] md:basis-[40%] lg:basis-[30%]"
-                        >
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ 
-                              duration: 0.4,
-                              delay: index * 0.1,
-                              ease: "easeOut"
-                            }}
-                            className="relative aspect-video rounded-lg sm:rounded-xl overflow-hidden group"
-                          >
+                        <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                          <div className="relative aspect-video rounded-xl overflow-hidden">
                             <img
                               src={still.imageUrl}
                               alt={`Кадр ${index + 1}`}
-                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                             />
-                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          </motion.div>
+                          </div>
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <div className="hidden sm:block">
-                      <CarouselPrevious className="-left-12 sm:-left-16 transition-transform duration-300 hover:scale-110" />
-                      <CarouselNext className="-right-12 sm:-right-16 transition-transform duration-300 hover:scale-110" />
-                    </div>
+                    <CarouselPrevious className="hidden md:flex -left-12" />
+                    <CarouselNext className="hidden md:flex -right-12" />
                   </Carousel>
                 </div>
               </motion.div>
             )}
           </div>
 
-          <div className="lg:sticky lg:top-6 space-y-4 sm:space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
+          <div className="lg:sticky lg:top-6 space-y-6">
+            <div>
+              <motion.h1 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-3xl font-bold mb-4"
+              >
                 {title}
-              </h1>
+              </motion.h1>
               
-              <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+              <div className="flex flex-wrap gap-3 mb-6">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto flex items-center gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto flex items-center gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700"
                   onClick={handleStartWatching}
                   disabled={showPlayer}
                 >
@@ -301,52 +277,52 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-12 w-12 transition-transform duration-300 hover:scale-110"
+                  className="h-12 w-12"
                   onClick={handleLike}
                 >
-                  <Heart className={`h-5 w-5 transition-colors duration-300 ${isLiked ? "fill-primary text-primary" : ""}`} />
+                  <Heart className={`h-5 w-5 ${isLiked ? "fill-primary text-primary" : ""}`} />
                 </Button>
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-12 w-12 transition-transform duration-300 hover:scale-110"
+                  className="h-12 w-12"
                   onClick={handleShare}
                 >
                   <Share2 className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="secondary"
-                  className="sm:flex-1 flex items-center gap-2 transition-transform duration-300 hover:scale-105"
+                  className="sm:flex-1 flex items-center gap-2"
                   onClick={handleFindSimilar}
                 >
                   <Search className="h-5 w-5" />
                   <span className="hidden sm:inline">Похожие фильмы</span>
                 </Button>
               </div>
-            </motion.div>
+            </div>
 
             {kinopoiskData && (
               <>
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-                  className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+                  transition={{ delay: 0.2 }}
+                  className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10"
                 >
-                  <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-4">
+                  <h3 className="text-xl font-semibold flex items-center gap-2 mb-4">
                     <Star className="text-yellow-500" />
                     Рейтинги
                   </h3>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div className="p-3 sm:p-4 bg-background/50 rounded-lg transition-transform duration-300 hover:scale-105">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-background/50 rounded-lg">
                       <div className="text-sm text-muted-foreground">КиноПоиск</div>
-                      <div className="text-xl sm:text-2xl font-bold text-yellow-500">
+                      <div className="text-2xl font-bold text-yellow-500">
                         {kinopoiskData.rating.kp.toFixed(1)}
                       </div>
                     </div>
-                    <div className="p-3 sm:p-4 bg-background/50 rounded-lg transition-transform duration-300 hover:scale-105">
+                    <div className="p-4 bg-background/50 rounded-lg">
                       <div className="text-sm text-muted-foreground">IMDb</div>
-                      <div className="text-xl sm:text-2xl font-bold text-yellow-500">
+                      <div className="text-2xl font-bold text-yellow-500">
                         {kinopoiskData.rating.imdb.toFixed(1)}
                       </div>
                     </div>
@@ -356,30 +332,30 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
-                  className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+                  transition={{ delay: 0.3 }}
+                  className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10"
                 >
-                  <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-4">
+                  <h3 className="text-xl font-semibold flex items-center gap-2 mb-4">
                     <Clock className="text-primary" />
                     Детали
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 group">
-                      <Globe className="w-4 h-4 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />
-                      <span className="text-sm sm:text-base">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
                         {kinopoiskData.countries.map(c => c.name).join(", ")}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 group">
-                      <Award className="w-4 h-4 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />
-                      <span className="text-sm sm:text-base">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
                         {kinopoiskData.genres.map(g => g.name).join(", ")}
                       </span>
                     </div>
                     {kinopoiskData.movieLength && (
-                      <div className="flex items-center gap-2 group">
-                        <Clock className="w-4 h-4 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />
-                        <span className="text-sm sm:text-base">{kinopoiskData.movieLength} мин.</span>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">{kinopoiskData.movieLength} мин.</span>
                       </div>
                     )}
                   </div>
