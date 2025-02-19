@@ -1,3 +1,4 @@
+
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://api1673051707.bhcesh.me/list";
 
@@ -12,6 +13,7 @@ export interface MovieApiResponse {
     year?: number;
     rating?: number;
     genres?: string[];
+    kinopoisk_id?: string;
   }>;
 }
 
@@ -26,6 +28,7 @@ export interface MovieDetails {
   year?: number;
   rating?: number;
   genres?: string[];
+  kinopoisk_id?: string;
 }
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
@@ -72,7 +75,8 @@ export async function fetchMovieDetails(title: string): Promise<MovieDetails | n
       description: movie.description,
       year: movie.year,
       rating: movie.rating,
-      genres: movie.genres
+      genres: movie.genres,
+      kinopoisk_id: movie.kinopoisk_id
     };
   } catch (error) {
     console.error('Error fetching movie details:', error);
