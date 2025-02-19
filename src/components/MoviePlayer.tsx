@@ -1,4 +1,5 @@
-import { ArrowLeft, Heart, Share2, Search } from "lucide-react";
+
+import { ArrowLeft, Heart, Share2, Search, Star, Clock, Globe, Award } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -7,6 +8,8 @@ import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
 import { fetchMovieDetails } from "@/services/api";
 import { VPNAdvertisement } from "./VPNAdvertisement";
+import { fetchKinopoiskMovie, type KinopoiskMovie } from "@/services/kinopoisk";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MoviePlayerProps {
   title: string;
@@ -21,6 +24,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const imageUrl = location.state?.image || "/placeholder.svg";
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
+  const [kinopoiskData, setKinopoiskData] = useState<KinopoiskMovie | null>(null);
   const [adBlockEnabled] = useState(() => {
     return localStorage.getItem("adBlockEnabled") === "true";
   });
@@ -33,6 +37,11 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     const fetchDetails = async () => {
       const details = await fetchMovieDetails(title);
       setMovieDetails(details);
+
+      if (details?.kinopoisk_id) {
+        const kinopoiskDetails = await fetchKinopoiskMovie(details.kinopoisk_id);
+        setKinopoiskData(kinopoiskDetails);
+      }
     };
 
     fetchDetails();
@@ -179,23 +188,6 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
         </div>
         
         <h1 className="text-2xl font-bold mb-6 animate-fade-in">{title}</h1>
-        
-        {movieDetails && (
-          <div className="mb-4">
-            {movieDetails.description && (
-              <p className="text-sm mb-2">{movieDetails.description}</p>
-            )}
-            {movieDetails.year && (
-              <p className="text-sm">Год: {movieDetails.year}</p>
-            )}
-            {movieDetails.rating && (
-              <p className="text-sm">Рейтинг: {movieDetails.rating}</p>
-            )}
-            {movieDetails.genres && movieDetails.genres.length > 0 && (
-              <p className="text-sm">Жанры: {movieDetails.genres.join(", ")}</p>
-            )}
-          </div>
-        )}
       </div>
       
       <div className="flex-1 relative w-full max-w-[1200px] mx-auto px-4">
@@ -211,6 +203,108 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {kinopoiskData && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="container mx-auto px-4 py-8"
+          >
+            <div className="max-w-[1200px] mx-auto">
+              <div className="grid gap-8 md:grid-cols-2">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="space-y-4 bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10"
+                >
+                  <h3 className="text-xl font-semibold flex items-center gap-2">
+                    <Star className="text-yellow-500" />
+                    Рейтинги
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-background/50 rounded-lg">
+                      <div className="text-sm text-muted-foreground">КиноПоиск</div>
+                      <div className="text-2xl font-bold text-yellow-500">
+                        {kinopoiskData.rating.kp.toFixed(1)}
+                      </div>
+                    </div>
+                    <div className="p-4 bg-background/50 rounded-lg">
+                      <div className="text-sm text-muted-foreground">IMDb</div>
+                      <div className="text-2xl font-bold text-yellow-500">
+                        {kinopoiskData.rating.imdb.toFixed(1)}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="space-y-4 bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10"
+                >
+                  <h3 className="text-xl font-semibold flex items-center gap-2">
+                    <Clock className="text-primary" />
+                    Детали
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-muted-foreground" />
+                      <span>
+                        {kinopoiskData.countries.map(c => c.name).join(", ")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-muted-foreground" />
+                      <span>
+                        {kinopoiskData.genres.map(g => g.name).join(", ")}
+                      </span>
+                    </div>
+                    {kinopoiskData.movieLength && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span>{kinopoiskData.movieLength} мин.</span>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </div>
+
+              {kinopoiskData.description && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-8 bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/10"
+                >
+                  <h3 className="text-xl font-semibold mb-4">Описание</h3>
+                  <p className="leading-relaxed text-muted-foreground">
+                    {kinopoiskData.description}
+                  </p>
+                </motion.div>
+              )}
+
+              {kinopoiskData.backdrop?.url && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-8 rounded-xl overflow-hidden"
+                >
+                  <img
+                    src={kinopoiskData.backdrop.url}
+                    alt={title}
+                    className="w-full h-auto object-cover rounded-xl"
+                  />
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

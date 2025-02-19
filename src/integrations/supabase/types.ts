@@ -139,6 +139,38 @@ export type Database = {
           },
         ]
       }
+      grades: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          student_id: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          student_id?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          student_id?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
@@ -368,6 +400,53 @@ export type Database = {
           page_views?: number | null
           unique_visitors?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          created_at: string
+          group_id: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
