@@ -1,3 +1,4 @@
+
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,11 +11,21 @@ export default function AuthPage() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth event:", event);
+      
       if (event === "SIGNED_IN") {
         toast.success("Добро пожаловать!");
         navigate("/");
+      } else if (event === "SIGNED_OUT") {
+        toast.success("Вы успешно вышли из системы");
       } else if (event === "PASSWORD_RECOVERY") {
         toast.info("Проверьте вашу почту для восстановления пароля");
+      } else if (event === "USER_UPDATED") {
+        toast.success("Профиль обновлен");
+      } else if (event === "TOKEN_REFRESHED") {
+        console.log("Token refreshed");
+      } else if (event === "USER_DELETED") {
+        toast.info("Аккаунт удален");
       }
     });
 
@@ -81,6 +92,7 @@ export default function AuthPage() {
                   loading_button_label: "Регистрация...",
                   social_provider_text: "Зарегистрироваться через {{provider}}",
                   link_text: "Нет аккаунта? Зарегистрироваться",
+                  confirmation_text: "Проверьте вашу почту для подтверждения регистрации",
                 },
                 forgotten_password: {
                   link_text: "Забыли пароль?",
@@ -88,10 +100,26 @@ export default function AuthPage() {
                   loading_button_label: "Отправка инструкций...",
                   confirmation_text: "Проверьте ваш email для восстановления пароля",
                 },
+                magic_link: {
+                  button_label: "Войти по ссылке",
+                  loading_button_label: "Отправка ссылки...",
+                  confirmation_text: "Проверьте ваш email для входа",
+                },
               },
             }}
             theme="dark"
             providers={[]}
+            onError={(error) => {
+              console.error("Auth error:", error);
+              if (error.message.includes("Email not confirmed")) {
+                toast.error("Пожалуйста, подтвердите ваш email");
+              } else if (error.message.includes("Invalid credentials")) {
+                toast.error("Неверный email или пароль");
+              } else {
+                toast.error(error.message);
+              }
+            }}
+            redirectTo={window.location.origin}
           />
         </div>
       </div>
