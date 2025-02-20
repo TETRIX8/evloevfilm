@@ -10,22 +10,33 @@ export default function AuthPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth event:", event);
-      
-      if (event === "SIGNED_IN") {
-        toast.success("Добро пожаловать!");
+    // Проверяем текущую сессию при загрузке
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         navigate("/");
-      } else if (event === "SIGNED_OUT") {
-        toast.success("Вы успешно вышли из системы");
-      } else if (event === "PASSWORD_RECOVERY") {
-        toast.info("Проверьте вашу почту для восстановления пароля");
-      } else if (event === "USER_UPDATED") {
-        toast.success("Профиль обновлен");
-      } else if (event === "TOKEN_REFRESHED") {
-        console.log("Token refreshed");
-      } else if (event === "USER_DELETED") {
-        toast.info("Аккаунт удален");
+      }
+    };
+    checkSession();
+
+    // Подписываемся на изменения состояния аутентификации
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth event:", event, session);
+
+      switch (event) {
+        case "SIGNED_IN":
+          toast.success("Добро пожаловать!");
+          navigate("/");
+          break;
+        case "SIGNED_OUT":
+          toast.success("Вы успешно вышли из системы");
+          break;
+        case "PASSWORD_RECOVERY":
+          toast.info("Проверьте вашу почту для восстановления пароля");
+          break;
+        case "USER_UPDATED":
+          toast.success("Профиль обновлен");
+          break;
       }
     });
 
@@ -45,6 +56,8 @@ export default function AuthPage() {
         <div className="bg-card p-6 rounded-lg shadow-lg border">
           <Auth
             supabaseClient={supabase}
+            view="sign_in"
+            showLinks={true}
             appearance={{
               theme: ThemeSupa,
               variables: {
@@ -109,17 +122,6 @@ export default function AuthPage() {
             }}
             theme="dark"
             providers={[]}
-            onError={(error) => {
-              console.error("Auth error:", error);
-              if (error.message.includes("Email not confirmed")) {
-                toast.error("Пожалуйста, подтвердите ваш email");
-              } else if (error.message.includes("Invalid credentials")) {
-                toast.error("Неверный email или пароль");
-              } else {
-                toast.error(error.message);
-              }
-            }}
-            redirectTo={window.location.origin}
           />
         </div>
       </div>
