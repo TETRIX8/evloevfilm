@@ -3,20 +3,36 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Проверяем текущую сессию при загрузке
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Ошибка при проверке сессии:", error);
+          toast.error("Ошибка при проверке сессии");
+          return;
+        }
+
+        if (session) {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Ошибка:", error);
+        toast.error("Произошла ошибка при проверке авторизации");
+      } finally {
+        setLoading(false);
       }
     };
+
     checkSession();
 
     // Подписываемся на изменения состояния аутентификации
@@ -25,23 +41,53 @@ export default function AuthPage() {
 
       switch (event) {
         case "SIGNED_IN":
-          toast.success("Добро пожаловать!");
-          navigate("/");
+          try {
+            // Проверяем действительно ли сессия активна
+            const { data: currentSession } = await supabase.auth.getSession();
+            if (currentSession.session) {
+              toast.success("Добро пожаловать!");
+              navigate("/");
+            }
+          } catch (error) {
+            console.error("Ошибка при проверке сессии после входа:", error);
+            toast.error("Ошибка при входе в систему");
+          }
           break;
         case "SIGNED_OUT":
           toast.success("Вы успешно вышли из системы");
-          break;
-        case "PASSWORD_RECOVERY":
-          toast.info("Проверьте вашу почту для восстановления пароля");
+          navigate("/auth");
           break;
         case "USER_UPDATED":
           toast.success("Профиль обновлен");
           break;
+        case "PASSWORD_RECOVERY":
+          toast.info("Проверьте вашу почту для восстановления пароля");
+          break;
+        case "USER_DELETED":
+          toast.info("Аккаунт удален");
+          navigate("/auth");
+          break;
+        case "TOKEN_REFRESHED":
+          console.log("Токен обновлен");
+          break;
+        case "ERROR":
+          toast.error("Произошла ошибка аутентификации");
+          break;
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -120,7 +166,6 @@ export default function AuthPage() {
                 },
               },
             }}
-            theme="dark"
             providers={[]}
           />
         </div>
