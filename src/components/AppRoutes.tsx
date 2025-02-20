@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import { PageTransition } from "./PageTransition";
 import { ProtectedRoute } from "./ProtectedRoute";

@@ -1,3 +1,4 @@
+
 import { ArrowLeft, Heart, Share2, Search, Star, Clock, Globe, Award, Play } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -119,7 +120,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
 
   const handleShare = () => {
     soundEffects.play("click");
-    const shareUrl = `${window.location.origin}/movie/${encodeURIComponent(title)}`;
+    const shareUrl = window.location.href;
     
     if (navigator.share) {
       navigator.share({
