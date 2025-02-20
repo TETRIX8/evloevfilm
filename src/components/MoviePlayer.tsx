@@ -34,7 +34,6 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const [movieDetails, setMovieDetails] = useState<any>(null);
   const [kinopoiskData, setKinopoiskData] = useState<KinopoiskMovie | null>(null);
   const [movieStills, setMovieStills] = useState<MovieStill[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [adBlockEnabled] = useState(() => {
     return localStorage.getItem("adBlockEnabled") === "true";
   });
@@ -45,24 +44,15 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     setIsLiked(isSaved);
 
     const fetchDetails = async () => {
-      try {
-        setIsLoading(true);
-        const details = await fetchMovieDetails(title);
-        setMovieDetails(details);
+      const details = await fetchMovieDetails(title);
+      setMovieDetails(details);
 
-        if (details?.kinopoisk_id) {
-          const [kinopoiskDetails, stills] = await Promise.all([
-            fetchKinopoiskMovie(details.kinopoisk_id),
-            fetchMovieStills(details.kinopoisk_id)
-          ]);
-          setKinopoiskData(kinopoiskDetails);
-          setMovieStills(stills || []);
-        }
-      } catch (error) {
-        console.error('Error fetching movie details:', error);
-        toast.error("Не удалось загрузить детали фильма");
-      } finally {
-        setIsLoading(false);
+      if (details?.kinopoisk_id) {
+        const kinopoiskDetails = await fetchKinopoiskMovie(details.kinopoisk_id);
+        setKinopoiskData(kinopoiskDetails);
+        
+        const stills = await fetchMovieStills(details.kinopoisk_id);
+        setMovieStills(stills);
       }
     };
 
@@ -220,7 +210,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </motion.div>
             )}
 
-            {!isLoading && kinopoiskData?.description && (
+            {kinopoiskData?.description && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -234,7 +224,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </motion.div>
             )}
 
-            {!isLoading && movieStills && movieStills.length > 0 && (
+            {movieStills.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -247,6 +237,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                     opts={{
                       align: "start",
                       loop: true,
+                      skipSnaps: false,
+                      containScroll: "trimSnaps",
                     }}
                     className="w-full"
                   >
@@ -333,7 +325,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </div>
             </motion.div>
 
-            {!isLoading && kinopoiskData && (
+            {kinopoiskData && (
               <>
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
