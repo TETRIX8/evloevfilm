@@ -1,3 +1,4 @@
+
 import {
   Carousel,
   CarouselContent,
@@ -6,6 +7,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { MovieCard } from "./MovieCard";
+import { motion } from "framer-motion";
 
 interface Movie {
   title: string;
@@ -24,8 +26,20 @@ export function MovieCarousel({ title, movies }: MovieCarouselProps) {
   }
 
   return (
-    <section className="space-y-4 animate-fade-in">
-      <h2 className="text-2xl font-semibold">{title}</h2>
+    <motion.section 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-4"
+    >
+      <motion.h2 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="text-2xl font-semibold"
+      >
+        {title}
+      </motion.h2>
       <div className="relative">
         <Carousel
           opts={{
@@ -41,10 +55,10 @@ export function MovieCarousel({ title, movies }: MovieCarouselProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex -left-12" />
-          <CarouselNext className="hidden md:flex -right-12" />
+          <CarouselPrevious className="hidden md:flex -left-12 transition-transform duration-300 hover:scale-110" />
+          <CarouselNext className="hidden md:flex -right-12 transition-transform duration-300 hover:scale-110" />
         </Carousel>
       </div>
-    </section>
+    </motion.section>
   );
 }

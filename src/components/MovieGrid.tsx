@@ -1,4 +1,6 @@
+
 import { MovieCard } from "./MovieCard";
+import { motion } from "framer-motion";
 
 interface Movie {
   title: string;
@@ -13,21 +15,40 @@ interface MovieGridProps {
 
 export function MovieGrid({ movies, className }: MovieGridProps) {
   if (!movies) {
-    return <div className="text-muted-foreground">No movies available</div>;
+    return <div className="text-muted-foreground">Фильмы не найдены</div>;
   }
 
-  if (!Array.isArray(movies)) {
-    console.error("Movies prop is not an array:", movies);
-    return <div className="text-muted-foreground">Error loading movies</div>;
-  }
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 ${className}`}>
+    <motion.div 
+      className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 ${className}`}
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
       {movies.map((movie, index) => (
-        <div key={movie.title + index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+        <motion.div 
+          key={movie.title + index} 
+          variants={item}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
           <MovieCard {...movie} />
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }

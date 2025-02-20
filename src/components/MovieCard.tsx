@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { Heart, Share2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -223,7 +224,7 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
             initial={{ y: 20, opacity: 0 }}
             whileHover={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="font-cinzel text-2xl font-bold tracking-wide truncate mb-2 text-white drop-shadow-lg"
+            className="font-bold text-2xl tracking-wide truncate mb-2 text-white drop-shadow-lg"
           >
             {title}
           </motion.h3>
