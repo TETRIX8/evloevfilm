@@ -1,4 +1,3 @@
-
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,18 +35,19 @@ export default function AuthPage() {
     checkSession();
 
     // Подписываемся на изменения состояния аутентификации
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth event:", event, session);
 
       switch (event) {
         case "SIGNED_IN":
           try {
             // Проверяем действительно ли сессия активна
-            const { data: currentSession } = await supabase.auth.getSession();
-            if (currentSession.session) {
-              toast.success("Добро пожаловать!");
-              navigate("/");
-            }
+            supabase.auth.getSession().then(({ data: currentSession }) => {
+              if (currentSession.session) {
+                toast.success("Добро пожаловать!");
+                navigate("/");
+              }
+            });
           } catch (error) {
             console.error("Ошибка при проверке сессии после входа:", error);
             toast.error("Ошибка при входе в систему");
@@ -63,15 +63,13 @@ export default function AuthPage() {
         case "PASSWORD_RECOVERY":
           toast.info("Проверьте вашу почту для восстановления пароля");
           break;
-        case "USER_DELETED":
-          toast.info("Аккаунт удален");
-          navigate("/auth");
-          break;
-        case "TOKEN_REFRESHED":
-          console.log("Токен обновлен");
-          break;
-        case "ERROR":
-          toast.error("Произошла ошибка аутентификации");
+        default:
+          if (event === "USER_DELETED") {
+            toast.info("Аккаунт удален");
+            navigate("/auth");
+          } else if (event === "ERROR") {
+            toast.error("Произошла ошибка аутентификации");
+          }
           break;
       }
     });
