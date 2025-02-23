@@ -1,6 +1,5 @@
-
 import { Button } from "@/components/ui/button";
-import { Bookmark, Film, History, Info, HelpCircle, BarChart, Tv } from "lucide-react";
+import { Bookmark, Film, History, Info, HelpCircle, BarChart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -47,14 +46,6 @@ export function DesktopMenu({ isAuthenticated, isAdmin }: DesktopMenuProps) {
           <Link to="/new">
             <Film className="h-4 w-4" />
             Новинки
-          </Link>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/anime" className="text-[#9b87f5] hover:text-[#D946EF] transition-colors">
-            <Tv className="h-4 w-4" />
-            Аниме
           </Link>
         </Button>
       </motion.div>
