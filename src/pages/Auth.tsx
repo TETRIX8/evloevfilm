@@ -32,7 +32,7 @@ export default function Auth() {
   }, [navigate]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       switch (event) {
         case "SIGNED_IN":
           toast.success("Вы успешно вошли в систему!");
@@ -46,11 +46,12 @@ export default function Auth() {
         case "PASSWORD_RECOVERY":
           toast.info("Ссылка для сброса пароля отправлена!");
           break;
-        case "USER_DELETED":
-          toast.info("Аккаунт пользователя удален");
-          break;
-        case "ERROR":
-          toast.error("Произошла ошибка при аутентификации");
+        default:
+          if (event === "USER_DELETED") {
+            toast.info("Аккаунт пользователя удален");
+          } else if (event === "ERROR") {
+            toast.error("Произошла ошибка при аутентификации");
+          }
           break;
       }
     });
@@ -72,8 +73,24 @@ export default function Auth() {
             button: { background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' },
             anchor: { color: 'hsl(var(--primary))' }
           },
-          theme: theme === 'dark' ? 'dark' : 'default'
+          variables: {
+            default: {
+              colors: {
+                brand: 'hsl(var(--primary))',
+                brandAccent: 'hsl(var(--primary))',
+              }
+            }
+          }
         }}
+        localization={{
+          variables: {
+            sign_in: {
+              email_label: "Email",
+              password_label: "Пароль",
+            }
+          }
+        }}
+        theme={theme === 'dark' ? 'dark' : 'default'}
         providers={[]}
         redirectTo={window.location.origin}
       />
