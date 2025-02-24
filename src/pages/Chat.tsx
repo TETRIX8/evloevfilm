@@ -36,6 +36,22 @@ export default function Chat() {
             setMessages(current => [...current, payload.new]);
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'simple_messages'
+          },
+          (payload) => {
+            if (payload.old) {
+              setMessages(current => current.filter(msg => msg.id !== payload.old.id));
+            } else {
+              // If payload.old is null, it means all messages were deleted
+              setMessages([]);
+            }
+          }
+        )
         .subscribe();
 
       fetchMessages();
@@ -119,7 +135,6 @@ export default function Chat() {
       return;
     }
 
-    setMessages(messages.filter(msg => msg.id !== messageId));
     toast.success("Сообщение удалено");
   };
 
@@ -136,7 +151,6 @@ export default function Chat() {
       return;
     }
 
-    setMessages([]);
     toast.success("Чат очищен");
   };
 
