@@ -34,6 +34,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const [movieDetails, setMovieDetails] = useState<any>(null);
   const [kinopoiskData, setKinopoiskData] = useState<KinopoiskMovie | null>(null);
   const [movieStills, setMovieStills] = useState<MovieStill[]>([]);
+  const [showTrailer, setShowTrailer] = useState(false);
   const [adBlockEnabled] = useState(() => {
     return localStorage.getItem("adBlockEnabled") === "true";
   });
@@ -165,6 +166,11 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleWatchTrailer = () => {
+    soundEffects.play("click");
+    setShowTrailer(true);
+  };
+
   return (
     <div className="min-h-screen bg-background/95">
       <div className="container mx-auto px-4 py-6 lg:py-8">
@@ -210,19 +216,61 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </motion.div>
             )}
 
-            {kinopoiskData?.description && (
+            {showTrailer && movieDetails?.trailer ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-                className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative w-full rounded-xl overflow-hidden shadow-xl"
+                style={{ paddingBottom: "56.25%" }}
               >
-                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Описание</h3>
-                <p className="leading-relaxed text-muted-foreground text-sm sm:text-base">
-                  {kinopoiskData.description}
-                </p>
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Трейлер</h3>
+                <iframe
+                  src={movieDetails.trailer}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                />
               </motion.div>
-            )}
+            ) : null}
+
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-6">
+              {kinopoiskData?.description && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+                  className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+                >
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Описание</h3>
+                  <p className="leading-relaxed text-muted-foreground text-sm sm:text-base">
+                    {kinopoiskData.description}
+                  </p>
+                </motion.div>
+              )}
+
+              {movieDetails?.trailer && !showTrailer && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
+                  className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10 flex flex-col justify-between"
+                >
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Трейлер доступен</h3>
+                  <p className="leading-relaxed text-muted-foreground text-sm sm:text-base mb-4">
+                    Хотите посмотреть официальный трейлер к фильму "{title}"?
+                  </p>
+                  <Button 
+                    onClick={handleWatchTrailer}
+                    variant="default"
+                    className="w-full flex items-center gap-2 justify-center"
+                  >
+                    <Play className="h-5 w-5" />
+                    Смотреть трейлер
+                  </Button>
+                </motion.div>
+              )}
+            </div>
 
             {movieStills.length > 0 && (
               <motion.div

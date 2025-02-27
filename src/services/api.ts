@@ -14,6 +14,7 @@ export interface MovieApiResponse {
     rating?: number;
     genres?: string[];
     kinopoisk_id?: string;
+    trailer?: string;
   }>;
 }
 
@@ -29,6 +30,7 @@ export interface MovieDetails {
   rating?: number;
   genres?: string[];
   kinopoisk_id?: string;
+  trailer?: string;
 }
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
@@ -76,7 +78,8 @@ export async function fetchMovieDetails(title: string): Promise<MovieDetails | n
       year: movie.year,
       rating: movie.rating,
       genres: movie.genres,
-      kinopoisk_id: movie.kinopoisk_id
+      kinopoisk_id: movie.kinopoisk_id,
+      trailer: movie.trailer
     };
   } catch (error) {
     console.error('Error fetching movie details:', error);

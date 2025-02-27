@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { Heart, Share2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -188,6 +189,7 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
                 variant="secondary"
                 className="h-8 w-8 bg-background/80 backdrop-blur-sm"
                 onClick={handleLike}
+                disabled={isLoading}
               >
                 <motion.div
                   whileTap={{ scale: 0.8 }}
