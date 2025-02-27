@@ -163,6 +163,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleStartWatching = () => {
     soundEffects.play("click");
     setShowPlayer(true);
+    setShowTrailer(false); // Hide trailer when starting to watch the main movie
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -216,7 +217,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </motion.div>
             )}
 
-            {showTrailer && movieDetails?.trailer ? (
+            {/* Only show trailer if showTrailer is true AND showPlayer is false */}
+            {showTrailer && !showPlayer && movieDetails?.trailer ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -249,7 +251,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 </motion.div>
               )}
 
-              {movieDetails?.trailer && !showTrailer && (
+              {movieDetails?.trailer && !showTrailer && !showPlayer && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
