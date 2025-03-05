@@ -34,8 +34,9 @@ export default function Auth() {
           toast.info("Проверьте вашу электронную почту для сброса пароля");
         } else if (event === "USER_UPDATED") {
           toast.success("Профиль обновлен");
-        } else if (event === "USER_DELETED") {
-          toast.info("Аккаунт удален");
+        } else if (event === "TOKEN_REFRESHED") {
+          // Handle token refresh event
+          console.log("Token refreshed");
         }
       }
     );

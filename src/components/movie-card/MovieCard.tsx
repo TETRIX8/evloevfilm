@@ -1,13 +1,15 @@
+
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { MovieCardProps } from "./types";
 import { MovieCardOverlay } from "./MovieCardOverlay";
 import { MovieCardActions } from "./MovieCardActions";
-import { useMovieCard } from "./useMovieCard";
 
 export function MovieCard({
-  movie,
+  title,
+  image,
+  link,
   className,
   priority = false,
   aspectRatio = "portrait",
@@ -16,7 +18,6 @@ export function MovieCard({
   onPlay,
 }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const { movieDetails, isLoading, handleLike, isLiked } = useMovieCard(movie);
   
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -51,29 +52,30 @@ export function MovieCard({
           )}
         />
         <img
-          src={movie.image}
-          alt={movie.title}
+          src={image}
+          alt={title}
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           style={{
             aspectRatio: aspectRatio === "portrait" ? "3 / 4" : "16 / 9",
           }}
-          priority={priority}
         />
       </div>
       
       <MovieCardOverlay 
+        title={title}
+        image={image}
         isHovered={isHovered}
-        movie={movie}
         aspectRatio={aspectRatio}
-        movieDetails={movieDetails}
-        onPlay={handlePlayClick} // Fixed: Pass the event handler correctly
+        onPlay={handlePlayClick}
       />
       
       {showActions && (
         <MovieCardActions
-          movie={movie}
-          isLiked={isLiked}
-          onLike={handleLike}
+          title={title}
+          image={image}
+          link={link}
+          isLiked={false}
+          onLike={async () => {}}
           isHovered={isHovered}
         />
       )}
