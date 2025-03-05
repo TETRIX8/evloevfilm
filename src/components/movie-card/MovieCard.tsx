@@ -75,7 +75,10 @@ export function MovieCard({
           image={image}
           link={link}
           isLiked={false}
-          onLike={async () => {}}
+          onLike={async (e: React.MouseEvent) => {
+            e.preventDefault();
+            console.log("Like button clicked");
+          }}
           isHovered={isHovered}
         />
       )}
