@@ -89,6 +89,30 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_clicks: {
+        Row: {
+          created_at: string | null
+          id: number
+          key_id: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          key_id: string
+          platform: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          key_id?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -170,6 +194,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      key_selections: {
+        Row: {
+          created_at: string | null
+          id: number
+          key_id: string
+          key_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          key_id: string
+          key_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          key_id?: string
+          key_name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -537,6 +585,30 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_visits: {
+        Row: {
+          created_at: string | null
+          id: number
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }

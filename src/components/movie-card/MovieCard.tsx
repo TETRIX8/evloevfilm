@@ -1,96 +1,82 @@
-
+import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
-import { soundEffects } from "@/utils/soundEffects";
 import { MovieCardProps } from "./types";
-import { MovieActions } from "./MovieActions";
-import { MovieOverlay } from "./MovieOverlay";
-import { useMovieLike } from "./use-movie-like";
+import { MovieCardOverlay } from "./MovieCardOverlay";
+import { MovieCardActions } from "./MovieCardActions";
+import { useMovieCard } from "./useMovieCard";
 
-export function MovieCard({ title, image, link, className }: MovieCardProps) {
-  const navigate = useNavigate();
+export function MovieCard({
+  movie,
+  className,
+  priority = false,
+  aspectRatio = "portrait",
+  width = 250,
+  showActions = true,
+  onPlay,
+}: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const { isLiked, isLoading, handleLike } = useMovieLike(title, image, link);
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      soundEffects.play("click");
-      navigate(`/movie/${encodeURIComponent(title)}`, {
-        state: { title, image, iframeUrl: link }
-      });
-    } catch (error) {
-      console.error('Navigation error:', error);
-      toast.error("Произошла ошибка при переходе к фильму");
-    }
+  const { movieDetails, isLoading, handleLike, isLiked } = useMovieCard(movie);
+  
+  const handleMouseEnter = () => {
+    setIsHovered(true);
   };
 
-  const handleShare = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      soundEffects.play("click");
-      const shareUrl = `${window.location.origin}/movie/${encodeURIComponent(title)}`;
-      
-      if (navigator.share) {
-        navigator.share({
-          title: title,
-          url: shareUrl
-        }).catch(error => {
-          console.error('Error sharing:', error);
-          toast.error("Ошибка при попытке поделиться");
-        });
-      } else {
-        navigator.clipboard.writeText(shareUrl);
-        toast.success("Ссылка скопирована в буфер обмена");
-      }
-    } catch (error) {
-      console.error('Share error:', error);
-      toast.error("Произошла ошибка при попытке поделиться");
+    if (onPlay) {
+      onPlay();
     }
   };
 
   return (
-    <div className={cn("group flex flex-col gap-2", className)}>
-      <motion.div
-        className="relative aspect-[2/3] overflow-hidden rounded-lg bg-secondary/30"
-        whileHover={{ scale: 1.05 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-      >
-        <motion.img
-          src={image || "/placeholder.svg"}
-          alt={title}
-          className="h-full w-full object-cover"
-          onClick={handleClick}
-          whileHover={{ scale: 1.1 }}
-          transition={{ duration: 0.5 }}
+    <Card
+      className={cn(
+        "group relative overflow-hidden rounded-lg transition-shadow hover:shadow-xl cursor-pointer",
+        className
+      )}
+      style={{ width }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="relative">
+        <div
+          className={cn(
+            "absolute inset-0 rounded-md bg-zinc-900 transition-opacity duration-500 dark:bg-zinc-700/40",
+            isHovered ? "opacity-0" : "opacity-80 group-hover:opacity-0"
+          )}
         />
-        
-        <MovieActions
-          isHovered={isHovered}
+        <img
+          src={movie.image}
+          alt={movie.title}
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          style={{
+            aspectRatio: aspectRatio === "portrait" ? "3 / 4" : "16 / 9",
+          }}
+          priority={priority}
+        />
+      </div>
+      
+      <MovieCardOverlay 
+        isHovered={isHovered}
+        movie={movie}
+        aspectRatio={aspectRatio}
+        movieDetails={movieDetails}
+        onPlay={handlePlayClick} // Fixed: Pass the event handler correctly
+      />
+      
+      {showActions && (
+        <MovieCardActions
+          movie={movie}
           isLiked={isLiked}
-          isLoading={isLoading}
           onLike={handleLike}
-          onShare={handleShare}
+          isHovered={isHovered}
         />
-        
-        <MovieOverlay
-          title={title}
-          onClick={handleClick}
-        />
-      </motion.div>
-      <motion.h3
-        className="font-bold text-lg tracking-wide truncate text-foreground"
-        whileHover={{ color: 'hsl(var(--primary))' }}
-        transition={{ duration: 0.2 }}
-      >
-        {title}
-      </motion.h3>
-    </div>
+      )}
+    </Card>
   );
 }

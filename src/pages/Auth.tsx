@@ -1,194 +1,114 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { soundEffects } from "@/utils/soundEffects";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [authView, setAuthView] = useState<"sign_in" | "sign_up">("sign_in");
+  
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        setIsAuthenticated(!!data.session);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error checking auth status:", error);
-        setIsLoading(false);
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate("/");
       }
     };
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event);
-      
-      // Use type guard to check for specific event types
-      if (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED" || event === "MFA_CHALLENGE_VERIFIED") {
-        setIsAuthenticated(true);
-        soundEffects.play("success");
-        
-        if (event === "SIGNED_IN") {
-          toast.success("Вы успешно вошли в систему!");
-          navigate("/profile");
-        }
-      } else if (event === "SIGNED_OUT" || event === "USER_DELETED") {
-        setIsAuthenticated(false);
-        
-        if (event === "SIGNED_OUT") {
+    checkUser();
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          navigate("/");
+          toast.success("Успешный вход в систему!");
+        } else if (event === "SIGNED_OUT") {
+          navigate("/auth");
           toast.info("Вы вышли из системы");
+        } else if (event === "PASSWORD_RECOVERY") {
+          toast.info("Проверьте вашу электронную почту для сброса пароля");
+        } else if (event === "USER_UPDATED") {
+          toast.success("Профиль обновлен");
+        } else if (event === "USER_DELETED") {
+          toast.info("Аккаунт удален");
         }
-      } else if (event === "PASSWORD_RECOVERY") {
-        toast.info("Проверьте вашу почту для восстановления пароля");
-      } else if (event === "ERROR") {
-        toast.error("Произошла ошибка во время аутентификации");
       }
-    });
-
-    checkSession();
-
+    );
+    
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, [navigate]);
 
-  const handleBack = () => {
-    soundEffects.play("click");
-    navigate(-1);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      soundEffects.play("click");
-      await supabase.auth.signOut();
-      
-      // Auth listener will handle the redirect and toast
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Ошибка при выходе из системы");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 flex flex-col items-center">
-      <div className="max-w-md w-full space-y-8 bg-card rounded-xl shadow-lg p-6 sm:p-8">
-        {isAuthenticated ? (
-          <div className="space-y-6 text-center">
-            <h2 className="text-2xl font-bold">Вы уже авторизованы</h2>
-            <div className="space-y-4">
-              <Button 
-                onClick={() => navigate("/profile")} 
-                className="w-full"
-                size="lg"
-              >
-                Перейти в профиль
-              </Button>
-              <Button 
-                onClick={handleSignOut} 
-                variant="destructive"
-                className="w-full"
-                size="lg"
-              >
-                Выйти из аккаунта
-              </Button>
-              <Button 
-                onClick={handleBack} 
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                Вернуться назад
-              </Button>
-            </div>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md p-6">
+        <div className="space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">
+              {authView === "sign_in" ? "Вход в аккаунт" : "Регистрация"}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {authView === "sign_in"
+                ? "Войдите, чтобы получить доступ к вашему аккаунту"
+                : "Создайте новый аккаунт"
+              }
+            </p>
           </div>
-        ) : (
-          <>
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold">Вход / Регистрация</h2>
-              <p className="text-muted-foreground mt-2">
-                Войдите в свой аккаунт или создайте новый
-              </p>
-            </div>
-            
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Вход</TabsTrigger>
-                <TabsTrigger value="signup">Регистрация</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="signin" className="space-y-4">
-                <SupabaseAuth
-                  supabaseClient={supabase}
-                  appearance={{ 
-                    theme: ThemeSupa,
-                    variables: {
-                      default: {
-                        colors: {
-                          brand: 'hsl(var(--primary))',
-                          brandAccent: 'hsl(var(--primary))',
-                        },
-                      },
-                    },
-                  }}
-                  theme="dark"
-                  providers={["google"]}
-                  redirectTo={`${window.location.origin}/profile`}
-                  showLinks={true}
-                  view="sign_in"
-                />
-              </TabsContent>
-              
-              <TabsContent value="signup" className="space-y-4">
-                <SupabaseAuth
-                  supabaseClient={supabase}
-                  appearance={{ 
-                    theme: ThemeSupa,
-                    variables: {
-                      default: {
-                        colors: {
-                          brand: 'hsl(var(--primary))',
-                          brandAccent: 'hsl(var(--primary))',
-                        },
-                      },
-                    },
-                  }}
-                  theme="dark"
-                  providers={["google"]}
-                  redirectTo={`${window.location.origin}/profile`}
-                  showLinks={true}
-                  view="sign_up"
-                />
-              </TabsContent>
-            </Tabs>
-            
-            <div className="mt-6">
-              <Button 
-                onClick={handleBack} 
-                variant="outline"
-                className="w-full"
-              >
-                Вернуться назад
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+          
+          <SupabaseAuth
+            supabaseClient={supabase}
+            view={authView}
+            appearance={{
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: 'hsl(var(--primary))',
+                    brandAccent: 'hsl(var(--primary))',
+                  },
+                },
+              },
+            }}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: "Email адрес",
+                  password_label: "Пароль",
+                  button_label: "Войти",
+                  social_provider_text: "Войти через {{provider}}",
+                  link_text: "Уже есть аккаунт? Войти",
+                },
+                sign_up: {
+                  email_label: "Email адрес",
+                  password_label: "Пароль",
+                  button_label: "Регистрация",
+                  social_provider_text: "Зарегистрироваться через {{provider}}",
+                  link_text: "Нет аккаунта? Зарегистрироваться",
+                },
+              },
+            }}
+            providers={[]}
+          />
+          
+          <div className="text-center">
+            <button
+              className="text-primary hover:underline"
+              onClick={() => setAuthView(authView === "sign_in" ? "sign_up" : "sign_in")}
+            >
+              {authView === "sign_in"
+                ? "Нет аккаунта? Зарегистрироваться"
+                : "Уже есть аккаунт? Войти"
+              }
+            </button>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

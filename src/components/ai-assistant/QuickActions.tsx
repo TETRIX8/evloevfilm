@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 
 interface QuickActionsProps {
@@ -7,10 +8,10 @@ interface QuickActionsProps {
 export function QuickActions({ onAction }: QuickActionsProps) {
   const actions = [
     "Что посмотреть сегодня вечером?",
-    "Найти хорошую комедию",
+    "Найди хорошую комедию",
     "Посоветуй фильмы похожие на Inception",
-    "Какие фильмы самые популярные?",
-    "Помоги разобраться с приложением",
+    "Какие новые фильмы вышли в этом году?",
+    "Расскажи про режиссера Кристофера Нолана",
   ];
 
   return (
