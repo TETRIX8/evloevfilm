@@ -159,13 +159,7 @@ export default function Profile() {
                       magic_link: {
                         email_input_label: "Телефон",
                         button_label: "Отправить магическую ссылку",
-                      },
-                      phone_confirmation: {
-                        confirmation_code_label: "Код подтверждения",
-                        confirmation_code_input_placeholder: "Введите код подтверждения",
-                        button_label: "Подтвердить",
-                        confirmation_text: "Мы отправили код подтверждения на ваш телефон"
-                      },
+                      }
                     },
                   }}
                   theme="dark"
