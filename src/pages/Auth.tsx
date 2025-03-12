@@ -79,18 +79,27 @@ export default function Auth() {
             localization={{
               variables: {
                 sign_in: {
-                  phone_label: "Номер телефона",
+                  email_label: "Номер телефона",
                   password_label: "Пароль",
                   button_label: "Войти",
                   social_provider_text: "Войти через {{provider}}",
                   link_text: "Уже есть аккаунт? Войти",
                 },
                 sign_up: {
-                  phone_label: "Номер телефона",
+                  email_label: "Номер телефона",
                   password_label: "Пароль",
                   button_label: "Регистрация",
                   social_provider_text: "Зарегистрироваться через {{provider}}",
                   link_text: "Нет аккаунта? Зарегистрироваться",
+                },
+                forgotten_password: {
+                  email_label: "Номер телефона",
+                  password_label: "Пароль",
+                  button_label: "Отправить инструкции",
+                },
+                magic_link: {
+                  email_input_label: "Номер телефона",
+                  button_label: "Отправить магическую ссылку",
                 },
                 phone_confirmation: {
                   confirmation_code_label: "Код подтверждения",

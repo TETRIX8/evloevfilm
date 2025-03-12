@@ -133,9 +133,9 @@ export default function Profile() {
                   localization={{
                     variables: {
                       sign_in: {
-                        phone_label: "Телефон",
+                        email_label: "Телефон",
                         password_label: "Пароль",
-                        phone_input_placeholder: "Ваш номер телефона",
+                        email_input_placeholder: "Ваш номер телефона",
                         password_input_placeholder: "Ваш пароль",
                         button_label: "Войти",
                         loading_button_label: "Вход...",
@@ -143,14 +143,22 @@ export default function Profile() {
                         link_text: "Уже есть аккаунт? Войти",
                       },
                       sign_up: {
-                        phone_label: "Телефон",
+                        email_label: "Телефон",
                         password_label: "Пароль",
-                        phone_input_placeholder: "Ваш номер телефона",
+                        email_input_placeholder: "Ваш номер телефона",
                         password_input_placeholder: "Ваш пароль",
                         button_label: "Зарегистрироваться",
                         loading_button_label: "Регистрация...",
                         social_provider_text: "Зарегистрироваться через {{provider}}",
                         link_text: "Нет аккаунта? Зарегистрироваться",
+                      },
+                      forgotten_password: {
+                        email_label: "Телефон",
+                        button_label: "Отправить инструкции",
+                      },
+                      magic_link: {
+                        email_input_label: "Телефон",
+                        button_label: "Отправить магическую ссылку",
                       },
                       phone_confirmation: {
                         confirmation_code_label: "Код подтверждения",
