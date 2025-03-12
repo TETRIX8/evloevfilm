@@ -1,7 +1,5 @@
 
 import { useEffect, useState } from "react";
-import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -16,7 +14,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
@@ -52,15 +50,38 @@ export default function Auth() {
     };
   }, [navigate]);
 
+  const formatPhoneNumber = (phone: string) => {
+    // Remove all non-digit characters except +
+    const cleaned = phone.replace(/[^\d+]/g, '');
+    
+    // Ensure it starts with +
+    if (!cleaned.startsWith('+')) {
+      return '+' + cleaned;
+    }
+    return cleaned;
+  };
+
+  const validatePhoneNumber = (phone: string) => {
+    // Basic E.164 format validation
+    const e164Regex = /^\+[1-9]\d{10,14}$/;
+    return e164Regex.test(phone);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhoneNumber(formatted);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      // Validate phone number format
-      if (!phoneNumber.startsWith('+')) {
-        setError('Номер телефона должен начинаться с + и кода страны (например, +7)');
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+
+      if (!validatePhoneNumber(formattedPhone)) {
+        setError('Номер телефона должен быть в формате: +7XXXXXXXXXX (10-15 цифр)');
         setLoading(false);
         return;
       }
@@ -68,19 +89,17 @@ export default function Auth() {
       let response;
       
       if (authView === "sign_in") {
-        // Sign in with phone
         response = await supabase.auth.signInWithPassword({
-          phone: phoneNumber,
+          phone: formattedPhone,
           password,
         });
       } else {
-        // Sign up with phone
         response = await supabase.auth.signUp({
-          phone: phoneNumber,
+          phone: formattedPhone,
           password,
           options: {
             data: {
-              phone: phoneNumber,
+              phone: formattedPhone,
             }
           }
         });
@@ -114,8 +133,7 @@ export default function Auth() {
             <p className="text-muted-foreground mt-2">
               {authView === "sign_in"
                 ? "Войдите, чтобы получить доступ к вашему аккаунту"
-                : "Создайте новый аккаунт"
-              }
+                : "Создайте новый аккаунт"}
             </p>
           </div>
           
@@ -129,9 +147,14 @@ export default function Auth() {
                 type="tel"
                 placeholder="+7XXXXXXXXXX"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                onChange={handlePhoneChange}
+                pattern="^\+[1-9]\d{10,14}$"
                 required
+                className="font-mono"
               />
+              <p className="text-xs text-muted-foreground">
+                Формат: +7XXXXXXXXXX (10-15 цифр)
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -179,8 +202,7 @@ export default function Auth() {
             >
               {authView === "sign_in"
                 ? "Нет аккаунта? Зарегистрироваться"
-                : "Уже есть аккаунт? Войти"
-              }
+                : "Уже есть аккаунт? Войти"}
             </button>
           </div>
         </div>
