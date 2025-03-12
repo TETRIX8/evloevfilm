@@ -1,3 +1,4 @@
+
 import { Navigation } from "@/components/navigation/Navigation";
 
 import { Auth } from "@supabase/auth-ui-react";
@@ -80,7 +81,8 @@ export default function Profile() {
               <CardContent className="space-y-4">
                 <div className="flex flex-col space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Email: {session.user.email}
+                    {session.user.phone ? `Телефон: ${session.user.phone}` : 
+                     session.user.email ? `Email: ${session.user.email}` : "Аккаунт"}
                   </p>
                 </div>
                 <div className="space-y-4">
@@ -118,11 +120,6 @@ export default function Profile() {
                           defaultButtonBackground: 'hsl(var(--secondary))',
                           defaultButtonBackgroundHover: 'hsl(var(--secondary))',
                         },
-                        radii: {
-                          borderRadiusButton: '0.5rem',
-                          buttonBorderRadius: '0.5rem',
-                          inputBorderRadius: '0.5rem',
-                        },
                       },
                     },
                     className: {
@@ -136,9 +133,9 @@ export default function Profile() {
                   localization={{
                     variables: {
                       sign_in: {
-                        email_label: "Email",
+                        phone_label: "Телефон",
                         password_label: "Пароль",
-                        email_input_placeholder: "Ваш email",
+                        phone_input_placeholder: "Ваш номер телефона",
                         password_input_placeholder: "Ваш пароль",
                         button_label: "Войти",
                         loading_button_label: "Вход...",
@@ -146,19 +143,27 @@ export default function Profile() {
                         link_text: "Уже есть аккаунт? Войти",
                       },
                       sign_up: {
-                        email_label: "Email",
+                        phone_label: "Телефон",
                         password_label: "Пароль",
-                        email_input_placeholder: "Ваш email",
+                        phone_input_placeholder: "Ваш номер телефона",
                         password_input_placeholder: "Ваш пароль",
                         button_label: "Зарегистрироваться",
                         loading_button_label: "Регистрация...",
                         social_provider_text: "Зарегистрироваться через {{provider}}",
                         link_text: "Нет аккаунта? Зарегистрироваться",
                       },
+                      phone_confirmation: {
+                        confirmation_code_label: "Код подтверждения",
+                        confirmation_code_input_placeholder: "Введите код подтверждения",
+                        button_label: "Подтвердить",
+                        confirmation_text: "Мы отправили код подтверждения на ваш телефон"
+                      },
                     },
                   }}
                   theme="dark"
                   providers={[]}
+                  otpType="sms"
+                  redirectTo={window.location.origin}
                 />
               </div>
             </div>

@@ -79,22 +79,30 @@ export default function Auth() {
             localization={{
               variables: {
                 sign_in: {
-                  email_label: "Email адрес",
+                  phone_label: "Номер телефона",
                   password_label: "Пароль",
                   button_label: "Войти",
                   social_provider_text: "Войти через {{provider}}",
                   link_text: "Уже есть аккаунт? Войти",
                 },
                 sign_up: {
-                  email_label: "Email адрес",
+                  phone_label: "Номер телефона",
                   password_label: "Пароль",
                   button_label: "Регистрация",
                   social_provider_text: "Зарегистрироваться через {{provider}}",
                   link_text: "Нет аккаунта? Зарегистрироваться",
                 },
+                phone_confirmation: {
+                  confirmation_code_label: "Код подтверждения",
+                  confirmation_code_input_placeholder: "Введите код подтверждения",
+                  button_label: "Подтвердить",
+                  confirmation_text: "Мы отправили код подтверждения на ваш телефон"
+                },
               },
             }}
             providers={[]}
+            otpType="sms"
+            redirectTo={window.location.origin}
           />
           
           <div className="text-center">
