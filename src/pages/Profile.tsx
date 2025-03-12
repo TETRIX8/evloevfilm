@@ -20,7 +20,7 @@ export default function Profile() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authView, setAuthView] = useState<"sign_in" | "sign_up">("sign_in");
   const [error, setError] = useState<string | null>(null);
@@ -60,29 +60,20 @@ export default function Profile() {
     setAuthLoading(true);
 
     try {
-      // Validate phone number format
-      if (!phoneNumber.startsWith('+')) {
-        setError('Номер телефона должен начинаться с + и кода страны (например, +7)');
-        setAuthLoading(false);
-        return;
-      }
-
       let response;
       
       if (authView === "sign_in") {
-        // Sign in with phone
         response = await supabase.auth.signInWithPassword({
-          phone: phoneNumber,
+          email,
           password,
         });
       } else {
-        // Sign up with phone
         response = await supabase.auth.signUp({
-          phone: phoneNumber,
+          email,
           password,
           options: {
             data: {
-              phone: phoneNumber,
+              email,
             }
           }
         });
@@ -93,9 +84,9 @@ export default function Profile() {
       }
 
       if (authView === "sign_up" && response.data.user?.identities?.length === 0) {
-        setError('Пользователь с таким номером телефона уже существует');
+        setError('Пользователь с таким email уже существует');
       } else if (authView === "sign_up") {
-        toast.success('Код подтверждения отправлен на ваш телефон');
+        toast.success('Проверьте вашу электронную почту для подтверждения регистрации');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -135,8 +126,7 @@ export default function Profile() {
               <CardContent className="space-y-4">
                 <div className="flex flex-col space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    {session.user.phone ? `Телефон: ${session.user.phone}` : 
-                     session.user.email ? `Email: ${session.user.email}` : "Аккаунт"}
+                    {session.user.email ? `Email: ${session.user.email}` : "Аккаунт"}
                   </p>
                 </div>
                 <div className="space-y-4">
@@ -163,15 +153,15 @@ export default function Profile() {
               <Card className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="profile-phone" className="text-sm font-medium">
-                      Номер телефона
+                    <label htmlFor="profile-email" className="text-sm font-medium">
+                      Email
                     </label>
                     <Input
-                      id="profile-phone"
-                      type="tel"
-                      placeholder="+7XXXXXXXXXX"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      id="profile-email"
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       required
                     />
                   </div>

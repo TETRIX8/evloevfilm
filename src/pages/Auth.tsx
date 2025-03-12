@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 export default function Auth() {
   const navigate = useNavigate();
   const [authView, setAuthView] = useState<"sign_in" | "sign_up">("sign_in");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,56 +50,26 @@ export default function Auth() {
     };
   }, [navigate]);
 
-  const formatPhoneNumber = (phone: string) => {
-    // Remove all non-digit characters except +
-    const cleaned = phone.replace(/[^\d+]/g, '');
-    
-    // Ensure it starts with +
-    if (!cleaned.startsWith('+')) {
-      return '+' + cleaned;
-    }
-    return cleaned;
-  };
-
-  const validatePhoneNumber = (phone: string) => {
-    // Basic E.164 format validation
-    const e164Regex = /^\+[1-9]\d{10,14}$/;
-    return e164Regex.test(phone);
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setPhoneNumber(formatted);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-
-      if (!validatePhoneNumber(formattedPhone)) {
-        setError('Номер телефона должен быть в формате: +7XXXXXXXXXX (10-15 цифр)');
-        setLoading(false);
-        return;
-      }
-
       let response;
       
       if (authView === "sign_in") {
         response = await supabase.auth.signInWithPassword({
-          phone: formattedPhone,
+          email,
           password,
         });
       } else {
         response = await supabase.auth.signUp({
-          phone: formattedPhone,
+          email,
           password,
           options: {
             data: {
-              phone: formattedPhone,
+              email,
             }
           }
         });
@@ -110,9 +80,9 @@ export default function Auth() {
       }
 
       if (authView === "sign_up" && response.data.user?.identities?.length === 0) {
-        setError('Пользователь с таким номером телефона уже существует');
+        setError('Пользователь с таким email уже существует');
       } else if (authView === "sign_up") {
-        toast.success('Код подтверждения отправлен на ваш телефон');
+        toast.success('Проверьте вашу электронную почту для подтверждения регистрации');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -139,22 +109,17 @@ export default function Auth() {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="phone" className="text-sm font-medium">
-                Номер телефона
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
               </label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="+7XXXXXXXXXX"
-                value={phoneNumber}
-                onChange={handlePhoneChange}
-                pattern="^\+[1-9]\d{10,14}$"
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                className="font-mono"
               />
-              <p className="text-xs text-muted-foreground">
-                Формат: +7XXXXXXXXXX (10-15 цифр)
-              </p>
             </div>
             
             <div className="space-y-2">
