@@ -1,7 +1,7 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, ShieldOff, MessageSquare } from "lucide-react";
+import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, ShieldOff, MessageSquare, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface MobileMenuProps {
@@ -65,6 +65,12 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
             <Link to="/new">
               <Film className="h-4 w-4" />
               Новинки
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link to="/settings">
+              <Settings className="h-4 w-4" />
+              Настройки
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start gap-2" asChild>

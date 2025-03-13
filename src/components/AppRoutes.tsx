@@ -13,6 +13,7 @@ import Support from "@/pages/Support";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
 import Chat from "@/pages/Chat";
+import Settings from "@/pages/Settings";
 
 export function AppRoutes() {
   return (
@@ -102,6 +103,14 @@ export function AppRoutes() {
         element={
           <PageTransition>
             <Chat />
+          </PageTransition>
+        }
+      />
+      <Route 
+        path="/settings" 
+        element={
+          <PageTransition>
+            <Settings />
           </PageTransition>
         }
       />
