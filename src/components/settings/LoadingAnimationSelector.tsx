@@ -90,16 +90,16 @@ export function LoadingAnimationSelector({
               selected === animation.id ? "border-primary" : "border-border"
             }`}
             >
-              <div className={`flex ${isMobile ? "flex-col" : "justify-between"} items-start md:items-center gap-2`}>
-                <div className="mb-2 md:mb-0">
+              <div className="flex flex-col gap-2">
+                <div className="mb-1">
                   <h3 className="font-medium">{animation.name}</h3>
                   <p className="text-sm text-muted-foreground">{animation.description}</p>
                 </div>
-                <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
+                <div className="flex flex-col sm:flex-row gap-2 w-full mt-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 md:flex-none"
+                    className="w-full"
                     onClick={() => togglePreview(animation.id)}
                   >
                     {previewAnimation === animation.id ? (
@@ -112,7 +112,7 @@ export function LoadingAnimationSelector({
                   <Button
                     variant={selected === animation.id ? "default" : "outline"}
                     size="sm"
-                    className="flex-1 md:flex-none"
+                    className="w-full"
                     onClick={() => handleSelectAnimation(animation.id)}
                   >
                     {selected === animation.id && <Check className="h-4 w-4 mr-1" />}
