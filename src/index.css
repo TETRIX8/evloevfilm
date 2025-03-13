@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -131,6 +130,42 @@
     --sidebar-primary: 0 100% 64%;
   }
 
+  /* Simplified mode for visually impaired users */
+  :root[data-simplified-mode="true"] {
+    --radius: 0.25rem;
+    --primary: 240 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 0%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 95%;
+    --card-foreground: 0 0% 0%;
+    --muted: 0 0% 85%;
+    --muted-foreground: 0 0% 0%;
+    font-size: 110%;
+  }
+
+  :root[data-simplified-mode="true"].dark {
+    --primary: 240 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 100%;
+  }
+
+  /* Simplified mode has reduced or no animations */
+  :root[data-simplified-mode="true"] * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    transition: none !important;
+  }
+
   /* Custom background for the entire app */
   body.has-custom-background::before,
   .has-custom-background::before {
@@ -158,13 +193,36 @@
   }
 
   /* Theme switching animations */
-  :root {
+  :root:not([data-simplified-mode="true"]) {
     transition: color 0.5s ease-out, background-color 0.5s ease-out, border-color 0.5s ease-out;
   }
 
-  :root * {
+  :root:not([data-simplified-mode="true"]) * {
     transition: color 0.5s ease-out, background-color 0.5s ease-out, border-color 0.5s ease-out,
                 fill 0.5s ease-out, stroke 0.5s ease-out;
+  }
+
+  /* Simplified mode increases contrast and text size */
+  :root[data-simplified-mode="true"] {
+    * {
+      @apply !shadow-none;
+    }
+    
+    button {
+      @apply !border-2;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      @apply !font-bold;
+    }
+    
+    p, span, div, a {
+      @apply !leading-relaxed;
+    }
+
+    input, select, textarea {
+      @apply !border-2;
+    }
   }
 
   /* Movie title animations */

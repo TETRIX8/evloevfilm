@@ -8,13 +8,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Upload, Palette, Sliders, Volume2, VolumeX } from "lucide-react";
+import { Upload, Palette, Sliders, Volume2, VolumeX, Eye, Save, X, Loader } from "lucide-react";
 import { BackgroundUploader } from "@/components/settings/BackgroundUploader";
 import { ColorThemeSelector } from "@/components/settings/ColorThemeSelector";
+import { LoadingAnimationSelector } from "@/components/settings/LoadingAnimationSelector";
+import { toast } from "sonner";
 import { soundEffects } from "@/utils/soundEffects";
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
+  
+  // Original state settings
   const [soundEnabled, setSoundEnabled] = useState(() => !soundEffects.isSoundMuted());
   const [customBackground, setCustomBackground] = useState(() => {
     return localStorage.getItem("customBackground") || "";
@@ -25,6 +29,52 @@ export default function Settings() {
   const [selectedColorTheme, setSelectedColorTheme] = useState(() => {
     return localStorage.getItem("colorTheme") || "default";
   });
+  
+  // New state settings
+  const [selectedLoadingAnimation, setSelectedLoadingAnimation] = useState(() => {
+    return localStorage.getItem("loadingAnimation") || "default";
+  });
+  const [simplifiedMode, setSimplifiedMode] = useState(() => {
+    return localStorage.getItem("simplifiedMode") === "true";
+  });
+  
+  // Add state to track changes for save/cancel functionality
+  const [originalSettings, setOriginalSettings] = useState({
+    soundEnabled: soundEnabled,
+    customBackground: customBackground,
+    bgOpacity: bgOpacity,
+    selectedColorTheme: selectedColorTheme,
+    selectedLoadingAnimation: selectedLoadingAnimation,
+    simplifiedMode: simplifiedMode,
+    theme: theme
+  });
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Track changes
+  useEffect(() => {
+    const currentSettings = {
+      soundEnabled,
+      customBackground,
+      bgOpacity,
+      selectedColorTheme,
+      selectedLoadingAnimation,
+      simplifiedMode,
+      theme
+    };
+    
+    const settingsChanged = JSON.stringify(currentSettings) !== JSON.stringify(originalSettings);
+    setHasChanges(settingsChanged);
+  }, [
+    soundEnabled, 
+    customBackground, 
+    bgOpacity, 
+    selectedColorTheme, 
+    selectedLoadingAnimation, 
+    simplifiedMode, 
+    theme, 
+    originalSettings
+  ]);
 
   // Apply background and opacity effect
   useEffect(() => {
@@ -38,10 +88,18 @@ export default function Settings() {
       rootEl.classList.remove('has-custom-background');
       rootEl.style.removeProperty('--custom-bg-image');
     }
-    
-    localStorage.setItem("customBackground", customBackground);
-    localStorage.setItem("bgOpacity", bgOpacity.toString());
   }, [customBackground, bgOpacity]);
+  
+  // Apply simplified mode
+  useEffect(() => {
+    const rootEl = document.documentElement;
+    
+    if (simplifiedMode) {
+      rootEl.setAttribute("data-simplified-mode", "true");
+    } else {
+      rootEl.removeAttribute("data-simplified-mode");
+    }
+  }, [simplifiedMode]);
 
   // Handle sound toggle
   const toggleSound = () => {
@@ -52,35 +110,175 @@ export default function Settings() {
   // Handle color theme selection
   const handleColorThemeChange = (theme: string) => {
     setSelectedColorTheme(theme);
-    localStorage.setItem("colorTheme", theme);
-    
-    // Apply theme to the document
     document.documentElement.setAttribute("data-color-theme", theme);
+  };
+  
+  // Handle loading animation selection
+  const handleLoadingAnimationChange = (animation: string) => {
+    setSelectedLoadingAnimation(animation);
+  };
+  
+  // Handle simplified mode toggle
+  const toggleSimplifiedMode = () => {
+    setSimplifiedMode(!simplifiedMode);
+  };
+
+  // Save all settings
+  const saveSettings = () => {
+    setIsLoading(true);
+    
+    try {
+      // Save all settings to localStorage
+      localStorage.setItem("customBackground", customBackground);
+      localStorage.setItem("bgOpacity", bgOpacity.toString());
+      localStorage.setItem("colorTheme", selectedColorTheme);
+      localStorage.setItem("loadingAnimation", selectedLoadingAnimation);
+      localStorage.setItem("simplifiedMode", simplifiedMode.toString());
+      
+      // Update original settings to match current
+      setOriginalSettings({
+        soundEnabled,
+        customBackground,
+        bgOpacity,
+        selectedColorTheme,
+        selectedLoadingAnimation,
+        simplifiedMode,
+        theme
+      });
+      
+      toast.success("Настройки успешно сохранены");
+      setHasChanges(false);
+      
+      soundEffects.play("click");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Не удалось сохранить настройки");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Cancel changes and revert to original settings
+  const cancelChanges = () => {
+    setIsLoading(true);
+    
+    try {
+      setSoundEnabled(originalSettings.soundEnabled);
+      setCustomBackground(originalSettings.customBackground);
+      setBgOpacity(originalSettings.bgOpacity);
+      setSelectedColorTheme(originalSettings.selectedColorTheme);
+      setSelectedLoadingAnimation(originalSettings.selectedLoadingAnimation);
+      setSimplifiedMode(originalSettings.simplifiedMode);
+      setTheme(originalSettings.theme);
+      
+      // Apply original settings
+      document.documentElement.setAttribute("data-color-theme", originalSettings.selectedColorTheme);
+      
+      if (originalSettings.soundEnabled) {
+        soundEffects.toggleMute();
+      }
+      
+      toast.info("Изменения отменены");
+      setHasChanges(false);
+      
+      soundEffects.play("click");
+    } catch (error) {
+      console.error("Error canceling changes:", error);
+      toast.error("Не удалось отменить изменения");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Reset all settings
   const resetSettings = () => {
-    setCustomBackground("");
-    setBgOpacity(0.5);
-    setSoundEnabled(true);
-    soundEffects.toggleMute();
-    handleColorThemeChange("default");
-    setTheme("dark");
+    setIsLoading(true);
     
-    localStorage.removeItem("customBackground");
-    localStorage.removeItem("bgOpacity");
-    localStorage.removeItem("colorTheme");
+    try {
+      setCustomBackground("");
+      setBgOpacity(0.5);
+      setSoundEnabled(true);
+      setSelectedColorTheme("default");
+      setSelectedLoadingAnimation("default");
+      setSimplifiedMode(false);
+      setTheme("dark");
+      
+      // Apply reset settings
+      document.documentElement.setAttribute("data-color-theme", "default");
+      document.documentElement.removeAttribute("data-simplified-mode");
+      
+      // If sound is muted, unmute it
+      if (soundEffects.isSoundMuted()) {
+        soundEffects.toggleMute();
+      }
+      
+      // Clear localStorage settings
+      localStorage.removeItem("customBackground");
+      localStorage.removeItem("bgOpacity");
+      localStorage.removeItem("colorTheme");
+      localStorage.removeItem("loadingAnimation");
+      localStorage.removeItem("simplifiedMode");
+      
+      toast.success("Настройки сброшены");
+      
+      // Update original settings to match reset defaults
+      setOriginalSettings({
+        soundEnabled: true,
+        customBackground: "",
+        bgOpacity: 0.5,
+        selectedColorTheme: "default",
+        selectedLoadingAnimation: "default",
+        simplifiedMode: false,
+        theme: "dark"
+      });
+      
+      setHasChanges(false);
+      
+      soundEffects.play("click");
+    } catch (error) {
+      console.error("Error resetting settings:", error);
+      toast.error("Не удалось сбросить настройки");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="container max-w-4xl py-10 mt-16">
-      <h1 className="text-3xl font-bold mb-6">Настройки</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Настройки</h1>
+        <div className="flex items-center gap-2">
+          {hasChanges && (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={cancelChanges}
+                disabled={isLoading}
+                className="gap-2"
+              >
+                {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                Отменить
+              </Button>
+              <Button 
+                onClick={saveSettings}
+                disabled={isLoading}
+                className="gap-2"
+              >
+                {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Сохранить
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
       
       <Tabs defaultValue="appearance" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="appearance">Внешний вид</TabsTrigger>
           <TabsTrigger value="sound">Звуки</TabsTrigger>
           <TabsTrigger value="theme">Цветовая схема</TabsTrigger>
+          <TabsTrigger value="animations">Анимации</TabsTrigger>
+          <TabsTrigger value="accessibility">Доступность</TabsTrigger>
         </TabsList>
         
         <TabsContent value="appearance" className="space-y-4">
@@ -167,10 +365,55 @@ export default function Settings() {
             </CardContent>
           </Card>
         </TabsContent>
+        
+        <TabsContent value="animations" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Анимации загрузки</CardTitle>
+              <CardDescription>
+                Выберите анимацию для экрана загрузки
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LoadingAnimationSelector
+                selected={selectedLoadingAnimation}
+                onSelect={handleLoadingAnimationChange}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="accessibility" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Доступность</CardTitle>
+              <CardDescription>
+                Настройки для удобства использования
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  <Label htmlFor="simplified-mode">Упрощенный режим для слабовидящих</Label>
+                </div>
+                <Switch 
+                  id="simplified-mode" 
+                  checked={simplifiedMode} 
+                  onCheckedChange={toggleSimplifiedMode}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Упрощенный режим делает интерфейс более контрастным, убирает лишние анимации и увеличивает размер текста.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       
       <div className="mt-8 flex justify-end">
-        <Button variant="outline" onClick={resetSettings}>
+        <Button variant="outline" onClick={resetSettings} disabled={isLoading}>
+          {isLoading ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
           Сбросить настройки
         </Button>
       </div>
