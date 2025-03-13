@@ -14,9 +14,11 @@ import { ColorThemeSelector } from "@/components/settings/ColorThemeSelector";
 import { LoadingAnimationSelector } from "@/components/settings/LoadingAnimationSelector";
 import { toast } from "sonner";
 import { soundEffects } from "@/utils/soundEffects";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
+  const isMobile = useIsMobile();
   
   // Original state settings
   const [soundEnabled, setSoundEnabled] = useState(() => !soundEffects.isSoundMuted());
@@ -244,28 +246,28 @@ export default function Settings() {
   };
 
   return (
-    <div className="container max-w-4xl py-10 mt-16">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Настройки</h1>
-        <div className="flex items-center gap-2">
+    <div className="container max-w-4xl py-4 md:py-10 mt-8 md:mt-16 px-3 md:px-6">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Настройки</h1>
+        <div className="flex items-center gap-1 md:gap-2">
           {hasChanges && (
             <>
               <Button 
                 variant="outline" 
                 onClick={cancelChanges}
                 disabled={isLoading}
-                className="gap-2"
+                className="gap-1 md:gap-2 px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm"
               >
-                {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                Отменить
+                {isLoading ? <Loader className="h-3 w-3 md:h-4 md:w-4 animate-spin" /> : <X className="h-3 w-3 md:h-4 md:w-4" />}
+                <span className="hidden md:inline">Отменить</span>
               </Button>
               <Button 
                 onClick={saveSettings}
                 disabled={isLoading}
-                className="gap-2"
+                className="gap-1 md:gap-2 px-2 py-1 md:px-3 md:py-2 text-xs md:text-sm"
               >
-                {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Сохранить
+                {isLoading ? <Loader className="h-3 w-3 md:h-4 md:w-4 animate-spin" /> : <Save className="h-3 w-3 md:h-4 md:w-4" />}
+                <span className="hidden md:inline">Сохранить</span>
               </Button>
             </>
           )}
@@ -273,23 +275,25 @@ export default function Settings() {
       </div>
       
       <Tabs defaultValue="appearance" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="appearance">Внешний вид</TabsTrigger>
-          <TabsTrigger value="sound">Звуки</TabsTrigger>
-          <TabsTrigger value="theme">Цветовая схема</TabsTrigger>
-          <TabsTrigger value="animations">Анимации</TabsTrigger>
-          <TabsTrigger value="accessibility">Доступность</TabsTrigger>
-        </TabsList>
+        <ScrollArea className="w-full">
+          <TabsList className="mb-4 w-auto flex overflow-auto">
+            <TabsTrigger value="appearance" className="whitespace-nowrap">Внешний вид</TabsTrigger>
+            <TabsTrigger value="sound" className="whitespace-nowrap">Звуки</TabsTrigger>
+            <TabsTrigger value="theme" className="whitespace-nowrap">Цветовая схема</TabsTrigger>
+            <TabsTrigger value="animations" className="whitespace-nowrap">Анимации</TabsTrigger>
+            <TabsTrigger value="accessibility" className="whitespace-nowrap">Доступность</TabsTrigger>
+          </TabsList>
+        </ScrollArea>
         
         <TabsContent value="appearance" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <CardTitle>Фон</CardTitle>
               <CardDescription>
                 Загрузите собственное изображение для фона сайта
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 md:p-6">
               <BackgroundUploader 
                 currentBackground={customBackground} 
                 onBackgroundChange={setCustomBackground} 
@@ -302,13 +306,13 @@ export default function Settings() {
         
         <TabsContent value="sound" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <CardTitle>Настройки звука</CardTitle>
               <CardDescription>
                 Управление звуковыми эффектами интерфейса
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-2">
                   {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
@@ -326,27 +330,29 @@ export default function Settings() {
         
         <TabsContent value="theme" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <CardTitle>Цветовая схема</CardTitle>
               <CardDescription>
                 Выберите цветовую схему для интерфейса
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="mb-4 flex items-center justify-between">
+            <CardContent className="p-4 md:p-6">
+              <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <Label>Темный/светлый режим</Label>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
                   <Button 
                     variant={theme === "light" ? "default" : "outline"} 
                     onClick={() => setTheme("light")}
-                    size="sm"
+                    size={isMobile ? "sm" : "default"}
+                    className="flex-1"
                   >
                     Светлый
                   </Button>
                   <Button 
                     variant={theme === "dark" ? "default" : "outline"} 
                     onClick={() => setTheme("dark")}
-                    size="sm"
+                    size={isMobile ? "sm" : "default"}
+                    className="flex-1"
                   >
                     Темный
                   </Button>
@@ -356,7 +362,7 @@ export default function Settings() {
               <Separator className="my-4" />
               
               <Label className="mb-3 block">Цветовые варианты</Label>
-              <ScrollArea className="h-80">
+              <ScrollArea className="h-64 md:h-80">
                 <ColorThemeSelector 
                   selected={selectedColorTheme}
                   onSelect={handleColorThemeChange}
@@ -368,13 +374,13 @@ export default function Settings() {
         
         <TabsContent value="animations" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <CardTitle>Анимации загрузки</CardTitle>
               <CardDescription>
                 Выберите анимацию для экрана загрузки
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               <LoadingAnimationSelector
                 selected={selectedLoadingAnimation}
                 onSelect={handleLoadingAnimationChange}
@@ -385,13 +391,13 @@ export default function Settings() {
         
         <TabsContent value="accessibility" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <CardTitle>Доступность</CardTitle>
               <CardDescription>
                 Настройки для удобства использования
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-2">
                   <Eye className="h-5 w-5" />
@@ -411,7 +417,7 @@ export default function Settings() {
         </TabsContent>
       </Tabs>
       
-      <div className="mt-8 flex justify-end">
+      <div className="mt-6 md:mt-8 flex justify-end">
         <Button variant="outline" onClick={resetSettings} disabled={isLoading}>
           {isLoading ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
           Сбросить настройки

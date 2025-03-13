@@ -5,6 +5,7 @@ import { Check, Play, Pause } from "lucide-react";
 import { useState } from "react";
 import { soundEffects } from "@/utils/soundEffects";
 import { LoadingPreview } from "./LoadingPreview";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LoadingAnimationProps {
   selected: string;
@@ -16,6 +17,7 @@ export function LoadingAnimationSelector({
   onSelect 
 }: LoadingAnimationProps) {
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   
   const animationOptions = [
     {
@@ -63,7 +65,7 @@ export function LoadingAnimationSelector({
   return (
     <div className="space-y-6">
       {previewAnimation && (
-        <div className="relative border rounded-lg overflow-hidden h-64 mb-4">
+        <div className="relative border rounded-lg overflow-hidden h-48 md:h-64 mb-4">
           <Button 
             variant="outline" 
             size="sm" 
@@ -88,15 +90,16 @@ export function LoadingAnimationSelector({
               selected === animation.id ? "border-primary" : "border-border"
             }`}
             >
-              <div className="flex justify-between items-center">
-                <div>
+              <div className={`flex ${isMobile ? "flex-col" : "justify-between"} items-start md:items-center gap-2`}>
+                <div className="mb-2 md:mb-0">
                   <h3 className="font-medium">{animation.name}</h3>
                   <p className="text-sm text-muted-foreground">{animation.description}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="flex-1 md:flex-none"
                     onClick={() => togglePreview(animation.id)}
                   >
                     {previewAnimation === animation.id ? (
@@ -109,6 +112,7 @@ export function LoadingAnimationSelector({
                   <Button
                     variant={selected === animation.id ? "default" : "outline"}
                     size="sm"
+                    className="flex-1 md:flex-none"
                     onClick={() => handleSelectAnimation(animation.id)}
                   >
                     {selected === animation.id && <Check className="h-4 w-4 mr-1" />}
