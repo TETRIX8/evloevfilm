@@ -22,43 +22,39 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
           <SheetTitle>Меню</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-2 mt-4">
-          {isAuthenticated ? (
-            <>
-              <Button variant="ghost" className="justify-start gap-2" asChild>
-                <Link to="/profile">
-                  <User className="h-4 w-4" />
-                  Профиль
-                </Link>
-              </Button>
-              <Button variant="ghost" className="justify-start gap-2" asChild>
-                <Link to="/saved">
-                  <Bookmark className="h-4 w-4" />
-                  Сохраненные
-                </Link>
-              </Button>
-              <Button variant="ghost" className="justify-start gap-2" asChild>
-                <Link to="/history">
-                  <History className="h-4 w-4" />
-                  История просмотров
-                </Link>
-              </Button>
-              {isAdmin && (
-                <Button variant="ghost" className="justify-start gap-2" asChild>
-                  <Link to="/admin">
-                    <BarChart className="h-4 w-4" />
-                    Админ панель
-                  </Link>
-                </Button>
-              )}
-            </>
-          ) : (
+          {/* Show profile link regardless of auth status */}
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link to="/profile">
+              <User className="h-4 w-4" />
+              Профиль
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link to="/saved">
+              <Bookmark className="h-4 w-4" />
+              Сохраненные
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link to="/history">
+              <History className="h-4 w-4" />
+              История просмотров
+            </Link>
+          </Button>
+          {isAdmin && (
             <Button variant="ghost" className="justify-start gap-2" asChild>
-              <Link to="/auth">
-                <LogIn className="h-4 w-4" />
-                Войти
+              <Link to="/admin">
+                <BarChart className="h-4 w-4" />
+                Админ панель
               </Link>
             </Button>
           )}
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link to="/auth">
+              <LogIn className="h-4 w-4" />
+              Войти
+            </Link>
+          </Button>
           <Button variant="ghost" className="justify-start gap-2" asChild>
             <Link to="/chat">
               <MessageSquare className="h-4 w-4" />

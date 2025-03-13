@@ -44,11 +44,9 @@ export function AppRoutes() {
       <Route 
         path="/saved" 
         element={
-          <ProtectedRoute>
-            <PageTransition>
-              <Saved />
-            </PageTransition>
-          </ProtectedRoute>
+          <PageTransition>
+            <Saved />
+          </PageTransition>
         } 
       />
       <Route 
@@ -62,11 +60,9 @@ export function AppRoutes() {
       <Route 
         path="/history" 
         element={
-          <ProtectedRoute>
-            <PageTransition>
-              <History />
-            </PageTransition>
-          </ProtectedRoute>
+          <PageTransition>
+            <History />
+          </PageTransition>
         } 
       />
       <Route 
@@ -96,11 +92,9 @@ export function AppRoutes() {
       <Route 
         path="/admin" 
         element={
-          <ProtectedRoute>
-            <PageTransition>
-              <Admin />
-            </PageTransition>
-          </ProtectedRoute>
+          <PageTransition>
+            <Admin />
+          </PageTransition>
         }
       />
       <Route 
