@@ -66,7 +66,7 @@ export function Navigation() {
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
             <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
-              EVOLVEFILM
+              EVLOEVFILM
             </Link>
           </motion.div>
           <DesktopMenu isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
