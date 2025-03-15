@@ -1,265 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5% 64.9%;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 263.4 70% 50.4%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 240 5.9% 90%;
-    --sidebar-ring: 240 5% 64.9%;
-    
-    --radius: 0.5rem;
-    --custom-bg-opacity: 0.5;
-  }
+/* Add this to the existing index.css file */
+:root {
+  --custom-bg-image: none;
+  --custom-bg-opacity: 0.5;
+}
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+.has-custom-background::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: var(--custom-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--custom-bg-opacity);
+  z-index: -1;
+  pointer-events: none;
+}
 
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 263.4 70% 50.4%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.9% 83.9%;
-  }
+.has-video-background #bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  pointer-events: none;
+}
 
-  /* Define color theme variables */
-  :root[data-color-theme="ocean"] {
-    --primary: 210 100% 50%;
-    --sidebar-primary: 210 100% 50%;
-  }
-
-  :root[data-color-theme="sunset"] {
-    --primary: 25 100% 50%;
-    --sidebar-primary: 25 100% 50%;
-  }
-
-  :root[data-color-theme="forest"] {
-    --primary: 142 76% 36%;
-    --sidebar-primary: 142 76% 36%;
-  }
-
-  :root[data-color-theme="monochrome"] {
-    --primary: 0 0% 60%;
-    --sidebar-primary: 0 0% 60%;
-  }
-
-  :root[data-color-theme="neon"] {
-    --primary: 328 100% 54%;
-    --sidebar-primary: 328 100% 54%;
-  }
-
-  :root[data-color-theme="pastel"] {
-    --primary: 340 82% 76%;
-    --sidebar-primary: 340 82% 76%;
-  }
-
-  :root[data-color-theme="midnight"] {
-    --primary: 248 53% 58%;
-    --sidebar-primary: 248 53% 58%;
-  }
-
-  :root[data-color-theme="tropical"] {
-    --primary: 48 100% 50%;
-    --sidebar-primary: 48 100% 50%;
-  }
-
-  :root[data-color-theme="cherry"] {
-    --primary: 0 100% 64%;
-    --sidebar-primary: 0 100% 64%;
-  }
-
-  /* Simplified mode for visually impaired users */
-  :root[data-simplified-mode="true"] {
-    --radius: 0.25rem;
-    --primary: 240 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 90%;
-    --secondary-foreground: 0 0% 0%;
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 95%;
-    --card-foreground: 0 0% 0%;
-    --muted: 0 0% 85%;
-    --muted-foreground: 0 0% 0%;
-    font-size: 110%;
-  }
-
-  :root[data-simplified-mode="true"].dark {
-    --primary: 240 100% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 100%;
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 100%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 100%;
-  }
-
-  /* Simplified mode has reduced or no animations */
-  :root[data-simplified-mode="true"] * {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-    transition: none !important;
-  }
-
-  /* Custom background for the entire app */
-  body.has-custom-background::before,
-  .has-custom-background::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: var(--custom-bg-image);
-    background-size: cover;
-    background-position: center;
-    opacity: var(--custom-bg-opacity);
-    z-index: -1;
-    pointer-events: none;
-  }
-  
-  * {
-    @apply border-border;
-  }
-  
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Theme switching animations */
-  :root:not([data-simplified-mode="true"]) {
-    transition: color 0.5s ease-out, background-color 0.5s ease-out, border-color 0.5s ease-out;
-  }
-
-  :root:not([data-simplified-mode="true"]) * {
-    transition: color 0.5s ease-out, background-color 0.5s ease-out, border-color 0.5s ease-out,
-                fill 0.5s ease-out, stroke 0.5s ease-out;
-  }
-
-  /* Simplified mode increases contrast and text size */
-  :root[data-simplified-mode="true"] {
-    * {
-      @apply !shadow-none;
-    }
-    
-    button {
-      @apply !border-2;
-    }
-    
-    h1, h2, h3, h4, h5, h6 {
-      @apply !font-bold;
-    }
-    
-    p, span, div, a {
-      @apply !leading-relaxed;
-    }
-
-    input, select, textarea {
-      @apply !border-2;
-    }
-  }
-
-  /* Movie title animations */
-  .movie-title {
-    @apply transition-all duration-300;
-  }
-
-  .movie-title:hover {
-    @apply scale-105 text-primary;
-  }
-
-  /* Enhanced fade animations */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
+/* Video background adjustments for dark mode */
+.dark .has-video-background #bg-video {
+  filter: brightness(0.8);
 }
