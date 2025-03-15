@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,18 @@ export function BackgroundUploader({
 }: BackgroundUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Effect to save the background image to localStorage
+  useEffect(() => {
+    if (currentBackground) {
+      localStorage.setItem("customBackground", currentBackground);
+    }
+  }, [currentBackground]);
+  
+  // Effect to save the opacity value to localStorage
+  useEffect(() => {
+    localStorage.setItem("bgOpacity", opacity.toString());
+  }, [opacity]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -65,6 +77,7 @@ export function BackgroundUploader({
 
   const clearBackground = () => {
     onBackgroundChange("");
+    localStorage.removeItem("customBackground");
     soundEffects.play("click");
   };
 
