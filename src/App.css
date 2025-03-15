@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -40,3 +41,11 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Default background initialization */
+body {
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+

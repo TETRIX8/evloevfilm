@@ -13,6 +13,9 @@ interface BackgroundUploaderProps {
   onOpacityChange: (opacity: number) => void;
 }
 
+// Default background path
+const DEFAULT_BACKGROUND = "/lovable-uploads/9d409ff7-8423-4652-b78a-ebaa9431b5ca.png";
+
 export function BackgroundUploader({ 
   currentBackground, 
   onBackgroundChange, 
@@ -21,6 +24,14 @@ export function BackgroundUploader({
 }: BackgroundUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Effect to initialize with default background if no background is set
+  useEffect(() => {
+    const savedBackground = localStorage.getItem("customBackground");
+    if (!savedBackground && !currentBackground) {
+      onBackgroundChange(DEFAULT_BACKGROUND);
+    }
+  }, [currentBackground, onBackgroundChange]);
   
   // Effect to save the background image to localStorage
   useEffect(() => {
@@ -76,8 +87,14 @@ export function BackgroundUploader({
   };
 
   const clearBackground = () => {
-    onBackgroundChange("");
-    localStorage.removeItem("customBackground");
+    onBackgroundChange(DEFAULT_BACKGROUND);
+    localStorage.setItem("customBackground", DEFAULT_BACKGROUND);
+    soundEffects.play("click");
+  };
+
+  const resetToDefault = () => {
+    onBackgroundChange(DEFAULT_BACKGROUND);
+    localStorage.setItem("customBackground", DEFAULT_BACKGROUND);
     soundEffects.play("click");
   };
 
@@ -94,14 +111,26 @@ export function BackgroundUploader({
             alt="Custom background" 
             className="w-full h-40 object-cover rounded-md"
           />
-          <Button 
-            variant="destructive" 
-            size="sm"
-            className="absolute top-2 right-2"
-            onClick={clearBackground}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="absolute top-2 right-2 flex gap-2">
+            {currentBackground !== DEFAULT_BACKGROUND && (
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={clearBackground}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+            {currentBackground !== DEFAULT_BACKGROUND && (
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={resetToDefault}
+              >
+                Вернуть стандартный
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
         <div 
