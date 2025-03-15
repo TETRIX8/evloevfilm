@@ -3,14 +3,12 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Upload, Trash2, Film, Image } from "lucide-react";
+import { Upload, Trash2 } from "lucide-react";
 import { soundEffects } from "@/utils/soundEffects";
-import { getDBSetting, setDBSetting, deleteDBSetting } from "@/utils/indexedDB";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BackgroundUploaderProps {
   currentBackground: string;
-  onBackgroundChange: (url: string, type?: string) => void;
+  onBackgroundChange: (url: string) => void;
   opacity: number;
   onOpacityChange: (opacity: number) => void;
 }
@@ -22,47 +20,18 @@ export function BackgroundUploader({
   onOpacityChange 
 }: BackgroundUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [backgroundType, setBackgroundType] = useState<string>("image");
-  const [activeTab, setActiveTab] = useState<string>("image");
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
-  // Effect to load saved background from IndexedDB on component mount
-  useEffect(() => {
-    const loadSavedBackground = async () => {
-      try {
-        const savedBackground = await getDBSetting<string>("customBackground");
-        const savedBackgroundType = await getDBSetting<string>("backgroundType");
-        const savedOpacity = await getDBSetting<number>("bgOpacity");
-        
-        if (savedBackground) {
-          onBackgroundChange(savedBackground, savedBackgroundType || "image");
-          setBackgroundType(savedBackgroundType || "image");
-          setActiveTab(savedBackgroundType || "image");
-        }
-        
-        if (savedOpacity !== null) {
-          onOpacityChange(savedOpacity);
-        }
-      } catch (error) {
-        console.error("Failed to load background from IndexedDB:", error);
-      }
-    };
-    
-    loadSavedBackground();
-  }, [onBackgroundChange, onOpacityChange]);
-  
-  // Effect to save the background to IndexedDB
+  // Effect to save the background image to localStorage
   useEffect(() => {
     if (currentBackground) {
-      setDBSetting("customBackground", currentBackground);
-      setDBSetting("backgroundType", backgroundType);
+      localStorage.setItem("customBackground", currentBackground);
     }
-  }, [currentBackground, backgroundType]);
+  }, [currentBackground]);
   
-  // Effect to save the opacity value to IndexedDB
+  // Effect to save the opacity value to localStorage
   useEffect(() => {
-    setDBSetting("bgOpacity", opacity);
+    localStorage.setItem("bgOpacity", opacity.toString());
   }, [opacity]);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -82,35 +51,23 @@ export function BackgroundUploader({
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      const fileType = file.type.split('/')[0]; // 'image' or 'video'
-      
-      if (fileType === 'image' || fileType === 'video') {
-        setBackgroundType(fileType);
-        setActiveTab(fileType);
-        handleFile(file, fileType);
-      }
+      handleFile(e.dataTransfer.files[0]);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0], type);
+      handleFile(e.target.files[0]);
     }
   };
 
-  const handleFile = (file: File, type: string) => {
-    const isImage = type === 'image';
-    const isVideo = type === 'video';
-    
-    if ((isImage && file.type.startsWith("image/")) || 
-        (isVideo && file.type.startsWith("video/"))) {
+  const handleFile = (file: File) => {
+    if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target && typeof e.target.result === "string") {
-          onBackgroundChange(e.target.result, type);
-          setBackgroundType(type);
+          onBackgroundChange(e.target.result);
           soundEffects.play("save");
         }
       };
@@ -119,10 +76,8 @@ export function BackgroundUploader({
   };
 
   const clearBackground = () => {
-    onBackgroundChange("", "");
-    setBackgroundType("");
-    deleteDBSetting("customBackground");
-    deleteDBSetting("backgroundType");
+    onBackgroundChange("");
+    localStorage.removeItem("customBackground");
     soundEffects.play("click");
   };
 
@@ -130,112 +85,55 @@ export function BackgroundUploader({
     onOpacityChange(value[0]);
   };
 
-  const renderMediaPreview = () => {
-    if (!currentBackground) return null;
-    
-    return (
-      <div className="relative">
-        {backgroundType === "image" ? (
+  return (
+    <div className="space-y-4">
+      {currentBackground ? (
+        <div className="relative">
           <img 
             src={currentBackground} 
             alt="Custom background" 
             className="w-full h-40 object-cover rounded-md"
           />
-        ) : backgroundType === "video" ? (
-          <video 
-            src={currentBackground}
-            className="w-full h-40 object-cover rounded-md"
-            autoPlay
-            muted
-            loop
-          />
-        ) : null}
-        <Button 
-          variant="destructive" 
-          size="sm"
-          className="absolute top-2 right-2"
-          onClick={clearBackground}
+          <Button 
+            variant="destructive" 
+            size="sm"
+            className="absolute top-2 right-2"
+            onClick={clearBackground}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div 
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive ? "border-primary bg-primary/10" : "border-muted-foreground/30"
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
         >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  };
-
-  const renderUploader = () => {
-    return (
-      <div 
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          dragActive ? "border-primary bg-primary/10" : "border-muted-foreground/30"
-        }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="image" className="flex items-center gap-1">
-              <Image className="h-4 w-4" />
-              <span>Изображение</span>
-            </TabsTrigger>
-            <TabsTrigger value="video" className="flex items-center gap-1">
-              <Film className="h-4 w-4" />
-              <span>Видео</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="image" className="mt-0">
-            <div className="flex flex-col items-center gap-2">
-              <Upload className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-2">
-                Перетащите изображение или GIF сюда или нажмите для выбора
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => imageInputRef.current?.click()}
-              >
-                Выбрать изображение
-              </Button>
-            </div>
-            <input
-              ref={imageInputRef}
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={(e) => handleChange(e, "image")}
-            />
-          </TabsContent>
-          
-          <TabsContent value="video" className="mt-0">
-            <div className="flex flex-col items-center gap-2">
-              <Film className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-2">
-                Перетащите видео сюда или нажмите для выбора
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => videoInputRef.current?.click()}
-              >
-                Выбрать видео
-              </Button>
-            </div>
-            <input
-              ref={videoInputRef}
-              type="file"
-              className="hidden"
-              accept="video/*"
-              onChange={(e) => handleChange(e, "video")}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-4">
-      {currentBackground ? renderMediaPreview() : renderUploader()}
+          <div className="flex flex-col items-center gap-2">
+            <Upload className="h-8 w-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground mb-2">
+              Перетащите изображение сюда или нажмите для выбора
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => inputRef.current?.click()}
+            >
+              Выбрать файл
+            </Button>
+          </div>
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={handleChange}
+          />
+        </div>
+      )}
 
       {currentBackground && (
         <div className="space-y-2">

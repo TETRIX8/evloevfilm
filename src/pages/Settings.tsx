@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import { LoadingAnimationSelector } from "@/components/settings/LoadingAnimation
 import { toast } from "sonner";
 import { soundEffects } from "@/utils/soundEffects";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getDBSetting, setDBSetting, deleteDBSetting } from "@/utils/indexedDB";
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
@@ -22,75 +22,28 @@ export default function Settings() {
   
   // Original state settings
   const [soundEnabled, setSoundEnabled] = useState(() => !soundEffects.isSoundMuted());
-  const [customBackground, setCustomBackground] = useState("");
-  const [backgroundType, setBackgroundType] = useState("image");
-  const [bgOpacity, setBgOpacity] = useState(0.5);
-  const [selectedColorTheme, setSelectedColorTheme] = useState("default");
+  const [customBackground, setCustomBackground] = useState(() => {
+    return localStorage.getItem("customBackground") || "";
+  });
+  const [bgOpacity, setBgOpacity] = useState(() => {
+    return parseFloat(localStorage.getItem("bgOpacity") || "0.5");
+  });
+  const [selectedColorTheme, setSelectedColorTheme] = useState(() => {
+    return localStorage.getItem("colorTheme") || "default";
+  });
   
   // New state settings
-  const [selectedLoadingAnimation, setSelectedLoadingAnimation] = useState("default");
-  const [simplifiedMode, setSimplifiedMode] = useState(false);
-  
-  // Load settings from IndexedDB on component mount
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        // Load background and opacity
-        const savedBackground = await getDBSetting<string>("customBackground");
-        const savedBackgroundType = await getDBSetting<string>("backgroundType");
-        const savedOpacity = await getDBSetting<number>("bgOpacity");
-        
-        if (savedBackground) {
-          setCustomBackground(savedBackground);
-          setBackgroundType(savedBackgroundType || "image");
-        }
-        
-        if (savedOpacity !== null) {
-          setBgOpacity(savedOpacity);
-        }
-        
-        // Load color theme
-        const savedColorTheme = await getDBSetting<string>("colorTheme");
-        if (savedColorTheme) {
-          setSelectedColorTheme(savedColorTheme);
-        }
-        
-        // Load loading animation
-        const savedLoadingAnimation = await getDBSetting<string>("loadingAnimation");
-        if (savedLoadingAnimation) {
-          setSelectedLoadingAnimation(savedLoadingAnimation);
-        }
-        
-        // Load simplified mode
-        const savedSimplifiedMode = await getDBSetting<boolean>("simplifiedMode");
-        if (savedSimplifiedMode !== null) {
-          setSimplifiedMode(savedSimplifiedMode);
-        }
-      } catch (error) {
-        console.error("Failed to load settings from IndexedDB:", error);
-      }
-      
-      // Set original settings after loading
-      setOriginalSettings({
-        soundEnabled,
-        customBackground,
-        backgroundType,
-        bgOpacity,
-        selectedColorTheme,
-        selectedLoadingAnimation,
-        simplifiedMode,
-        theme
-      });
-    };
-    
-    loadSettings();
-  }, []);
+  const [selectedLoadingAnimation, setSelectedLoadingAnimation] = useState(() => {
+    return localStorage.getItem("loadingAnimation") || "default";
+  });
+  const [simplifiedMode, setSimplifiedMode] = useState(() => {
+    return localStorage.getItem("simplifiedMode") === "true";
+  });
   
   // Add state to track changes for save/cancel functionality
   const [originalSettings, setOriginalSettings] = useState({
     soundEnabled: soundEnabled,
     customBackground: customBackground,
-    backgroundType: backgroundType,
     bgOpacity: bgOpacity,
     selectedColorTheme: selectedColorTheme,
     selectedLoadingAnimation: selectedLoadingAnimation,
@@ -105,7 +58,6 @@ export default function Settings() {
     const currentSettings = {
       soundEnabled,
       customBackground,
-      backgroundType,
       bgOpacity,
       selectedColorTheme,
       selectedLoadingAnimation,
@@ -118,7 +70,6 @@ export default function Settings() {
   }, [
     soundEnabled, 
     customBackground, 
-    backgroundType,
     bgOpacity, 
     selectedColorTheme, 
     selectedLoadingAnimation, 
@@ -132,44 +83,14 @@ export default function Settings() {
     const rootEl = document.documentElement;
     
     if (customBackground) {
-      if (backgroundType === "image") {
-        rootEl.style.setProperty('--custom-bg-image', `url(${customBackground})`);
-        rootEl.style.setProperty('--custom-bg-video', 'none');
-        rootEl.classList.add('has-custom-background');
-        rootEl.classList.remove('has-video-background');
-      } else if (backgroundType === "video") {
-        // For videos, we need to create a video element in the background
-        let videoEl = document.getElementById('bg-video') as HTMLVideoElement;
-        if (!videoEl) {
-          videoEl = document.createElement('video');
-          videoEl.id = 'bg-video';
-          videoEl.autoplay = true;
-          videoEl.loop = true;
-          videoEl.muted = true;
-          videoEl.playsInline = true;
-          videoEl.className = 'fixed top-0 left-0 w-full h-full object-cover z-[-1]';
-          document.body.appendChild(videoEl);
-        }
-        
-        videoEl.src = customBackground;
-        videoEl.style.opacity = bgOpacity.toString();
-        
-        rootEl.classList.add('has-video-background');
-        rootEl.classList.remove('has-custom-background');
-      }
-      
+      rootEl.style.setProperty('--custom-bg-image', `url(${customBackground})`);
       rootEl.style.setProperty('--custom-bg-opacity', bgOpacity.toString());
+      rootEl.classList.add('has-custom-background');
     } else {
-      rootEl.classList.remove('has-custom-background', 'has-video-background');
+      rootEl.classList.remove('has-custom-background');
       rootEl.style.removeProperty('--custom-bg-image');
-      
-      // Remove video element if exists
-      const videoEl = document.getElementById('bg-video');
-      if (videoEl) {
-        videoEl.remove();
-      }
     }
-  }, [customBackground, backgroundType, bgOpacity]);
+  }, [customBackground, bgOpacity]);
   
   // Apply simplified mode
   useEffect(() => {
@@ -203,39 +124,23 @@ export default function Settings() {
   const toggleSimplifiedMode = () => {
     setSimplifiedMode(!simplifiedMode);
   };
-  
-  // Handle background change with type
-  const handleBackgroundChange = (url: string, type?: string) => {
-    setCustomBackground(url);
-    if (type) {
-      setBackgroundType(type);
-    }
-  };
 
   // Save all settings
   const saveSettings = () => {
     setIsLoading(true);
     
     try {
-      // Save all settings to IndexedDB
-      if (customBackground) {
-        setDBSetting("customBackground", customBackground);
-        setDBSetting("backgroundType", backgroundType);
-      } else {
-        deleteDBSetting("customBackground");
-        deleteDBSetting("backgroundType");
-      }
-      
-      setDBSetting("bgOpacity", bgOpacity);
-      setDBSetting("colorTheme", selectedColorTheme);
-      setDBSetting("loadingAnimation", selectedLoadingAnimation);
-      setDBSetting("simplifiedMode", simplifiedMode);
+      // Save all settings to localStorage
+      localStorage.setItem("customBackground", customBackground);
+      localStorage.setItem("bgOpacity", bgOpacity.toString());
+      localStorage.setItem("colorTheme", selectedColorTheme);
+      localStorage.setItem("loadingAnimation", selectedLoadingAnimation);
+      localStorage.setItem("simplifiedMode", simplifiedMode.toString());
       
       // Update original settings to match current
       setOriginalSettings({
         soundEnabled,
         customBackground,
-        backgroundType,
         bgOpacity,
         selectedColorTheme,
         selectedLoadingAnimation,
@@ -262,7 +167,6 @@ export default function Settings() {
     try {
       setSoundEnabled(originalSettings.soundEnabled);
       setCustomBackground(originalSettings.customBackground);
-      setBackgroundType(originalSettings.backgroundType);
       setBgOpacity(originalSettings.bgOpacity);
       setSelectedColorTheme(originalSettings.selectedColorTheme);
       setSelectedLoadingAnimation(originalSettings.selectedLoadingAnimation);
@@ -294,7 +198,6 @@ export default function Settings() {
     
     try {
       setCustomBackground("");
-      setBackgroundType("image");
       setBgOpacity(0.5);
       setSoundEnabled(true);
       setSelectedColorTheme("default");
@@ -311,19 +214,12 @@ export default function Settings() {
         soundEffects.toggleMute();
       }
       
-      // Clear IndexedDB settings
-      deleteDBSetting("customBackground");
-      deleteDBSetting("backgroundType");
-      deleteDBSetting("bgOpacity");
-      deleteDBSetting("colorTheme");
-      deleteDBSetting("loadingAnimation");
-      deleteDBSetting("simplifiedMode");
-      
-      // Remove video element if exists
-      const videoEl = document.getElementById('bg-video');
-      if (videoEl) {
-        videoEl.remove();
-      }
+      // Clear localStorage settings
+      localStorage.removeItem("customBackground");
+      localStorage.removeItem("bgOpacity");
+      localStorage.removeItem("colorTheme");
+      localStorage.removeItem("loadingAnimation");
+      localStorage.removeItem("simplifiedMode");
       
       toast.success("Настройки сброшены");
       
@@ -331,7 +227,6 @@ export default function Settings() {
       setOriginalSettings({
         soundEnabled: true,
         customBackground: "",
-        backgroundType: "image",
         bgOpacity: 0.5,
         selectedColorTheme: "default",
         selectedLoadingAnimation: "default",
@@ -395,13 +290,13 @@ export default function Settings() {
             <CardHeader className="p-4 md:p-6">
               <CardTitle>Фон</CardTitle>
               <CardDescription>
-                Загрузите собственное изображение, гифку или видео для фона сайта
+                Загрузите собственное изображение для фона сайта
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-4 md:p-6">
               <BackgroundUploader 
                 currentBackground={customBackground} 
-                onBackgroundChange={handleBackgroundChange} 
+                onBackgroundChange={setCustomBackground} 
                 opacity={bgOpacity}
                 onOpacityChange={setBgOpacity}
               />
