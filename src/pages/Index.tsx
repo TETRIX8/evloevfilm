@@ -8,6 +8,7 @@ import { SearchResults } from "@/components/SearchResults";
 import { useMovies, useMovieSearch } from "@/hooks/use-movies";
 import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { PopularMoviesSlideshow } from "@/components/PopularMoviesSlideshow";
 
 // Get current year in Moscow timezone
 const getCurrentYear = () => {
@@ -62,6 +63,8 @@ export default function Index() {
 
           {!searchTerm && (
             <>
+              <PopularMoviesSlideshow />
+              
               <MovieCarousel 
                 title={`Новые фильмы ${currentYear}`}
                 movies={newMovies.data}

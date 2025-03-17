@@ -1,4 +1,3 @@
-
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://api1673051707.bhcesh.me/list";
 
@@ -31,6 +30,11 @@ export interface MovieDetails {
   genres?: string[];
   kinopoisk_id?: string;
   trailer?: string;
+}
+
+interface FetchOptions {
+  sort?: string;
+  limit?: number;
 }
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
@@ -87,14 +91,21 @@ export async function fetchMovieDetails(title: string): Promise<MovieDetails | n
   }
 }
 
-export async function fetchMovies(type: 'films' | 'serials' | 'cartoon', year: string): Promise<MovieData[]> {
+export async function fetchMovies(
+  type: 'films' | 'serials' | 'cartoon', 
+  year: string = '', 
+  options: FetchOptions = {}
+): Promise<MovieData[]> {
   try {
     const url = new URL(BASE_URL);
     url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('sort', '-views');
+    url.searchParams.append('sort', options.sort || '-views');
     url.searchParams.append('type', type);
-    url.searchParams.append('limit', '50');
-    url.searchParams.append('year', year);
+    url.searchParams.append('limit', options.limit?.toString() || '50');
+    
+    if (year) {
+      url.searchParams.append('year', year);
+    }
     
     if (type === 'serials') {
       url.searchParams.append('join_seasons', 'false');
