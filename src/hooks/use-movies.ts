@@ -1,6 +1,5 @@
-
 import { useQuery } from "@tanstack/react-query";
-import { fetchMovies, searchMovies, fetchPopularMoviesWithDetails, MovieData } from "@/services/api";
+import { fetchMovies, searchMovies, MovieData } from "@/services/api";
 
 export function useMovies(year: string) {
   const newMovies = useQuery({
@@ -29,15 +28,6 @@ export function useMovies(year: string) {
     newTVShows,
     newCartoons,
   };
-}
-
-export function usePopularMovies(limit: number = 10) {
-  return useQuery({
-    queryKey: ["popular-movies", limit],
-    queryFn: () => fetchPopularMoviesWithDetails(limit),
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
-  });
 }
 
 export function useMovieSearch(searchTerm: string) {

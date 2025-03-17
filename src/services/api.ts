@@ -1,4 +1,3 @@
-
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://api1673051707.bhcesh.me/list";
 
@@ -22,15 +21,8 @@ export interface MovieData {
   title: string;
   image: string;
   link: string;
-  description?: string;
-  year?: number;
-  rating?: number;
-  genres?: string[];
-  kinopoisk_id?: string;
-  trailer?: string;
 }
 
-// Define the missing MovieDetails interface
 export interface MovieDetails {
   description?: string;
   year?: number;
@@ -43,7 +35,6 @@ export interface MovieDetails {
 interface FetchOptions {
   sort?: string;
   limit?: number;
-  include_details?: boolean;
 }
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
@@ -126,13 +117,7 @@ export async function fetchMovies(
     return data.results?.map(item => ({
       title: item.name,
       image: item.poster,
-      link: item.iframe_url,
-      description: options.include_details ? item.description : undefined,
-      year: options.include_details ? item.year : undefined,
-      rating: options.include_details ? item.rating : undefined,
-      genres: options.include_details ? item.genres : undefined,
-      kinopoisk_id: options.include_details ? item.kinopoisk_id : undefined,
-      trailer: options.include_details ? item.trailer : undefined
+      link: item.iframe_url
     })) || [];
   } catch (error) {
     console.error(`Error fetching ${type}:`, error);
@@ -158,33 +143,6 @@ export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
     })) || [];
   } catch (error) {
     console.error('Error searching movies:', error);
-    throw error;
-  }
-}
-
-export async function fetchPopularMoviesWithDetails(limit: number = 10): Promise<MovieData[]> {
-  try {
-    const url = new URL(BASE_URL);
-    url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('sort', '-views');
-    url.searchParams.append('limit', limit.toString());
-
-    const response = await fetchWithRetry(url.toString());
-    const data: MovieApiResponse = await response.json();
-    
-    return data.results?.map(item => ({
-      title: item.name,
-      image: item.poster,
-      link: item.iframe_url,
-      description: item.description,
-      year: item.year,
-      rating: item.rating,
-      genres: item.genres,
-      kinopoisk_id: item.kinopoisk_id,
-      trailer: item.trailer
-    })) || [];
-  } catch (error) {
-    console.error('Error fetching popular movies with details:', error);
     throw error;
   }
 }
