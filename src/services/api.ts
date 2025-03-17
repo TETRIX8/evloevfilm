@@ -1,3 +1,4 @@
+
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://api1673051707.bhcesh.me/list";
 
@@ -21,6 +22,16 @@ export interface MovieData {
   title: string;
   image: string;
   link: string;
+  description?: string;
+  year?: number;
+  rating?: number;
+  genres?: string[];
+  kinopoisk_id?: string;
+  trailer?: string;
+}
+
+// Define the missing MovieDetails interface
+export interface MovieDetails {
   description?: string;
   year?: number;
   rating?: number;
