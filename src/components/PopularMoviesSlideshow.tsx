@@ -1,18 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, Star, Calendar, Film, Info } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMovies } from "@/services/api";
+import { fetchPopularMoviesWithDetails } from "@/services/api";
 import { toast } from "sonner";
-
-interface Movie {
-  title: string;
-  image: string;
-  link: string;
-}
+import { Badge } from "./ui/badge";
 
 export function PopularMoviesSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,8 +16,8 @@ export function PopularMoviesSlideshow() {
   
   // Fetch popular movies from the API
   const { data: popularMovies, error } = useQuery({
-    queryKey: ["popular-movies"],
-    queryFn: () => fetchMovies('films', '', { sort: '-views', limit: 10 }),
+    queryKey: ["popular-movies-with-details"],
+    queryFn: () => fetchPopularMoviesWithDetails(10),
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
@@ -72,7 +67,7 @@ export function PopularMoviesSlideshow() {
   
   return (
     <section 
-      className="relative rounded-xl overflow-hidden h-[400px] mb-12 shadow-xl"
+      className="relative rounded-xl overflow-hidden h-[450px] mb-12 shadow-xl"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -100,11 +95,51 @@ export function PopularMoviesSlideshow() {
               >
                 {currentMovie.title}
               </motion.h2>
+              
+              {currentMovie.description && (
+                <motion.p
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="text-sm md:text-base text-white/90 mb-4 line-clamp-3"
+                >
+                  {currentMovie.description}
+                </motion.p>
+              )}
+              
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="flex space-x-4 mb-6"
+                className="flex flex-wrap gap-3 mb-5"
+              >
+                {currentMovie.rating && (
+                  <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1 text-yellow-400">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-bold">{currentMovie.rating.toFixed(1)}</span>
+                  </div>
+                )}
+                
+                {currentMovie.year && (
+                  <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1 text-white/90">
+                    <Calendar className="h-4 w-4" />
+                    <span>{currentMovie.year}</span>
+                  </div>
+                )}
+                
+                {currentMovie.genres && currentMovie.genres.length > 0 && (
+                  <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1 text-white/90">
+                    <Film className="h-4 w-4" />
+                    <span>{currentMovie.genres.slice(0, 2).join(", ")}</span>
+                  </div>
+                )}
+              </motion.div>
+              
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="flex flex-wrap gap-3"
               >
                 <Button 
                   className="gap-2 bg-primary hover:bg-primary/90"
@@ -113,7 +148,33 @@ export function PopularMoviesSlideshow() {
                   <Play className="h-4 w-4" />
                   Смотреть
                 </Button>
+                
+                {currentMovie.trailer && (
+                  <Button
+                    variant="outline"
+                    className="gap-2 bg-black/30 text-white border-white/30 hover:bg-black/50"
+                    onClick={() => window.open(currentMovie.trailer, '_blank')}
+                  >
+                    <Info className="h-4 w-4" />
+                    Трейлер
+                  </Button>
+                )}
               </motion.div>
+              
+              {currentMovie.genres && currentMovie.genres.length > 0 && (
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="flex flex-wrap gap-2 mt-4"
+                >
+                  {currentMovie.genres.map((genre, index) => (
+                    <Badge key={index} variant="secondary" className="bg-black/30 hover:bg-black/50">
+                      {genre}
+                    </Badge>
+                  ))}
+                </motion.div>
+              )}
             </div>
           </div>
         </motion.div>
