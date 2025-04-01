@@ -83,7 +83,8 @@ export const useMovieLike = (title: string, image: string, link: string) => {
           return;
         }
         
-        toast.success("Фильм добавлен в сохраненные");
+        // We'll handle the toast in our popup now
+        // toast.success("Фильм добавлен в сохраненные");
       } else {
         const { error } = await supabase
           .from('saved_movies')

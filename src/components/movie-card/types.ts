@@ -1,6 +1,3 @@
-
-import { ReactNode } from "react";
-
 export interface MovieCardProps {
   title: string;
   image: string;
@@ -13,33 +10,19 @@ export interface MovieCardProps {
   onPlay?: () => void;
 }
 
-export interface MovieActionsProps {
-  isHovered: boolean;
-  isLiked: boolean;
-  isLoading: boolean;
-  onLike: (e: React.MouseEvent) => void;
-  onShare: (e: React.MouseEvent) => void;
-}
-
-export interface MovieOverlayProps {
-  title: string;
-  onClick: () => void;
-}
-
 export interface MovieCardOverlayProps {
   title: string;
-  image?: string;
-  isHovered?: boolean;
-  aspectRatio?: "portrait" | "landscape";
-  onPlay?: (e: React.MouseEvent) => void;
+  image: string;
+  isHovered: boolean;
+  aspectRatio: "portrait" | "landscape";
+  onPlay: () => void;
 }
 
 export interface MovieCardActionsProps {
   title: string;
-  image?: string;
-  link?: string;
+  image: string;
+  link: string;
   isLiked: boolean;
-  onLike: (e: React.MouseEvent) => Promise<void>;
   isHovered: boolean;
+  onLike: (e: React.MouseEvent) => void;
 }
-

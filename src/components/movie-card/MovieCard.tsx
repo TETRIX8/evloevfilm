@@ -6,6 +6,12 @@ import { MovieCardProps } from "./types";
 import { MovieCardOverlay } from "./MovieCardOverlay";
 import { MovieCardActions } from "./MovieCardActions";
 
+interface ExtendedMovieCardProps extends MovieCardProps {
+  isLiked?: boolean;
+  isLoading?: boolean;
+  onLike?: (e: React.MouseEvent) => void;
+}
+
 export function MovieCard({
   title,
   image,
@@ -16,7 +22,10 @@ export function MovieCard({
   width = 250,
   showActions = true,
   onPlay,
-}: MovieCardProps) {
+  isLiked = false,
+  isLoading = false,
+  onLike,
+}: ExtendedMovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
   const handleMouseEnter = () => {
@@ -74,11 +83,8 @@ export function MovieCard({
           title={title}
           image={image}
           link={link}
-          isLiked={false}
-          onLike={async (e: React.MouseEvent) => {
-            e.preventDefault();
-            console.log("Like button clicked");
-          }}
+          isLiked={isLiked}
+          onLike={onLike || (() => {})}
           isHovered={isHovered}
         />
       )}
