@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X } from 'lucide-react';
+import { Check, X, Star } from 'lucide-react';
 import { WebGLAnimation } from './WebGLAnimation';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -14,12 +14,13 @@ interface WebGLSavePopupProps {
 }
 
 export function WebGLSavePopup({ isOpen, onClose, title, image }: WebGLSavePopupProps) {
-  const [animationType, setAnimationType] = useState<'particles' | 'stars' | 'nebula'>('stars');
+  const [animationType, setAnimationType] = useState<'particles' | 'stars' | 'nebula' | 'galaxy' | 'fireflies' | 'aurora'>('stars');
   
   // Randomly select an animation type when the popup opens
   useEffect(() => {
     if (isOpen) {
-      const animations: Array<'particles' | 'stars' | 'nebula'> = ['particles', 'stars', 'nebula'];
+      const animations: Array<'particles' | 'stars' | 'nebula' | 'galaxy' | 'fireflies' | 'aurora'> = 
+        ['particles', 'stars', 'nebula', 'galaxy', 'fireflies', 'aurora'];
       const randomIndex = Math.floor(Math.random() * animations.length);
       setAnimationType(animations[randomIndex]);
     }
@@ -44,8 +45,8 @@ export function WebGLSavePopup({ isOpen, onClose, title, image }: WebGLSavePopup
               <div className="relative z-10">
                 <div className="flex flex-col items-center text-center space-y-4">
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
                     transition={{ 
                       type: "spring",
                       stiffness: 260,
@@ -62,13 +63,16 @@ export function WebGLSavePopup({ isOpen, onClose, title, image }: WebGLSavePopup
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="relative w-20 h-20 rounded-md overflow-hidden"
+                      className="relative w-24 h-32 rounded-md overflow-hidden shadow-xl"
                     >
                       <img 
                         src={image} 
                         alt={title} 
                         className="w-full h-full object-cover"
                       />
+                      <div className="absolute top-0 right-0 bg-primary/80 p-1 rounded-bl-md">
+                        <Star className="h-4 w-4 text-white fill-white" />
+                      </div>
                     </motion.div>
                   )}
                   
@@ -94,12 +98,13 @@ export function WebGLSavePopup({ isOpen, onClose, title, image }: WebGLSavePopup
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
+                    className="flex gap-2"
                   >
                     <Button
                       onClick={onClose}
-                      className="min-w-[100px]"
+                      className="min-w-[100px] bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 transition-all duration-300"
                     >
-                      Готово
+                      Отлично!
                     </Button>
                   </motion.div>
                 </div>

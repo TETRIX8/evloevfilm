@@ -4,7 +4,7 @@ import { WebGLAnimation } from './WebGLAnimation';
 
 export function AppWebGLBackground() {
   const [webglEnabled, setWebglEnabled] = useState(false);
-  const [animationType, setAnimationType] = useState<'particles' | 'waves' | 'nebula' | 'stars' | null>(null);
+  const [animationType, setAnimationType] = useState<'particles' | 'waves' | 'nebula' | 'stars' | 'galaxy' | 'fireflies' | 'aurora' | 'rain' | null>(null);
   const [opacity, setOpacity] = useState(0.7);
 
   useEffect(() => {
