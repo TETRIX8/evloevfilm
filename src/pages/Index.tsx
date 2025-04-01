@@ -9,6 +9,7 @@ import { useMovies, useMovieSearch } from "@/hooks/use-movies";
 import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { PopularMoviesSlideshow } from "@/components/PopularMoviesSlideshow";
+import { AppWebGLBackground } from "@/components/animations/AppWebGLBackground";
 
 // Get current year in Moscow timezone
 const getCurrentYear = () => {
@@ -41,6 +42,9 @@ export default function Index() {
   return (
     <div className="min-h-screen">
       {isFirstLoad && <LoadingScreen />}
+      
+      {/* WebGL Background */}
+      <AppWebGLBackground />
       
       <Navigation />
       

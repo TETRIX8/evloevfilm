@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Upload, Palette, Sliders, Volume2, VolumeX, Eye, Save, X, Loader } from "lucide-react";
+import { Upload, Palette, Sliders, Volume2, VolumeX, Eye, Save, X, Loader, Sparkles } from "lucide-react";
 import { BackgroundUploader } from "@/components/settings/BackgroundUploader";
 import { ColorThemeSelector } from "@/components/settings/ColorThemeSelector";
 import { LoadingAnimationSelector } from "@/components/settings/LoadingAnimationSelector";
+import { WebGLAnimationSelector } from "@/components/settings/WebGLAnimationSelector";
 import { toast } from "sonner";
 import { soundEffects } from "@/utils/soundEffects";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,6 +41,14 @@ export default function Settings() {
     return localStorage.getItem("simplifiedMode") === "true";
   });
   
+  // WebGL анимации
+  const [webglAnimation, setWebglAnimation] = useState(() => {
+    return localStorage.getItem("webglAnimation") || "none";
+  });
+  const [webglOpacity, setWebglOpacity] = useState(() => {
+    return parseFloat(localStorage.getItem("webglOpacity") || "0.7");
+  });
+  
   // Add state to track changes for save/cancel functionality
   const [originalSettings, setOriginalSettings] = useState({
     soundEnabled: soundEnabled,
@@ -48,7 +57,9 @@ export default function Settings() {
     selectedColorTheme: selectedColorTheme,
     selectedLoadingAnimation: selectedLoadingAnimation,
     simplifiedMode: simplifiedMode,
-    theme: theme
+    theme: theme,
+    webglAnimation: webglAnimation,
+    webglOpacity: webglOpacity
   });
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +73,9 @@ export default function Settings() {
       selectedColorTheme,
       selectedLoadingAnimation,
       simplifiedMode,
-      theme
+      theme,
+      webglAnimation,
+      webglOpacity
     };
     
     const settingsChanged = JSON.stringify(currentSettings) !== JSON.stringify(originalSettings);
@@ -75,7 +88,9 @@ export default function Settings() {
     selectedLoadingAnimation, 
     simplifiedMode, 
     theme, 
-    originalSettings
+    originalSettings,
+    webglAnimation,
+    webglOpacity
   ]);
 
   // Apply background and opacity effect
@@ -120,6 +135,16 @@ export default function Settings() {
     setSelectedLoadingAnimation(animation);
   };
   
+  // Handle WebGL animation selection
+  const handleWebGLAnimationChange = (animation: string) => {
+    setWebglAnimation(animation);
+  };
+  
+  // Handle WebGL opacity change
+  const handleWebGLOpacityChange = (opacity: number) => {
+    setWebglOpacity(opacity);
+  };
+  
   // Handle simplified mode toggle
   const toggleSimplifiedMode = () => {
     setSimplifiedMode(!simplifiedMode);
@@ -136,6 +161,8 @@ export default function Settings() {
       localStorage.setItem("colorTheme", selectedColorTheme);
       localStorage.setItem("loadingAnimation", selectedLoadingAnimation);
       localStorage.setItem("simplifiedMode", simplifiedMode.toString());
+      localStorage.setItem("webglAnimation", webglAnimation);
+      localStorage.setItem("webglOpacity", webglOpacity.toString());
       
       // Update original settings to match current
       setOriginalSettings({
@@ -145,11 +172,21 @@ export default function Settings() {
         selectedColorTheme,
         selectedLoadingAnimation,
         simplifiedMode,
-        theme
+        theme,
+        webglAnimation,
+        webglOpacity
       });
       
       toast.success("Настройки успешно сохранены");
       setHasChanges(false);
+      
+      // Перезагрузка страницы для применения изменений WebGL анимаций
+      if (originalSettings.webglAnimation !== webglAnimation || 
+          originalSettings.webglOpacity !== webglOpacity) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
       
       soundEffects.play("click");
     } catch (error) {
@@ -172,6 +209,8 @@ export default function Settings() {
       setSelectedLoadingAnimation(originalSettings.selectedLoadingAnimation);
       setSimplifiedMode(originalSettings.simplifiedMode);
       setTheme(originalSettings.theme);
+      setWebglAnimation(originalSettings.webglAnimation);
+      setWebglOpacity(originalSettings.webglOpacity);
       
       // Apply original settings
       document.documentElement.setAttribute("data-color-theme", originalSettings.selectedColorTheme);
@@ -204,6 +243,8 @@ export default function Settings() {
       setSelectedLoadingAnimation("default");
       setSimplifiedMode(false);
       setTheme("dark");
+      setWebglAnimation("none");
+      setWebglOpacity(0.7);
       
       // Apply reset settings
       document.documentElement.setAttribute("data-color-theme", "default");
@@ -220,6 +261,8 @@ export default function Settings() {
       localStorage.removeItem("colorTheme");
       localStorage.removeItem("loadingAnimation");
       localStorage.removeItem("simplifiedMode");
+      localStorage.removeItem("webglAnimation");
+      localStorage.removeItem("webglOpacity");
       
       toast.success("Настройки сброшены");
       
@@ -231,12 +274,19 @@ export default function Settings() {
         selectedColorTheme: "default",
         selectedLoadingAnimation: "default",
         simplifiedMode: false,
-        theme: "dark"
+        theme: "dark",
+        webglAnimation: "none",
+        webglOpacity: 0.7
       });
       
       setHasChanges(false);
       
       soundEffects.play("click");
+      
+      // Перезагрузим страницу через 1 секунду для применения изменений
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error("Error resetting settings:", error);
       toast.error("Не удалось сбросить настройки");
@@ -281,6 +331,7 @@ export default function Settings() {
             <TabsTrigger value="sound" className="whitespace-nowrap">Звуки</TabsTrigger>
             <TabsTrigger value="theme" className="whitespace-nowrap">Цветовая схема</TabsTrigger>
             <TabsTrigger value="animations" className="whitespace-nowrap">Анимации</TabsTrigger>
+            <TabsTrigger value="webgl" className="whitespace-nowrap">WebGL эффекты</TabsTrigger>
             <TabsTrigger value="accessibility" className="whitespace-nowrap">Доступность</TabsTrigger>
           </TabsList>
         </ScrollArea>
@@ -385,6 +436,28 @@ export default function Settings() {
                 selected={selectedLoadingAnimation}
                 onSelect={handleLoadingAnimationChange}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="webgl" className="space-y-4">
+          <Card>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle>WebGL эффекты</CardTitle>
+              <CardDescription>
+                Выберите эффекты WebGL для фона приложения
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 md:p-6">
+              <WebGLAnimationSelector
+                selected={webglAnimation}
+                opacity={webglOpacity}
+                onSelect={handleWebGLAnimationChange}
+                onOpacityChange={handleWebGLOpacityChange}
+              />
+              <p className="text-sm text-muted-foreground mt-4">
+                Настройки вступят в силу после сохранения и перезагрузки страницы.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
