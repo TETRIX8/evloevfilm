@@ -1,3 +1,4 @@
+
 export interface MovieCardProps {
   title: string;
   image: string;
@@ -15,7 +16,7 @@ export interface MovieCardOverlayProps {
   image: string;
   isHovered: boolean;
   aspectRatio: "portrait" | "landscape";
-  onPlay: () => void;
+  onPlay: (e: React.MouseEvent) => void;
 }
 
 export interface MovieCardActionsProps {
@@ -25,4 +26,17 @@ export interface MovieCardActionsProps {
   isLiked: boolean;
   isHovered: boolean;
   onLike: (e: React.MouseEvent) => void;
+}
+
+export interface MovieOverlayProps {
+  title: string;
+  onClick: (e: React.MouseEvent) => void;
+}
+
+export interface MovieActionsProps {
+  isHovered: boolean;
+  isLiked: boolean;
+  isLoading?: boolean;
+  onLike: (e: React.MouseEvent) => void;
+  onShare: (e: React.MouseEvent) => void;
 }

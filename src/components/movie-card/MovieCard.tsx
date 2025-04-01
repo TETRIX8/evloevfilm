@@ -84,7 +84,7 @@ export function MovieCard({
           image={image}
           link={link}
           isLiked={isLiked}
-          onLike={onLike || (() => {})}
+          onLike={onLike || ((e) => {})}
           isHovered={isHovered}
         />
       )}
