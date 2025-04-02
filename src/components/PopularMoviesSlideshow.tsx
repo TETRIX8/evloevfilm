@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMovies } from "@/services/api";
+import { fetchMovies, fetchMovieDetails, MovieDetails } from "@/services/api";
 import { toast } from "sonner";
 
 interface Movie {
@@ -14,8 +14,13 @@ interface Movie {
   link: string;
 }
 
+interface MovieWithDetails extends Movie {
+  details?: MovieDetails | null;
+}
+
 export function PopularMoviesSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [moviesWithDetails, setMoviesWithDetails] = useState<MovieWithDetails[]>([]);
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   
@@ -27,6 +32,31 @@ export function PopularMoviesSlideshow() {
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
   
+  // Fetch details for each movie
+  useEffect(() => {
+    if (!popularMovies || popularMovies.length === 0) return;
+    
+    const fetchDetails = async () => {
+      const moviesWithDetailsList: MovieWithDetails[] = [...popularMovies];
+      
+      for (let i = 0; i < popularMovies.length; i++) {
+        try {
+          const details = await fetchMovieDetails(popularMovies[i].title);
+          moviesWithDetailsList[i] = {
+            ...popularMovies[i],
+            details
+          };
+        } catch (error) {
+          console.error(`Error fetching details for ${popularMovies[i].title}:`, error);
+        }
+      }
+      
+      setMoviesWithDetails(moviesWithDetailsList);
+    };
+    
+    fetchDetails();
+  }, [popularMovies]);
+  
   // Show error toast if query fails
   if (error) {
     toast.error("Не удалось загрузить популярные фильмы. Пожалуйста, попробуйте позже.");
@@ -34,33 +64,33 @@ export function PopularMoviesSlideshow() {
   
   // Auto-advance the slideshow every 5 seconds
   useEffect(() => {
-    if (!popularMovies || popularMovies.length === 0) return;
+    if (!moviesWithDetails || moviesWithDetails.length === 0) return;
     
     const interval = setInterval(() => {
       if (!isHovered) {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % popularMovies.length);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % moviesWithDetails.length);
       }
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [popularMovies, isHovered]);
+  }, [moviesWithDetails, isHovered]);
   
   // If no movies or still loading
-  if (!popularMovies || popularMovies.length === 0) {
+  if (!moviesWithDetails || moviesWithDetails.length === 0) {
     return null;
   }
   
-  const currentMovie = popularMovies[currentIndex];
+  const currentMovie = moviesWithDetails[currentIndex];
   
   const handlePrev = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? popularMovies.length - 1 : prevIndex - 1
+      prevIndex === 0 ? moviesWithDetails.length - 1 : prevIndex - 1
     );
   };
   
   const handleNext = () => {
     setCurrentIndex((prevIndex) => 
-      (prevIndex + 1) % popularMovies.length
+      (prevIndex + 1) % moviesWithDetails.length
     );
   };
   
@@ -100,6 +130,37 @@ export function PopularMoviesSlideshow() {
               >
                 {currentMovie.title}
               </motion.h2>
+              
+              {currentMovie.details?.description && (
+                <motion.p
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="text-sm md:text-base mb-4 line-clamp-3 text-white/90"
+                >
+                  {currentMovie.details.description}
+                </motion.p>
+              )}
+              
+              {currentMovie.details?.year && (
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="flex items-center gap-2 mb-4"
+                >
+                  <span className="text-sm font-medium bg-primary/20 text-primary px-2 py-0.5 rounded">
+                    {currentMovie.details.year}
+                  </span>
+                  
+                  {currentMovie.details.rating && (
+                    <span className="text-sm font-medium bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded flex items-center gap-1">
+                      ★ {currentMovie.details.rating.toFixed(1)}
+                    </span>
+                  )}
+                </motion.div>
+              )}
+              
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -121,7 +182,7 @@ export function PopularMoviesSlideshow() {
       
       {/* Navigation dots */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {popularMovies.map((_, index) => (
+        {moviesWithDetails.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
