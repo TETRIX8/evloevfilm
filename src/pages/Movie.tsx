@@ -2,7 +2,7 @@
 import { useLocation, Navigate } from "react-router-dom";
 import { MoviePlayer } from "@/components/MoviePlayer";
 import { useEffect, useState } from "react";
-import { fetchMovieDetails } from "@/services/api";
+import { fetchMovieDetails, MovieDetails } from "@/services/api";
 
 export default function Movie() {
   const location = useLocation();
@@ -21,11 +21,11 @@ export default function Movie() {
         setIsLoading(true);
         fetchMovieDetails(decodedTitle)
           .then(details => {
-            if (details?.iframe_url) {
+            if (details && details.iframe_url) {
               setMovieData({
                 title: decodedTitle,
                 iframeUrl: details.iframe_url,
-                image: details.poster || undefined
+                image: details.poster
               });
             }
             setIsLoading(false);

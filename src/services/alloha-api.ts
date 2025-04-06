@@ -60,6 +60,7 @@ export async function fetchAllohaMovieDetails(kinopoiskId: string): Promise<Allo
     
     if (data.status === 'error' || !data.data) {
       console.error('Alloha API error:', data.message || data.error_info || data);
+      // Don't throw an error here, just return null to avoid breaking the app
       return null;
     }
     

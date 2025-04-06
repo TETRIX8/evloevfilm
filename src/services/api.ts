@@ -32,8 +32,8 @@ export interface MovieDetails {
   genres?: string[];
   kinopoisk_id?: string;
   trailer?: string;
-  iframe_url?: string;
-  poster?: string;
+  iframe_url: string;
+  poster: string;
 }
 
 interface FetchOptions {
