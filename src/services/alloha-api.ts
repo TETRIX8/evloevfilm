@@ -21,15 +21,16 @@ export interface AllohaMovieData {
   premiere?: string;
   premiere_ru?: string;
   
-  actors?: string[];
-  directors?: string[];
-  producers?: string[];
+  actors?: string[] | string;
+  directors?: string[] | string;
+  producers?: string[] | string;
   
   description?: string;
   tagline?: string;
   poster?: string;
   quality?: string;
   translation?: string;
+  trailer?: string;
 }
 
 const ALLOHA_API_KEY = "04941a9a3ca3ac16e2b4327347bbc1";
@@ -57,7 +58,7 @@ export async function fetchAllohaMovieDetails(kinopoiskId: string): Promise<Allo
     const data: AllohaMovieResponse = await response.json();
     
     if (data.status === 'error' || !data.data) {
-      console.error('Alloha API error:', data.message);
+      console.error('Alloha API error:', data.message || data);
       return null;
     }
     

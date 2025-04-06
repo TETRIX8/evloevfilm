@@ -22,6 +22,13 @@ interface MovieWithDetails extends Movie {
   allohaDetails?: AllohaMovieData | null;
 }
 
+// Helper function to convert string or array to array
+const ensureArray = (data: string | string[] | undefined): string[] => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return [data]; // If it's a string, wrap it in an array
+};
+
 export function PopularMoviesSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [moviesWithDetails, setMoviesWithDetails] = useState<MovieWithDetails[]>([]);
@@ -252,8 +259,8 @@ export function PopularMoviesSlideshow() {
                 )}
               </motion.div>
 
-              {/* Directors and actors */}
-              {currentMovie.allohaDetails?.directors && currentMovie.allohaDetails.directors.length > 0 && (
+              {/* Directors section */}
+              {currentMovie.allohaDetails?.directors && (
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -262,11 +269,14 @@ export function PopularMoviesSlideshow() {
                 >
                   <Film className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span className="text-muted-foreground mr-2">Режиссер:</span>
-                  <span className="text-white/80">{currentMovie.allohaDetails.directors.slice(0, 2).join(', ')}</span>
+                  <span className="text-white/80">
+                    {ensureArray(currentMovie.allohaDetails.directors).slice(0, 2).join(', ')}
+                  </span>
                 </motion.div>
               )}
 
-              {currentMovie.allohaDetails?.actors && currentMovie.allohaDetails.actors.length > 0 && (
+              {/* Actors section */}
+              {currentMovie.allohaDetails?.actors && (
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -275,7 +285,10 @@ export function PopularMoviesSlideshow() {
                 >
                   <User className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span className="text-muted-foreground mr-2">В ролях:</span>
-                  <span className="text-white/80 truncate">{currentMovie.allohaDetails.actors.slice(0, 3).join(', ')}{currentMovie.allohaDetails.actors.length > 3 ? '...' : ''}</span>
+                  <span className="text-white/80 truncate">
+                    {ensureArray(currentMovie.allohaDetails.actors).slice(0, 3).join(', ')}
+                    {ensureArray(currentMovie.allohaDetails.actors).length > 3 ? '...' : ''}
+                  </span>
                 </motion.div>
               )}
 
