@@ -10,6 +10,7 @@ import { fetchMovieDetails } from "@/services/api";
 import { VPNAdvertisement } from "./VPNAdvertisement";
 import { fetchKinopoiskMovie, fetchMovieStills, type KinopoiskMovie, type MovieStill } from "@/services/kinopoisk";
 import { motion, AnimatePresence } from "framer-motion";
+import { fetchAllohaMovieDetails, type AllohaMovieData } from "@/services/alloha-api";
 import {
   Carousel,
   CarouselContent,
@@ -17,6 +18,23 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+
+// Вспомогательная функция для преобразования строки или массива в массив
+const ensureArray = (data: string | string[] | undefined): string[] => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return [data]; // Если это строка, оборачиваем её в массив
+};
 
 interface MoviePlayerProps {
   title: string;
@@ -33,8 +51,10 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [movieDetails, setMovieDetails] = useState<any>(null);
   const [kinopoiskData, setKinopoiskData] = useState<KinopoiskMovie | null>(null);
+  const [allohaDetails, setAllohaDetails] = useState<AllohaMovieData | null>(null);
   const [movieStills, setMovieStills] = useState<MovieStill[]>([]);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [showAllohaInfo, setShowAllohaInfo] = useState(false);
   const [adBlockEnabled] = useState(() => {
     return localStorage.getItem("adBlockEnabled") === "true";
   });
@@ -49,11 +69,17 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       setMovieDetails(details);
 
       if (details?.kinopoisk_id) {
+        // Получаем данные от Kinopoisk API
         const kinopoiskDetails = await fetchKinopoiskMovie(details.kinopoisk_id);
         setKinopoiskData(kinopoiskDetails);
         
+        // Получаем кадры из фильма
         const stills = await fetchMovieStills(details.kinopoisk_id);
         setMovieStills(stills);
+        
+        // Получаем расширенные данные от Alloha API
+        const allohaData = await fetchAllohaMovieDetails(details.kinopoisk_id);
+        setAllohaDetails(allohaData);
       }
     };
 
@@ -163,13 +189,18 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleStartWatching = () => {
     soundEffects.play("click");
     setShowPlayer(true);
-    setShowTrailer(false); // Hide trailer when starting to watch the main movie
+    setShowTrailer(false); // Скрываем трейлер при начале просмотра фильма
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleWatchTrailer = () => {
     soundEffects.play("click");
     setShowTrailer(true);
+  };
+
+  const handleShowAllohaInfo = () => {
+    soundEffects.play("click");
+    setShowAllohaInfo(true);
   };
 
   return (
@@ -217,7 +248,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </motion.div>
             )}
 
-            {/* Only show trailer if showTrailer is true AND showPlayer is false */}
+            {/* Показываем трейлер только если showTrailer равно true И showPlayer равно false */}
             {showTrailer && !showPlayer && movieDetails?.trailer ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -270,6 +301,158 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                     <Play className="h-5 w-5" />
                     Смотреть трейлер
                   </Button>
+                </motion.div>
+              )}
+              
+              {/* Новый блок для расширенной информации из Alloha API */}
+              {allohaDetails && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4, ease: "easeOut" }}
+                  className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+                >
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Дополнительная информация</h3>
+                  
+                  {allohaDetails.tagline && (
+                    <div className="mb-3">
+                      <span className="text-muted-foreground">Слоган: </span>
+                      <span className="italic">"{allohaDetails.tagline}"</span>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2 mb-4">
+                    {allohaDetails.original_name && (
+                      <div className="flex items-start">
+                        <span className="text-muted-foreground w-24 sm:w-36 flex-shrink-0">Оригинальное название:</span>
+                        <span>{allohaDetails.original_name}</span>
+                      </div>
+                    )}
+                    {allohaDetails.quality && (
+                      <div className="flex items-start">
+                        <span className="text-muted-foreground w-24 sm:w-36 flex-shrink-0">Качество:</span>
+                        <span>{allohaDetails.quality}</span>
+                      </div>
+                    )}
+                    {allohaDetails.translation && (
+                      <div className="flex items-start">
+                        <span className="text-muted-foreground w-24 sm:w-36 flex-shrink-0">Перевод:</span>
+                        <span>{allohaDetails.translation}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Drawer>
+                    <DrawerTrigger asChild>
+                      <Button variant="outline" className="w-full">Подробнее</Button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                      <DrawerHeader>
+                        <DrawerTitle>{title}</DrawerTitle>
+                        <DrawerDescription>
+                          Подробная информация о фильме
+                        </DrawerDescription>
+                      </DrawerHeader>
+                      <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                        {allohaDetails.original_name && (
+                          <div>
+                            <h4 className="font-medium mb-1">Оригинальное название</h4>
+                            <p className="text-muted-foreground">{allohaDetails.original_name}</p>
+                          </div>
+                        )}
+                        
+                        {(allohaDetails.premiere || allohaDetails.premiere_ru) && (
+                          <div>
+                            <h4 className="font-medium mb-1">Даты премьер</h4>
+                            {allohaDetails.premiere && (
+                              <p className="text-muted-foreground">
+                                <span className="inline-block w-32">Мировая:</span> {allohaDetails.premiere}
+                              </p>
+                            )}
+                            {allohaDetails.premiere_ru && (
+                              <p className="text-muted-foreground">
+                                <span className="inline-block w-32">В России:</span> {allohaDetails.premiere_ru}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {allohaDetails.directors && (
+                          <div>
+                            <h4 className="font-medium mb-1">Режиссеры</h4>
+                            <p className="text-muted-foreground">
+                              {ensureArray(allohaDetails.directors).join(', ')}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.producers && (
+                          <div>
+                            <h4 className="font-medium mb-1">Продюсеры</h4>
+                            <p className="text-muted-foreground">
+                              {ensureArray(allohaDetails.producers).join(', ')}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.actors && (
+                          <div>
+                            <h4 className="font-medium mb-1">В ролях</h4>
+                            <p className="text-muted-foreground">
+                              {ensureArray(allohaDetails.actors).join(', ')}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.time && (
+                          <div>
+                            <h4 className="font-medium mb-1">Длительность</h4>
+                            <p className="text-muted-foreground">{allohaDetails.time}</p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.age_restrictions && (
+                          <div>
+                            <h4 className="font-medium mb-1">Возрастное ограничение</h4>
+                            <p className="text-muted-foreground">{allohaDetails.age_restrictions}</p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.rating_mpaa && (
+                          <div>
+                            <h4 className="font-medium mb-1">Рейтинг MPAA</h4>
+                            <p className="text-muted-foreground">{allohaDetails.rating_mpaa}</p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.quality && (
+                          <div>
+                            <h4 className="font-medium mb-1">Качество</h4>
+                            <p className="text-muted-foreground">{allohaDetails.quality}</p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.translation && (
+                          <div>
+                            <h4 className="font-medium mb-1">Перевод</h4>
+                            <p className="text-muted-foreground">{allohaDetails.translation}</p>
+                          </div>
+                        )}
+                        
+                        {allohaDetails.description && (
+                          <div>
+                            <h4 className="font-medium mb-1">Описание</h4>
+                            <p className="text-muted-foreground">{allohaDetails.description}</p>
+                          </div>
+                        )}
+                      </div>
+                      <DrawerFooter>
+                        <DrawerClose>
+                          <Button variant="outline" className="w-full">Закрыть</Button>
+                        </DrawerClose>
+                      </DrawerFooter>
+                    </DrawerContent>
+                  </Drawer>
                 </motion.div>
               )}
             </div>
@@ -374,6 +557,65 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 </Button>
               </div>
             </motion.div>
+
+            {/* Дополнительная информация из Alloha API */}
+            {allohaDetails && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+                className="bg-card/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-primary/10"
+              >
+                <div className="flex flex-col space-y-3">
+                  {allohaDetails.rating_kp && (
+                    <div className="flex items-center space-x-2">
+                      <Star className="h-5 w-5 text-yellow-500" />
+                      <div>
+                        <span className="font-medium">{allohaDetails.rating_kp.toFixed(1)}</span>
+                        <span className="text-muted-foreground text-sm ml-1">КиноПоиск</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {allohaDetails.rating_imdb && (
+                    <div className="flex items-center space-x-2">
+                      <Star className="h-5 w-5 text-yellow-500" />
+                      <div>
+                        <span className="font-medium">{allohaDetails.rating_imdb.toFixed(1)}</span>
+                        <span className="text-muted-foreground text-sm ml-1">IMDb</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {allohaDetails.year && (
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <span>{allohaDetails.year} год</span>
+                    </div>
+                  )}
+                  
+                  {allohaDetails.country && (
+                    <div className="flex items-center space-x-2">
+                      <Globe className="h-5 w-5 text-muted-foreground" />
+                      <span>{allohaDetails.country}</span>
+                    </div>
+                  )}
+                  
+                  {allohaDetails.genre && (
+                    <div className="flex items-center space-x-2">
+                      <Award className="h-5 w-5 text-muted-foreground" />
+                      <span>{allohaDetails.genre}</span>
+                    </div>
+                  )}
+                  
+                  {allohaDetails.age_restrictions && (
+                    <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                      {allohaDetails.age_restrictions}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
             {kinopoiskData && (
               <>
