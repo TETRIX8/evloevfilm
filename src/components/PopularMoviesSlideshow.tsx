@@ -1,12 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, Clock, Calendar, Star, Award, User, Film, Video } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { fetchMovies, fetchMovieDetails, MovieDetails } from "@/services/api";
+import { fetchAllohaMovieDetails, AllohaMovieData } from "@/services/alloha-api";
 import { toast } from "sonner";
+import { Badge } from "./ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 interface Movie {
   title: string;
@@ -16,6 +19,7 @@ interface Movie {
 
 interface MovieWithDetails extends Movie {
   details?: MovieDetails | null;
+  allohaDetails?: AllohaMovieData | null;
 }
 
 export function PopularMoviesSlideshow() {
@@ -23,6 +27,7 @@ export function PopularMoviesSlideshow() {
   const [moviesWithDetails, setMoviesWithDetails] = useState<MovieWithDetails[]>([]);
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const [showMore, setShowMore] = useState<Record<number, boolean>>({});
   
   // Fetch popular movies from the API
   const { data: popularMovies, error } = useQuery({
@@ -46,6 +51,17 @@ export function PopularMoviesSlideshow() {
             ...popularMovies[i],
             details
           };
+
+          // If we have a KinoPoisk ID, fetch additional details from Alloha API
+          if (details?.kinopoisk_id) {
+            const allohaDetails = await fetchAllohaMovieDetails(details.kinopoisk_id);
+            if (allohaDetails) {
+              moviesWithDetailsList[i] = {
+                ...moviesWithDetailsList[i],
+                allohaDetails
+              };
+            }
+          }
         } catch (error) {
           console.error(`Error fetching details for ${popularMovies[i].title}:`, error);
         }
@@ -99,10 +115,17 @@ export function PopularMoviesSlideshow() {
       state: { title: currentMovie.title, image: currentMovie.image, iframeUrl: currentMovie.link }
     });
   };
+
+  const toggleShowMore = () => {
+    setShowMore(prev => ({
+      ...prev,
+      [currentIndex]: !prev[currentIndex]
+    }));
+  };
   
   return (
     <section 
-      className="relative rounded-xl overflow-hidden h-[400px] mb-12 shadow-xl"
+      className="relative rounded-xl overflow-hidden h-[500px] mb-12 shadow-xl"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -120,8 +143,8 @@ export function PopularMoviesSlideshow() {
             alt={currentMovie.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent">
-            <div className="flex flex-col justify-end h-full p-8 md:p-12 max-w-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-transparent">
+            <div className="flex flex-col justify-end h-full p-8 md:p-12 max-w-3xl">
               <motion.h2 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -130,42 +153,150 @@ export function PopularMoviesSlideshow() {
               >
                 {currentMovie.title}
               </motion.h2>
-              
-              {currentMovie.details?.description && (
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="text-sm md:text-base mb-4 line-clamp-3 text-white/90"
-                >
-                  {currentMovie.details.description}
-                </motion.p>
-              )}
-              
-              {currentMovie.details?.year && (
+
+              {currentMovie.allohaDetails?.original_name && (
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="flex items-center gap-2 mb-4"
+                  transition={{ delay: 0.25, duration: 0.5 }}
+                  className="mb-3 text-xl text-muted-foreground italic"
                 >
-                  <span className="text-sm font-medium bg-primary/20 text-primary px-2 py-0.5 rounded">
-                    {currentMovie.details.year}
-                  </span>
-                  
-                  {currentMovie.details.rating && (
-                    <span className="text-sm font-medium bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded flex items-center gap-1">
-                      ★ {currentMovie.details.rating.toFixed(1)}
-                    </span>
-                  )}
+                  {currentMovie.allohaDetails.original_name}
                 </motion.div>
               )}
               
+              {/* Info badges row */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="flex flex-wrap items-center gap-2 mb-4"
+              >
+                {currentMovie.allohaDetails?.year || currentMovie.details?.year ? (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{currentMovie.allohaDetails?.year || currentMovie.details?.year}</span>
+                  </Badge>
+                ) : null}
+
+                {currentMovie.allohaDetails?.time && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{currentMovie.allohaDetails.time}</span>
+                  </Badge>
+                )}
+
+                {currentMovie.allohaDetails?.rating_kp && (
+                  <Badge variant="default" className="bg-yellow-600 hover:bg-yellow-700 flex items-center gap-1">
+                    <Star className="h-3 w-3" />
+                    <span>КП {currentMovie.allohaDetails.rating_kp.toFixed(1)}</span>
+                  </Badge>
+                )}
+
+                {currentMovie.allohaDetails?.rating_imdb && (
+                  <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1">
+                    <Star className="h-3 w-3" />
+                    <span>IMDb {currentMovie.allohaDetails.rating_imdb.toFixed(1)}</span>
+                  </Badge>
+                )}
+
+                {currentMovie.allohaDetails?.age_restrictions && (
+                  <Badge variant="destructive">
+                    {currentMovie.allohaDetails.age_restrictions}
+                  </Badge>
+                )}
+
+                {currentMovie.allohaDetails?.quality && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Video className="h-3 w-3" />
+                    <span>{currentMovie.allohaDetails.quality}</span>
+                  </Badge>
+                )}
+              </motion.div>
+
+              {/* Genre badges */}
+              {currentMovie.allohaDetails?.genre && (
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.35, duration: 0.5 }}
+                  className="flex flex-wrap gap-2 mb-4"
+                >
+                  {currentMovie.allohaDetails.genre.split(', ').map((genre, idx) => (
+                    <Badge key={idx} variant="secondary" className="bg-primary/20 hover:bg-primary/30">
+                      {genre}
+                    </Badge>
+                  ))}
+                </motion.div>
+              )}
+              
+              {/* Movie description */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="flex space-x-4 mb-6"
+                className="mb-4 relative"
+              >
+                <p className={`text-sm md:text-base text-white/90 ${showMore[currentIndex] ? '' : 'line-clamp-3'}`}>
+                  {currentMovie.allohaDetails?.description || currentMovie.details?.description || ""}
+                </p>
+                {(currentMovie.allohaDetails?.description?.length || currentMovie.details?.description?.length || 0) > 150 && (
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    onClick={(e) => { e.stopPropagation(); toggleShowMore(); }}
+                    className="p-0 h-auto text-xs text-primary mt-1"
+                  >
+                    {showMore[currentIndex] ? "Свернуть" : "Показать больше"}
+                  </Button>
+                )}
+              </motion.div>
+
+              {/* Directors and actors */}
+              {currentMovie.allohaDetails?.directors && currentMovie.allohaDetails.directors.length > 0 && (
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.45, duration: 0.5 }}
+                  className="flex items-center mb-2"
+                >
+                  <Film className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="text-muted-foreground mr-2">Режиссер:</span>
+                  <span className="text-white/80">{currentMovie.allohaDetails.directors.slice(0, 2).join(', ')}</span>
+                </motion.div>
+              )}
+
+              {currentMovie.allohaDetails?.actors && currentMovie.allohaDetails.actors.length > 0 && (
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                  className="flex items-center mb-4"
+                >
+                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="text-muted-foreground mr-2">В ролях:</span>
+                  <span className="text-white/80 truncate">{currentMovie.allohaDetails.actors.slice(0, 3).join(', ')}{currentMovie.allohaDetails.actors.length > 3 ? '...' : ''}</span>
+                </motion.div>
+              )}
+
+              {/* Tagline */}
+              {currentMovie.allohaDetails?.tagline && (
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.55, duration: 0.5 }}
+                  className="mb-4 italic text-sm text-white/70"
+                >
+                  «{currentMovie.allohaDetails.tagline}»
+                </motion.div>
+              )}
+              
+              {/* Action buttons */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="flex flex-wrap gap-4 mt-2"
               >
                 <Button 
                   className="gap-2 bg-primary hover:bg-primary/90"
@@ -174,6 +305,37 @@ export function PopularMoviesSlideshow() {
                   <Play className="h-4 w-4" />
                   Смотреть
                 </Button>
+                
+                {currentMovie.allohaDetails?.trailer && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="gap-2"
+                          onClick={() => window.open(currentMovie.allohaDetails?.trailer, '_blank')}
+                        >
+                          <Video className="h-4 w-4" />
+                          Трейлер
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Открыть трейлер</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                {currentMovie.details?.kinopoisk_id && !currentMovie.allohaDetails?.trailer && (
+                  <Button 
+                    variant="outline" 
+                    className="gap-2"
+                    onClick={() => window.open(`https://www.kinopoisk.ru/film/${currentMovie.details?.kinopoisk_id}/`, '_blank')}
+                  >
+                    <Award className="h-4 w-4" />
+                    КиноПоиск
+                  </Button>
+                )}
               </motion.div>
             </div>
           </div>

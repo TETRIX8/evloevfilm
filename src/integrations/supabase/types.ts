@@ -318,6 +318,117 @@ export type Database = {
         }
         Relationships: []
       }
+      movie_room_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_system_message: boolean | null
+          message: string
+          room_code: string
+          sender_nickname: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_system_message?: boolean | null
+          message: string
+          room_code: string
+          sender_nickname: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_system_message?: boolean | null
+          message?: string
+          room_code?: string
+          sender_nickname?: string
+        }
+        Relationships: []
+      }
+      movie_rooms: {
+        Row: {
+          created_at: string
+          creator_id: string | null
+          id: string
+          is_active: boolean
+          movie_id: number
+          movie_iframe_url: string
+          movie_name: string
+          movie_poster: string | null
+          movie_type: string | null
+          movie_year: number | null
+          password: string | null
+          room_code: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id?: string | null
+          id?: string
+          is_active?: boolean
+          movie_id: number
+          movie_iframe_url: string
+          movie_name: string
+          movie_poster?: string | null
+          movie_type?: string | null
+          movie_year?: number | null
+          password?: string | null
+          room_code: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string | null
+          id?: string
+          is_active?: boolean
+          movie_id?: number
+          movie_iframe_url?: string
+          movie_name?: string
+          movie_poster?: string | null
+          movie_type?: string | null
+          movie_year?: number | null
+          password?: string | null
+          room_code?: string
+        }
+        Relationships: []
+      }
+      playback_states: {
+        Row: {
+          id: string
+          is_playing: boolean
+          last_updated: string
+          playback_time: number
+          room_id: string
+        }
+        Insert: {
+          id?: string
+          is_playing?: boolean
+          last_updated?: string
+          playback_time?: number
+          room_id: string
+        }
+        Update: {
+          id?: string
+          is_playing?: boolean
+          last_updated?: string
+          playback_time?: number
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playback_states_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "active_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playback_states_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "movie_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -373,6 +484,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      publication_authors: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          name: string
+          publication_id: string | null
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          publication_id?: string | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          publication_id?: string | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_authors_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publications: {
+        Row: {
+          abstract: string
+          author_id: string | null
+          category: string
+          comments_count: number | null
+          content: string
+          cover_image: string | null
+          created_at: string | null
+          date: string
+          id: string
+          saved: boolean | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          abstract: string
+          author_id?: string | null
+          category: string
+          comments_count?: number | null
+          content: string
+          cover_image?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          saved?: boolean | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          abstract?: string
+          author_id?: string | null
+          category?: string
+          comments_count?: number | null
+          content?: string
+          cover_image?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          saved?: boolean | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
       }
       referrals: {
         Row: {
@@ -439,6 +633,48 @@ export type Database = {
           rating?: number
         }
         Relationships: []
+      }
+      room_participants: {
+        Row: {
+          id: string
+          is_leader: boolean
+          joined_at: string
+          nickname: string
+          room_id: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          is_leader?: boolean
+          joined_at?: string
+          nickname: string
+          room_id: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          is_leader?: boolean
+          joined_at?: string
+          nickname?: string
+          room_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "active_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "movie_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_movies: {
         Row: {
@@ -734,6 +970,27 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_chat_participants: {
+        Row: {
+          id: string
+          joined_at: string | null
+          participant_nickname: string
+          room_code: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          participant_nickname: string
+          room_code: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          participant_nickname?: string
+          room_code?: string
+        }
+        Relationships: []
+      }
       watch_history: {
         Row: {
           id: string
@@ -774,7 +1031,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_rooms: {
+        Row: {
+          created_at: string | null
+          has_password: boolean | null
+          id: string | null
+          movie_name: string | null
+          movie_poster: string | null
+          movie_type: string | null
+          movie_year: number | null
+          room_code: string | null
+          viewer_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_referral_code: {
