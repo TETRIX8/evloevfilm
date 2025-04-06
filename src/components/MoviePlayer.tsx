@@ -1,4 +1,3 @@
-
 import { ArrowLeft, Heart, Share2, Search, Star, Clock, Globe, Award, Play } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -6,7 +5,7 @@ import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
-import { fetchMovieDetails } from "@/services/api";
+import { fetchMovieDetails, searchMovies } from "@/services/api";
 import { VPNAdvertisement } from "./VPNAdvertisement";
 import { fetchKinopoiskMovie, fetchMovieStills, type KinopoiskMovie, type MovieStill } from "@/services/kinopoisk";
 import { motion, AnimatePresence } from "framer-motion";
@@ -168,9 +167,73 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     navigate(-1);
   };
 
-  const handleFindSimilar = () => {
+  const handleFindSimilar = async () => {
     soundEffects.play("click");
     
+    // Get genre information from either Alloha or Kinopoisk data
+    let genre = "";
+    if (allohaDetails?.genre) {
+      genre = allohaDetails.genre;
+    } else if (kinopoiskData?.genres?.length > 0) {
+      genre = kinopoiskData.genres.map(g => g.name).join(" ");
+    }
+    
+    if (genre) {
+      try {
+        // Show loading toast
+        toast.loading("Поиск похожих фильмов...");
+        
+        // Search for movies with similar genre
+        const results = await searchMovies(genre);
+        
+        if (results && results.length > 0) {
+          // Filter out the current movie from results
+          const similarMovies = results.filter(movie => 
+            movie.title.toLowerCase() !== title.toLowerCase()
+          ).slice(0, 5);
+          
+          if (similarMovies.length > 0) {
+            toast.dismiss();
+            toast.success(`Найдено ${similarMovies.length} похожих фильмов`);
+            
+            // Display information in AI chat
+            const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
+            if (chatIframe?.contentWindow) {
+              chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
+              
+              const movieList = similarMovies.map((movie, index) => 
+                `${index + 1}. **${movie.title}** (${movie.year}) - ${movie.kinopoisk_rating || "нет рейтинга"}`
+              ).join("\n");
+              
+              const message = `Вот похожие фильмы на "${title}" по жанру "${genre}":\n\n${movieList}\n\nЧтобы получить более подробную информацию о любом из этих фильмов, просто спросите меня.`;
+              
+              setTimeout(() => {
+                chatIframe.contentWindow.postMessage({ 
+                  type: 'SEND_MESSAGE',
+                  message
+                }, '*');
+              }, 500);
+            }
+          } else {
+            toast.dismiss();
+            handleFallbackChatRequest();
+          }
+        } else {
+          toast.dismiss();
+          handleFallbackChatRequest();
+        }
+      } catch (error) {
+        toast.dismiss();
+        console.error("Error searching for similar movies:", error);
+        handleFallbackChatRequest();
+      }
+    } else {
+      handleFallbackChatRequest();
+    }
+  };
+  
+  const handleFallbackChatRequest = () => {
+    // Fallback to AI assistant if we can't find similar movies by API
     const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
     if (chatIframe?.contentWindow) {
       chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
