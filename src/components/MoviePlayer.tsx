@@ -28,11 +28,10 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
-// Вспомогательная функция для преобразования строки или массива в массив
 const ensureArray = (data: string | string[] | undefined): string[] => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
-  return [data]; // Если это строка, оборачиваем её в массив
+  return [data];
 };
 
 interface MoviePlayerProps {
@@ -68,15 +67,12 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       setMovieDetails(details);
 
       if (details?.kinopoisk_id) {
-        // Получаем данные от Kinopoisk API
         const kinopoiskDetails = await fetchKinopoiskMovie(details.kinopoisk_id);
         setKinopoiskData(kinopoiskDetails);
         
-        // Получаем кадры из фильма
         const stills = await fetchMovieStills(details.kinopoisk_id);
         setMovieStills(stills);
         
-        // Получаем расширенные данные от Alloha API
         const allohaData = await fetchAllohaMovieDetails(details.kinopoisk_id);
         setAllohaDetails(allohaData);
       }
@@ -170,7 +166,6 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleFindSimilar = async () => {
     soundEffects.play("click");
     
-    // Get genre information from either Alloha or Kinopoisk data
     let genre = "";
     if (allohaDetails?.genre) {
       genre = allohaDetails.genre;
@@ -180,14 +175,11 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     
     if (genre) {
       try {
-        // Show loading toast
         toast.loading("Поиск похожих фильмов...");
         
-        // Search for movies with similar genre
         const results = await searchMovies(genre);
         
         if (results && results.length > 0) {
-          // Filter out the current movie from results
           const similarMovies = results.filter(movie => 
             movie.title.toLowerCase() !== title.toLowerCase()
           ).slice(0, 5);
@@ -196,14 +188,15 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
             toast.dismiss();
             toast.success(`Найдено ${similarMovies.length} похожих фильмов`);
             
-            // Display information in AI chat
             const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
             if (chatIframe?.contentWindow) {
               chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
               
-              const movieList = similarMovies.map((movie, index) => 
-                `${index + 1}. **${movie.title}** (${movie.year}) - ${movie.kinopoisk_rating || "нет рейтинга"}`
-              ).join("\n");
+              const movieList = similarMovies.map((movie, index) => {
+                const yearInfo = movie.year ? `(${movie.year})` : "";
+                const rating = movie.kinopoisk_rating ? `${movie.kinopoisk_rating}` : "нет рейтинга";
+                return `${index + 1}. **${movie.title}** ${yearInfo} - ${rating}`;
+              }).join("\n");
               
               const message = `Вот похожие фильмы на "${title}" по жанру "${genre}":\n\n${movieList}\n\nЧтобы получить более подробную информацию о любом из этих фильмов, просто спросите меня.`;
               
@@ -231,9 +224,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
       handleFallbackChatRequest();
     }
   };
-  
+
   const handleFallbackChatRequest = () => {
-    // Fallback to AI assistant if we can't find similar movies by API
     const chatIframe = document.querySelector('iframe[name="chat-iframe"]') as HTMLIFrameElement;
     if (chatIframe?.contentWindow) {
       chatIframe.contentWindow.postMessage({ type: 'OPEN_CHAT' }, '*');
@@ -252,7 +244,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const handleStartWatching = () => {
     soundEffects.play("click");
     setShowPlayer(true);
-    setShowTrailer(false); // Скрываем трейлер при начале просмотра фильма
+    setShowTrailer(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -311,7 +303,6 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </motion.div>
             )}
 
-            {/* Показываем трейлер только если showTrailer равно true И showPlayer равно false */}
             {showTrailer && !showPlayer && movieDetails?.trailer ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -367,7 +358,6 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                 </motion.div>
               )}
               
-              {/* Новый блок для расширенной информации из Alloha API */}
               {allohaDetails && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -621,7 +611,6 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               </div>
             </motion.div>
 
-            {/* Дополнительная информация из Alloha API */}
             {allohaDetails && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}

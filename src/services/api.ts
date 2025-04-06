@@ -21,6 +21,8 @@ export interface MovieData {
   title: string;
   image: string;
   link: string;
+  year?: number;
+  kinopoisk_rating?: number;
 }
 
 export interface MovieDetails {
@@ -30,6 +32,8 @@ export interface MovieDetails {
   genres?: string[];
   kinopoisk_id?: string;
   trailer?: string;
+  iframe_url?: string;
+  poster?: string;
 }
 
 interface FetchOptions {
@@ -83,7 +87,9 @@ export async function fetchMovieDetails(title: string): Promise<MovieDetails | n
       rating: movie.rating,
       genres: movie.genres,
       kinopoisk_id: movie.kinopoisk_id,
-      trailer: movie.trailer
+      trailer: movie.trailer,
+      iframe_url: movie.iframe_url,
+      poster: movie.poster
     };
   } catch (error) {
     console.error('Error fetching movie details:', error);
@@ -117,7 +123,9 @@ export async function fetchMovies(
     return data.results?.map(item => ({
       title: item.name,
       image: item.poster,
-      link: item.iframe_url
+      link: item.iframe_url,
+      year: item.year,
+      kinopoisk_rating: item.rating
     })) || [];
   } catch (error) {
     console.error(`Error fetching ${type}:`, error);
@@ -139,7 +147,9 @@ export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
     return data.results?.map(item => ({
       title: item.name,
       image: item.poster,
-      link: item.iframe_url
+      link: item.iframe_url,
+      year: item.year,
+      kinopoisk_rating: item.rating
     })) || [];
   } catch (error) {
     console.error('Error searching movies:', error);

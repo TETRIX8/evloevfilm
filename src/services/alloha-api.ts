@@ -3,6 +3,7 @@ export interface AllohaMovieResponse {
   status: 'success' | 'error';
   data?: AllohaMovieData;
   message?: string;
+  error_info?: string;
 }
 
 export interface AllohaMovieData {
@@ -58,7 +59,7 @@ export async function fetchAllohaMovieDetails(kinopoiskId: string): Promise<Allo
     const data: AllohaMovieResponse = await response.json();
     
     if (data.status === 'error' || !data.data) {
-      console.error('Alloha API error:', data.message || data);
+      console.error('Alloha API error:', data.message || data.error_info || data);
       return null;
     }
     
