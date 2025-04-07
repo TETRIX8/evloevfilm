@@ -1,11 +1,15 @@
 
 import { Navigation } from "@/components/navigation/Navigation";
 import { motion } from "framer-motion";
+import { BeeMoveAnimation } from "@/components/animations/BeeMoveAnimation";
 
 export default function About() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent/10">
       <Navigation />
+      
+      {/* Add the 3D bee animation */}
+      <BeeMoveAnimation />
       
       <main className="container pt-24 pb-16">
         <div className="max-w-4xl mx-auto space-y-12">
