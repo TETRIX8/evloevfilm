@@ -10,9 +10,9 @@ export function BeeMoveAnimation() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Setup
-    const camera = new THREE.PerspectiveCamera(10, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 13;
+    // Setup - adjusted camera field of view to make model appear smaller
+    const camera = new THREE.PerspectiveCamera(5, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 20; // Moved camera further back
 
     const scene = new THREE.Scene();
     let bee: THREE.Group;
@@ -36,6 +36,10 @@ export function BeeMoveAnimation() {
       "https://raw.githubusercontent.com/DennysDionigi/bee-glb/94253437c023643dd868592e11a0fd2c228cfe07/demon_bee_full_texture.glb",
       (gltf) => {
         bee = gltf.scene;
+        
+        // Scale down the bee to make it smaller
+        bee.scale.set(0.5, 0.5, 0.5);
+        
         scene.add(bee);
         mixer = new THREE.AnimationMixer(bee);
         
@@ -44,7 +48,7 @@ export function BeeMoveAnimation() {
         }
         
         // Set initial position
-        bee.position.set(0, -1, 0);
+        bee.position.set(0, -0.5, 0); // Adjusted Y position
         bee.rotation.set(0, 1.5, 0);
         
         // Add automatic movement
@@ -65,15 +69,15 @@ export function BeeMoveAnimation() {
         repeatDelay: 0.5
       });
 
-      // Move the bee horizontally
+      // Move the bee horizontally with smaller range
       timeline.to(bee.position, {
-        x: 1.5,
+        x: 1,
         duration: 4,
         ease: "power1.inOut"
       });
       
       timeline.to(bee.position, {
-        x: -1.5,
+        x: -1,
         duration: 4,
         ease: "power1.inOut"
       });
@@ -88,7 +92,7 @@ export function BeeMoveAnimation() {
 
       // Add slight up and down movement
       gsap.to(bee.position, {
-        y: -0.5,
+        y: -0.3,
         duration: 2,
         repeat: -1,
         yoyo: true,
