@@ -66,6 +66,5 @@ npm start
 > *"Мы не просто показываем фильмы — мы создаем атмосферу."*  
 > © Команда EVOLVEFILM  
 
-![EvolveFilm Banner](https://via.placeholder.com/1200x400/1a1a2e/ffffff?text=EVOLVEFILM+-+Cinematic+Experience)  
 
-*Обновлено: Октябрь 2023*
+
