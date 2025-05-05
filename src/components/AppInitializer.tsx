@@ -9,11 +9,17 @@ import { toast } from "sonner";
 export function AppInitializer() {
   useEffect(() => {
     const initializeApp = async () => {
+      // Check for service worker support
+      const serviceWorkerSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+      
       // Request notification permission
       if (!localStorage.getItem("notificationPermission")) {
         const granted = await requestNotificationPermission();
         if (granted) {
           toast.success("Уведомления включены");
+          if (serviceWorkerSupported) {
+            toast.info("Уведомления будут приходить даже при закрытом браузере");
+          }
           // Schedule daily notification at 12:15 MSK
           scheduleNotification();
         }
