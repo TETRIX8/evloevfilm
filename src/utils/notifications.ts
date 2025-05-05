@@ -78,15 +78,19 @@ const setupBackgroundNotification = async (scheduleTime) => {
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      // Try to use Background Sync API if available
-      if ('SyncManager' in window) {
-        await registration.sync.register('notification-sync');
-      }
+      // Instead of using the SyncManager API directly, we'll set up
+      // a persistent state that the service worker can check
+      localStorage.setItem('notificationScheduled', 'true');
+      localStorage.setItem('notificationTime', scheduleTime.getTime().toString());
       
-      // Set up a notification using the Push API if possible
-      // Note: This would typically require a push server, but we're setting up the basics
-      // The full implementation would need a backend push service
-      console.log('Background notification scheduled for:', scheduleTime.toLocaleString());
+      // Attempt to use Push API if possible
+      try {
+        // Note: In a real implementation, this would need a push server
+        // This is just a placeholder for the structure
+        console.log('Background notification scheduled for:', scheduleTime.toLocaleString());
+      } catch (pushError) {
+        console.warn('Push notification setup failed:', pushError);
+      }
     } catch (error) {
       console.error('Error setting up background notification:', error);
     }
