@@ -1,8 +1,9 @@
+
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppRoutes } from "./AppRoutes";
 import { supabase } from "@/integrations/supabase/client";
-import { requestNotificationPermission } from "@/utils/notifications";
+import { requestNotificationPermission, scheduleNotification } from "@/utils/notifications";
 import { toast } from "sonner";
 
 export function AppInitializer() {
@@ -13,7 +14,12 @@ export function AppInitializer() {
         const granted = await requestNotificationPermission();
         if (granted) {
           toast.success("Уведомления включены");
+          // Schedule daily notification at 12:15 MSK
+          scheduleNotification();
         }
+      } else if (localStorage.getItem("notificationPermission") === "granted") {
+        // If permission was already granted, schedule notification
+        scheduleNotification();
       }
 
       // Set up auth state listener

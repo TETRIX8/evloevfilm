@@ -1,3 +1,4 @@
+
 import { soundEffects } from "./soundEffects";
 
 export const requestNotificationPermission = async () => {
@@ -17,16 +18,18 @@ export const requestNotificationPermission = async () => {
 };
 
 export const scheduleNotification = () => {
-  // Convert 11:00 MSK to user's local time
+  // Schedule daily notification at 12:15 MSK
   const now = new Date();
   const mskOffset = 3; // UTC+3 for Moscow
   const userOffset = -now.getTimezoneOffset() / 60;
   const offsetDiff = mskOffset - userOffset;
   
-  const targetHour = 11 - offsetDiff;
+  // Target time 12:15 MSK converted to user's local time
+  const targetHour = 12 - offsetDiff;
+  const targetMinute = 15;
   
   const scheduleTime = new Date();
-  scheduleTime.setHours(targetHour, 0, 0, 0);
+  scheduleTime.setHours(targetHour, targetMinute, 0, 0);
   
   // If it's already past target time, schedule for next day
   if (now > scheduleTime) {
@@ -34,6 +37,8 @@ export const scheduleNotification = () => {
   }
   
   const timeUntilNotification = scheduleTime.getTime() - now.getTime();
+  
+  console.log(`Scheduling notification for ${scheduleTime.toLocaleString()}, which is in ${Math.round(timeUntilNotification/1000/60)} minutes`);
   
   setTimeout(() => {
     sendNotification();
