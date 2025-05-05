@@ -2,6 +2,7 @@
 import { Navigation } from "@/components/navigation/Navigation";
 import { motion } from "framer-motion";
 import { BeeMoveAnimation } from "@/components/animations/BeeMoveAnimation";
+import { VisitorCounter } from "@/components/VisitorCounter";
 
 export default function About() {
   return (
@@ -47,6 +48,16 @@ export default function About() {
                   <span className="text-6xl" role="img" aria-label="Кролик">🐰</span>
                 </motion.div>
               </div>
+            </motion.div>
+            
+            {/* Add the visitor counter */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex justify-center"
+            >
+              <VisitorCounter />
             </motion.div>
           </div>
           
