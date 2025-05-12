@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { SearchBar } from "@/components/SearchBar";
 import { Navigation } from "@/components/navigation/Navigation";
@@ -15,6 +15,31 @@ import { AppWebGLBackground } from "@/components/animations/AppWebGLBackground";
 const getCurrentYear = () => {
   const moscowDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
   return moscowDate.getFullYear();
+};
+
+// Компонент для рекламы Яндекс.РСЯ
+const YandexAdBlock = () => {
+  const adContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Проверяем, что window.yaContextCb доступен
+    if (window.yaContextCb && adContainerRef.current) {
+      // Добавляем рекламный блок
+      window.yaContextCb.push(() => {
+        // @ts-ignore - игнорируем ошибку типизации, так как Ya не объявлен в типах
+        if (window.Ya && window.Ya.Context) {
+          window.Ya.Context.AdvManager.render({
+            blockId: "R-A-15455708-1",
+            type: "fullscreen",
+            platform: "touch",
+            renderTo: adContainerRef.current?.id || ""
+          });
+        }
+      });
+    }
+  }, []);
+
+  return <div id="yandex-ad-container" ref={adContainerRef} className="my-8"></div>;
 };
 
 export default function Index() {
@@ -73,6 +98,9 @@ export default function Index() {
                 title={`Новые фильмы ${currentYear}`}
                 movies={newMovies.data}
               />
+
+              {/* Рекламный блок после первой карусели */}
+              <YandexAdBlock />
 
               <MovieCarousel 
                 title={`Новые сериалы ${currentYear}`}
