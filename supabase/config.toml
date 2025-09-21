@@ -1,0 +1,41 @@
+
+project_id = "iwscnuhiwhsoorcwbgwz"
+
+[api]
+enabled = true
+
+[db]
+port = 5432
+
+[realtime]
+enabled = true
+
+[studio]
+port = 3000
+
+[auth]
+enabled = true
+
+[auth.email]
+enabled = true
+
+[auth.external.email]
+enabled = true
+
+[storage]
+enabled = true
+
+[edge_functions]
+enabled = true
+
+[functions.track-visitor]
+verify_jwt = false
+
+[functions.send-email-code]
+verify_jwt = false
+
+[functions.verify-email-code]
+verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
