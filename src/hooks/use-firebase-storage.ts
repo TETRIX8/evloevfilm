@@ -63,8 +63,12 @@ export function useFirebaseStorage() {
       })) as SavedItem[];
       
       setSavedItems(items);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading saved items:', error);
+      // Если ошибка связана с правами доступа, показываем более понятное сообщение
+      if (error.code === 'permission-denied') {
+        console.warn('Firestore rules not configured. Please set up Firestore security rules.');
+      }
     } finally {
       setLoading(false);
     }
@@ -86,8 +90,12 @@ export function useFirebaseStorage() {
       })) as HistoryItem[];
       
       setHistoryItems(items);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading history items:', error);
+      // Если ошибка связана с правами доступа, показываем более понятное сообщение
+      if (error.code === 'permission-denied') {
+        console.warn('Firestore rules not configured. Please set up Firestore security rules.');
+      }
     } finally {
       setLoading(false);
     }
@@ -99,10 +107,16 @@ export function useFirebaseStorage() {
     
     try {
       const savedRef = collection(db, 'users', user.uid, 'saved');
-      const docRef = await addDoc(savedRef, {
-        ...item,
-        createdAt: Timestamp.now()
-      });
+      
+      // Фильтруем undefined значения
+      const cleanItem = Object.fromEntries(
+        Object.entries({
+          ...item,
+          createdAt: Timestamp.now()
+        }).filter(([_, value]) => value !== undefined)
+      );
+      
+      const docRef = await addDoc(savedRef, cleanItem);
       
       // Обновляем локальное состояние
       const newItem: SavedItem = {
@@ -148,10 +162,16 @@ export function useFirebaseStorage() {
     
     try {
       const historyRef = collection(db, 'users', user.uid, 'history');
-      const docRef = await addDoc(historyRef, {
-        ...item,
-        watchedAt: Timestamp.now()
-      });
+      
+      // Фильтруем undefined значения
+      const cleanItem = Object.fromEntries(
+        Object.entries({
+          ...item,
+          watchedAt: Timestamp.now()
+        }).filter(([_, value]) => value !== undefined)
+      );
+      
+      const docRef = await addDoc(historyRef, cleanItem);
       
       // Обновляем локальное состояние
       const newItem: HistoryItem = {

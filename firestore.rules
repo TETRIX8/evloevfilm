@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Правила для пользовательских данных
+    match /users/{userId} {
+      // Пользователь может читать и писать только свои данные
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Правила для избранного
+      match /saved/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Правила для истории
+      match /history/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
