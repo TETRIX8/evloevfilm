@@ -50,9 +50,11 @@ export function AppRoutes() {
       <Route 
         path="/saved" 
         element={
-          <PageTransition>
-            <Saved />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <Saved />
+            </PageTransition>
+          </ProtectedRoute>
         } 
       />
       <Route 
@@ -115,9 +117,11 @@ export function AppRoutes() {
       <Route
         path="/history" 
         element={
-          <PageTransition>
-            <History />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <History />
+            </PageTransition>
+          </ProtectedRoute>
         } 
       />
       <Route 
@@ -139,33 +143,41 @@ export function AppRoutes() {
       <Route 
         path="/profile" 
         element={
-          <PageTransition>
-            <Profile />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <Profile />
+            </PageTransition>
+          </ProtectedRoute>
         }
       />
       <Route 
         path="/admin" 
         element={
-          <PageTransition>
-            <Admin />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <Admin />
+            </PageTransition>
+          </ProtectedRoute>
         }
       />
       <Route 
         path="/chat" 
         element={
-          <PageTransition>
-            <Chat />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <Chat />
+            </PageTransition>
+          </ProtectedRoute>
         }
       />
       <Route 
         path="/settings" 
         element={
-          <PageTransition>
-            <Settings />
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <Settings />
+            </PageTransition>
+          </ProtectedRoute>
         }
       />
     </Routes>

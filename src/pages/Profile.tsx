@@ -1,6 +1,5 @@
 
 import { Navigation } from "@/components/navigation/Navigation";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -12,49 +11,31 @@ import {
   CardHeader,
   CardTitle 
 } from "@/components/ui/card";
-import { PasswordChangeForm } from "@/components/PasswordChangeForm";
 import { motion } from "framer-motion";
 import { AppWebGLBackground } from "@/components/animations/AppWebGLBackground";
-import { User } from "@supabase/supabase-js";
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  const { user: firebaseUser, loading: firebaseLoading, logout: firebaseLogout } = useFirebaseAuth();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user || null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
-      if (event === "SIGNED_IN") {
-        toast.success("Добро пожаловать!");
-      } else if (event === "SIGNED_OUT") {
-        toast.success("Вы успешно вышли из системы");
-        navigate("/");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (firebaseUser) {
+      toast.success("Добро пожаловать!");
+    }
+  }, [firebaseUser]);
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await firebaseLogout();
     } catch (error) {
       toast.error("Ошибка при выходе из системы");
     }
   };
 
-  if (loading) {
+  if (firebaseLoading) {
     return (
       <div className="min-h-screen relative">
         <Navigation />
@@ -76,7 +57,7 @@ export default function Profile() {
       
       <main className="container pt-24 pb-16">
         <div className="max-w-xl mx-auto space-y-8">
-          {user ? (
+          {firebaseUser ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -92,19 +73,26 @@ export default function Profile() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 p-6">
-                  <div className="flex flex-col space-y-1">
-                    <h3 className="text-sm font-medium text-muted-foreground">Email:</h3>
-                    <p className="text-lg font-medium">{user.email}</p>
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={firebaseUser.photoURL || undefined} alt={firebaseUser.displayName || firebaseUser.email || 'User'} />
+                      <AvatarFallback className="text-lg">
+                        {firebaseUser.displayName ? firebaseUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : firebaseUser.email?.[0].toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-medium">{firebaseUser.displayName || 'Пользователь'}</h3>
+                      <p className="text-sm text-muted-foreground">{firebaseUser.email}</p>
+                    </div>
                   </div>
                   
                   <div className="pt-4 space-y-6">
                     <div className="space-y-1">
-                      <h3 className="text-lg font-medium">Изменение пароля</h3>
+                      <h3 className="text-lg font-medium">Управление аккаунтом</h3>
                       <p className="text-sm text-muted-foreground">
-                        Обновите ваш пароль для повышения безопасности аккаунта
+                        Для изменения пароля используйте настройки вашего Google аккаунта или функцию восстановления пароля
                       </p>
                     </div>
-                    <PasswordChangeForm />
                     
                     <div className="pt-4">
                       <Button 

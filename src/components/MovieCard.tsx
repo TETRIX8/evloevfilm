@@ -7,67 +7,50 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { soundEffects } from "@/utils/soundEffects";
-import { supabase } from "@/integrations/supabase/client";
-import { Session } from '@supabase/supabase-js';
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { useFirebaseStorage } from "@/hooks/use-firebase-storage";
 
 interface MovieCardProps {
   title: string;
   image: string;
   link: string;
   className?: string;
+  type?: 'movie' | 'anime';
+  year?: number;
+  rating?: number;
+  description?: string;
+  id?: string;
 }
 
-export function MovieCard({ title, image, link, className }: MovieCardProps) {
+export function MovieCard({ title, image, link, className, type = 'movie', year, rating, description, id }: MovieCardProps) {
   const navigate = useNavigate();
-  const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { user } = useFirebaseAuth();
+  const { savedItems, isSaved, addToSaved, removeFromSaved, addToHistory } = useFirebaseStorage();
 
-  useEffect(() => {
-    const checkSavedStatus = async () => {
-      try {
-        setIsLoading(true);
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          return;
-        }
+  const isLiked = isSaved(link);
 
-        const session = sessionData.session as Session | null;
-        
-        if (session?.user?.id) {
-          setUserId(session.user.id);
-          const { data, error } = await supabase
-            .from('saved_movies')
-            .select()
-            .eq('user_id', session.user.id)
-            .eq('title', title)
-            .maybeSingle();
-
-          if (error) {
-            console.error('Error checking saved status:', error);
-            return;
-          }
-
-          setIsLiked(!!data);
-        }
-      } catch (error) {
-        console.error('Error in checkSavedStatus:', error);
-        toast.error("Произошла ошибка при проверке статуса фильма");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSavedStatus();
-  }, [title]);
-
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
       soundEffects.play("click");
+      
+      // Добавляем в историю просмотра
+      if (user) {
+        await addToHistory({
+          title,
+          type,
+          poster: image,
+          year,
+          rating,
+          description,
+          url: link,
+          progress: 0
+        });
+      }
+      
       navigate(`/movie/${encodeURIComponent(title)}`, {
         state: { title, image, iframeUrl: link }
       });
@@ -81,11 +64,11 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!userId) {
+    if (!user) {
       toast.error("Войдите в систему, чтобы сохранять фильмы", {
         action: {
           label: "Войти",
-          onClick: () => navigate("/profile")
+          onClick: () => navigate("/auth")
         }
       });
       return;
@@ -96,36 +79,33 @@ export function MovieCard({ title, image, link, className }: MovieCardProps) {
       setIsLoading(true);
       
       if (!isLiked) {
-        const { error } = await supabase
-          .from('saved_movies')
-          .insert([
-            { user_id: userId, title, image, link }
-          ]);
+        const success = await addToSaved({
+          title,
+          type,
+          poster: image,
+          year,
+          rating,
+          description,
+          url: link
+        });
         
-        if (error) {
-          console.error('Error saving movie:', error);
+        if (success) {
+          toast.success("Фильм добавлен в избранное");
+        } else {
           toast.error("Ошибка при сохранении фильма");
-          return;
         }
-        
-        toast.success("Фильм добавлен в сохраненные");
       } else {
-        const { error } = await supabase
-          .from('saved_movies')
-          .delete()
-          .eq('user_id', userId)
-          .eq('title', title);
-        
-        if (error) {
-          console.error('Error removing movie:', error);
-          toast.error("Ошибка при удалении фильма");
-          return;
+        // Находим ID сохраненного элемента
+        const savedItem = savedItems.find(item => item.url === link);
+        if (savedItem) {
+          const success = await removeFromSaved(savedItem.id);
+          if (success) {
+            toast.success("Фильм удален из избранного");
+          } else {
+            toast.error("Ошибка при удалении фильма");
+          }
         }
-        
-        toast.success("Фильм удален из сохраненных");
       }
-      
-      setIsLiked(!isLiked);
     } catch (error) {
       console.error('Error in handleLike:', error);
       toast.error("Произошла ошибка");

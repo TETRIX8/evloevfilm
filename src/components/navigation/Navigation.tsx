@@ -1,73 +1,28 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { toast } from "sonner";
 import { MobileMenu } from "./MobileMenu";
 import { DesktopMenu } from "./DesktopMenu";
 import { ThemeToggle } from "./ThemeToggle";
-import { UserMenu } from "./UserMenu";
 import { FirebaseUserInfo } from "../FirebaseUserInfo";
 
 export function Navigation() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [authMethod, setAuthMethod] = useState<"supabase" | "firebase">("firebase");
   
   const { user: firebaseUser, logout: firebaseLogout } = useFirebaseAuth();
 
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = () => {
-      if (authMethod === "firebase") {
-        setIsAuthenticated(!!firebaseUser);
-        if (firebaseUser) {
-          // For Firebase, we'll assume admin status based on email or other criteria
-          checkFirebaseAdminStatus(firebaseUser.email);
-        } else {
-          setIsAdmin(false);
-        }
-      } else {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          setIsAuthenticated(!!session);
-          if (session) {
-            checkAdminStatus(session.user.id);
-          }
-        });
-      }
-    };
-
-    checkAuth();
-
-    if (authMethod === "supabase") {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        setIsAuthenticated(!!session);
-        if (session) {
-          checkAdminStatus(session.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-      });
-
-      return () => subscription.unsubscribe();
+    // Check Firebase authentication status
+    setIsAuthenticated(!!firebaseUser);
+    if (firebaseUser) {
+      checkFirebaseAdminStatus(firebaseUser.email);
+    } else {
+      setIsAdmin(false);
     }
-  }, [authMethod, firebaseUser]);
-
-  const checkAdminStatus = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error checking admin status:", error);
-      return;
-    }
-
-    setIsAdmin(data?.role === 'admin');
-  };
+  }, [firebaseUser]);
 
   const checkFirebaseAdminStatus = async (email: string | null) => {
     // For Firebase, you can implement admin check based on email or other criteria
@@ -82,11 +37,7 @@ export function Navigation() {
 
   const handleLogout = async () => {
     try {
-      if (authMethod === "firebase") {
-        await firebaseLogout();
-      } else {
-        await supabase.auth.signOut();
-      }
+      await firebaseLogout();
     } catch (error) {
       toast.error("Ошибка при выходе из системы");
     }
@@ -111,11 +62,7 @@ export function Navigation() {
         
         <div className="flex items-center gap-2 md:gap-4">
           <ThemeToggle />
-          {authMethod === "firebase" ? (
-            <FirebaseUserInfo onLogout={handleLogout} />
-          ) : (
-            <UserMenu isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-          )}
+          <FirebaseUserInfo onLogout={handleLogout} />
         </div>
       </div>
     </nav>
