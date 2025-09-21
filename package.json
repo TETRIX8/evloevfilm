@@ -51,6 +51,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "firebase": "^9.23.0",
     "framer-motion": "^11.13.3",
     "gsap": "^3.11.4",
     "input-otp": "^1.2.4",
