@@ -27,7 +27,7 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
       title: "Контент",
       items: [
         { title: "Новинки", url: "/new", icon: Film },
-        { title: "Аниме", url: "/anime", icon: Zap },
+        { title: "Аниме", url: "https://evloevfilmanime.vercel.app/", icon: Zap, external: true },
         { title: "Онлайн чат", url: "/chat", icon: MessageSquare },
       ]
     },
@@ -107,10 +107,17 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
                       asChild
                       onClick={() => setOpen(false)}
                     >
-                      <Link to={item.url}>
-                        <item.icon className="h-5 w-5 mr-4 flex-shrink-0" />
-                        <span className="truncate">{item.title}</span>
-                      </Link>
+                      {item.external ? (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">
+                          <item.icon className="h-5 w-5 mr-4 flex-shrink-0" />
+                          <span className="truncate">{item.title}</span>
+                        </a>
+                      ) : (
+                        <Link to={item.url}>
+                          <item.icon className="h-5 w-5 mr-4 flex-shrink-0" />
+                          <span className="truncate">{item.title}</span>
+                        </Link>
+                      )}
                     </Button>
                   ))}
                 </div>

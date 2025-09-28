@@ -57,10 +57,10 @@ export function DesktopMenu({ isAuthenticated, isAdmin }: DesktopMenuProps) {
       </motion.div>
       <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
         <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/anime">
+          <a href="https://evloevfilmanime.vercel.app/" target="_blank" rel="noopener noreferrer">
             <Zap className="h-4 w-4" />
             Аниме
-          </Link>
+          </a>
         </Button>
       </motion.div>
       <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
