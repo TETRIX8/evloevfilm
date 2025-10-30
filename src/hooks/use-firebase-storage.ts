@@ -49,8 +49,12 @@ export function useFirebaseStorage() {
 
   // Загрузить избранное
   const loadSavedItems = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('Cannot load saved items: user is not authenticated');
+      return;
+    }
     
+    console.log('Loading saved items for user:', user.uid);
     setLoading(true);
     try {
       const savedRef = collection(db, 'users', user.uid, 'saved');
@@ -62,12 +66,16 @@ export function useFirebaseStorage() {
         ...doc.data()
       })) as SavedItem[];
       
+      console.log('Loaded saved items:', items.length, 'items');
       setSavedItems(items);
     } catch (error: any) {
       console.error('Error loading saved items:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
       // Если ошибка связана с правами доступа, показываем более понятное сообщение
       if (error.code === 'permission-denied') {
-        console.warn('Firestore rules not configured. Please set up Firestore security rules.');
+        console.warn('Firestore permission denied. Check Firestore security rules.');
       }
     } finally {
       setLoading(false);
