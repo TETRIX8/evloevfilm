@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/carousel";
 import { MovieCard } from "./MovieCard";
 import { motion } from "framer-motion";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
 
 interface Movie {
   title: string;
@@ -21,6 +23,10 @@ interface MovieCarouselProps {
 }
 
 export function MovieCarousel({ title, movies }: MovieCarouselProps) {
+  const plugin = useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
+  );
+
   if (!movies || !Array.isArray(movies)) {
     return null;
   }
@@ -46,7 +52,10 @@ export function MovieCarousel({ title, movies }: MovieCarouselProps) {
             align: "start",
             loop: true,
           }}
+          plugins={[plugin.current]}
           className="w-full"
+          onMouseEnter={plugin.current.stop}
+          onMouseLeave={plugin.current.reset}
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {movies.map((movie, index) => (
