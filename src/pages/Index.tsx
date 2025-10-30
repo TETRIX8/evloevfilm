@@ -10,6 +10,7 @@ import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { PopularMoviesSlideshow } from "@/components/PopularMoviesSlideshow";
 import { AppWebGLBackground } from "@/components/animations/AppWebGLBackground";
+import { TBankAdvertisement } from "@/components/TBankAdvertisement";
 
 // Get current year in Moscow timezone
 const getCurrentYear = () => {
@@ -45,6 +46,7 @@ const YandexAdBlock = () => {
 export default function Index() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [showAd, setShowAd] = useState(false);
   const currentYear = getCurrentYear().toString();
   
   const { newMovies, newTVShows, newCartoons } = useMovies(currentYear);
@@ -54,6 +56,8 @@ export default function Index() {
     // После первой загрузки отключаем экран загрузки
     const timer = setTimeout(() => {
       setIsFirstLoad(false);
+      // Показываем рекламу сразу после загрузки
+      setShowAd(true);
     }, 5000);
 
     return () => clearTimeout(timer);
@@ -67,6 +71,9 @@ export default function Index() {
   return (
     <div className="min-h-screen">
       {isFirstLoad && <LoadingScreen />}
+      
+      {/* T-Bank Advertisement */}
+      {showAd && <TBankAdvertisement />}
       
       {/* WebGL Background */}
       <AppWebGLBackground />
