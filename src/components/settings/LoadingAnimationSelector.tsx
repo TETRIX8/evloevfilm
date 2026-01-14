@@ -28,6 +28,11 @@ export function LoadingAnimationSelector({
   
   const animationOptions = [
     {
+      id: "snowflake",
+      name: "❄ Снежинка",
+      description: "Красивая анимация снежинки с падающим снегом"
+    },
+    {
       id: "default",
       name: "Стандартная",
       description: "Вращающиеся звезды и логотип"
