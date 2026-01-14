@@ -2,12 +2,18 @@
 import { motion } from "framer-motion";
 import { Film, Clapperboard, Camera, Star } from "lucide-react";
 import { GlobeLoadingAnimation } from "../animations/GlobeLoadingAnimation";
+import { SnowflakeLoadingAnimation } from "../animations/SnowflakeLoadingAnimation";
 
 interface LoadingPreviewProps {
   animation: string;
 }
 
 export function LoadingPreview({ animation }: LoadingPreviewProps) {
+  // Snowflake animation
+  if (animation === "snowflake") {
+    return <SnowflakeLoadingAnimation />;
+  }
+
   // Globe animation
   if (animation === "globe") {
     return (

@@ -1315,14 +1315,8 @@ export type Database = {
       }
     }
     Functions: {
-      cleanup_expired_codes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_referral_code: {
-        Args: { user_id: string }
-        Returns: string
-      }
+      cleanup_expired_codes: { Args: never; Returns: undefined }
+      generate_referral_code: { Args: { user_id: string }; Returns: string }
       search_users_by_username: {
         Args: { search_term: string }
         Returns: {

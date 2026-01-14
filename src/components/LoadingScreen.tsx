@@ -2,15 +2,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Film, Clapperboard, Camera, Star } from "lucide-react";
 import { GlobeLoadingAnimation } from "./animations/GlobeLoadingAnimation";
+import { SnowflakeLoadingAnimation } from "./animations/SnowflakeLoadingAnimation";
 
 export function LoadingScreen() {
   const [showLoader, setShowLoader] = useState(true);
-  const [animationStyle, setAnimationStyle] = useState("globe"); // Changed default to globe
+  const [animationStyle, setAnimationStyle] = useState("snowflake"); // Changed default to snowflake
   const [simplifiedMode, setSimplifiedMode] = useState(false);
 
   useEffect(() => {
-    // Get animation style from localStorage, default to globe if not set
-    const savedAnimation = localStorage.getItem("loadingAnimation") || "globe";
+    // Get animation style from localStorage, default to snowflake if not set
+    const savedAnimation = localStorage.getItem("loadingAnimation") || "snowflake";
     if (savedAnimation) {
       setAnimationStyle(savedAnimation);
     }
@@ -41,6 +42,23 @@ export function LoadingScreen() {
               </div>
             </div>
           </div>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Snowflake animation (default)
+  if (animationStyle === "snowflake") {
+    return (
+      <AnimatePresence>
+        {showLoader && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+          >
+            <SnowflakeLoadingAnimation onComplete={() => setShowLoader(false)} />
+          </motion.div>
         )}
       </AnimatePresence>
     );
