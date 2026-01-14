@@ -28,7 +28,7 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
       items: [
         { title: "Новинки", url: "/new", icon: Film },
         { title: "Аниме", url: "https://evloevfilmanime.vercel.app/", icon: Zap, external: true },
-        { title: "Онлайн чат", url: "/chat", icon: MessageSquare },
+        { title: "Отзывы", url: "/reviews", icon: MessageSquare },
       ]
     },
     {
