@@ -11,6 +11,8 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { PopularMoviesSlideshow } from "@/components/PopularMoviesSlideshow";
 import { AppWebGLBackground } from "@/components/animations/AppWebGLBackground";
 import { TBankAdvertisement } from "@/components/TBankAdvertisement";
+import { RatingPopup } from "@/components/RatingPopup";
+import { useRatingPopup } from "@/hooks/use-rating-popup";
 
 // Get current year in Moscow timezone
 const getCurrentYear = () => {
@@ -48,6 +50,7 @@ export default function Index() {
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [showAd, setShowAd] = useState(false);
   const currentYear = getCurrentYear().toString();
+  const { showRatingPopup, setShowRatingPopup } = useRatingPopup();
   
   const { newMovies, newTVShows, newCartoons } = useMovies(currentYear);
   const { data: searchResults, error: searchError } = useMovieSearch(searchTerm);
@@ -126,6 +129,9 @@ export default function Index() {
       </main>
 
       <AIAssistant />
+      
+      {/* Rating Popup after watching a movie */}
+      <RatingPopup open={showRatingPopup} onOpenChange={setShowRatingPopup} />
     </div>
   );
 }

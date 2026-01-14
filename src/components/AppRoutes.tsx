@@ -17,7 +17,7 @@ import About from "@/pages/About";
 import Support from "@/pages/Support";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
-import Chat from "@/pages/Chat";
+import Reviews from "@/pages/Reviews";
 import Settings from "@/pages/Settings";
 
 export function AppRoutes() {
@@ -161,13 +161,11 @@ export function AppRoutes() {
         }
       />
       <Route 
-        path="/chat" 
+        path="/reviews" 
         element={
-          <ProtectedRoute>
-            <PageTransition>
-              <Chat />
-            </PageTransition>
-          </ProtectedRoute>
+          <PageTransition>
+            <Reviews />
+          </PageTransition>
         }
       />
       <Route 

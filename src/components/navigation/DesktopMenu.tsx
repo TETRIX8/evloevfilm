@@ -41,9 +41,9 @@ export function DesktopMenu({ isAuthenticated, isAdmin }: DesktopMenuProps) {
       )}
       <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
         <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/chat">
+          <Link to="/reviews">
             <MessageSquare className="h-4 w-4" />
-            Онлайн чат
+            Отзывы
           </Link>
         </Button>
       </motion.div>
