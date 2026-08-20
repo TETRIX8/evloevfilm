@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { MovieCardProps } from "./types";
@@ -27,6 +27,20 @@ export function MovieCard({
   onLike,
 }: ExtendedMovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const previewVideo = previewVideoRef.current;
+    if (!previewVideo) return;
+
+    if (isHovered) {
+      void previewVideo.play().catch(() => undefined);
+      return;
+    }
+
+    previewVideo.pause();
+    previewVideo.currentTime = 0;
+  }, [isHovered]);
   
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -46,7 +60,7 @@ export function MovieCard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden rounded-lg transition-shadow hover:shadow-xl cursor-pointer",
+        "cinema-card group relative cursor-pointer overflow-hidden rounded-2xl transition-all duration-300",
         className
       )}
       style={{ width }}
@@ -56,17 +70,31 @@ export function MovieCard({
       <div className="relative">
         <div
           className={cn(
-            "absolute inset-0 rounded-md bg-zinc-900 transition-opacity duration-500 dark:bg-zinc-700/40",
+            "absolute inset-0 rounded-[0.9rem] bg-[#070914]/70 transition-opacity duration-500",
             isHovered ? "opacity-0" : "opacity-80 group-hover:opacity-0"
           )}
         />
         <img
           src={image}
           alt={title}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
           style={{
             aspectRatio: aspectRatio === "portrait" ? "3 / 4" : "16 / 9",
           }}
+        />
+        <video
+          ref={previewVideoRef}
+          src="/cinematic-preview.mp4"
+          poster="/cinematic-preview-cover.png"
+          className={cn(
+            "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
+            isHovered ? "opacity-80" : "opacity-0"
+          )}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
         />
       </div>
       

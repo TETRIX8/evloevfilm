@@ -36,13 +36,13 @@ export function MovieCarousel({ title, movies }: MovieCarouselProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-4"
+      className="space-y-5"
     >
       <motion.h2 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-2xl font-semibold"
+        className="border-l-2 border-primary pl-4 text-2xl font-semibold tracking-[-0.025em] md:text-3xl"
       >
         {title}
       </motion.h2>
@@ -64,8 +64,8 @@ export function MovieCarousel({ title, movies }: MovieCarouselProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex -left-12 transition-transform duration-300 hover:scale-110" />
-          <CarouselNext className="hidden md:flex -right-12 transition-transform duration-300 hover:scale-110" />
+          <CarouselPrevious className="hidden md:flex -left-12 border-border/80 bg-card/90 text-foreground shadow-lg backdrop-blur hover:scale-105 hover:border-primary/60 hover:bg-primary hover:text-primary-foreground" />
+          <CarouselNext className="hidden md:flex -right-12 border-border/80 bg-card/90 text-foreground shadow-lg backdrop-blur hover:scale-105 hover:border-primary/60 hover:bg-primary hover:text-primary-foreground" />
         </Carousel>
       </div>
     </motion.section>

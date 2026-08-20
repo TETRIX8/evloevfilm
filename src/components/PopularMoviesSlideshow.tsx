@@ -132,7 +132,7 @@ export function PopularMoviesSlideshow() {
   
   return (
     <section 
-      className="relative rounded-xl overflow-hidden h-[500px] mb-12 shadow-xl"
+      className="cinema-panel relative mb-12 h-[32rem] overflow-hidden rounded-3xl md:h-[35rem]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -148,15 +148,16 @@ export function PopularMoviesSlideshow() {
           <img 
             src={currentMovie.image} 
             alt={currentMovie.title}
-            className="w-full h-full object-cover"
+            style={{ transitionDuration: "1800ms" }}
+            className="h-full w-full scale-[1.015] object-cover transition-transform ease-out group-hover:scale-[1.04]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-transparent">
-            <div className="flex flex-col justify-end h-full p-8 md:p-12 max-w-3xl">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,8,18,0.96)_0%,rgba(6,8,18,0.82)_38%,rgba(6,8,18,0.26)_70%,rgba(6,8,18,0.08)_100%)]">
+            <div className="flex h-full max-w-3xl flex-col justify-end p-6 pb-16 md:p-12 md:pb-16">
               <motion.h2 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-3xl md:text-5xl font-bold mb-4 text-primary drop-shadow-lg"
+                className="mb-4 text-4xl font-bold tracking-[-0.045em] text-[#fff8ee] drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] md:text-6xl"
               >
                 {currentMovie.title}
               </motion.h2>
@@ -375,7 +376,7 @@ export function PopularMoviesSlideshow() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 h-10 w-10 rounded-full"
+                className="absolute left-4 top-1/2 h-11 w-11 -translate-y-1/2 border border-white/15 bg-[#070914]/55 text-white backdrop-blur-sm hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
         onClick={handlePrev}
       >
         <ChevronLeft className="h-6 w-6" />
@@ -383,7 +384,7 @@ export function PopularMoviesSlideshow() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 h-10 w-10 rounded-full"
+                className="absolute right-4 top-1/2 h-11 w-11 -translate-y-1/2 border border-white/15 bg-[#070914]/55 text-white backdrop-blur-sm hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
         onClick={handleNext}
       >
         <ChevronRight className="h-6 w-6" />

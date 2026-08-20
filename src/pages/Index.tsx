@@ -72,7 +72,7 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen overflow-x-clip">
       {isFirstLoad && <LoadingScreen />}
       
       {/* T-Bank Advertisement */}
@@ -83,12 +83,12 @@ export default function Index() {
       
       <Navigation />
       
-      <main className="container pt-20 md:pt-24 pb-16 space-y-6 md:space-y-8 px-4 md:px-6">
-        <header className="max-w-2xl mx-auto space-y-4 text-center">
-          <h2 className="text-2xl md:text-4xl font-bold leading-tight">
+      <main className="container relative z-10 space-y-8 px-4 pb-20 pt-28 md:space-y-12 md:px-6 md:pb-28 md:pt-36">
+        <header className="cinema-hero-copy mx-auto max-w-3xl space-y-5 py-2 text-center md:py-5">
+          <h2 className="text-4xl font-bold leading-[0.98] tracking-[-0.045em] md:text-6xl">
             Найди свой любимый фильм
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base px-4">
+          <p className="mx-auto max-w-xl px-4 text-sm leading-relaxed text-muted-foreground md:text-base">
             Используйте поиск чтобы найти интересующий вас фильм
           </p>
           <div className="px-4 md:px-0">
@@ -99,7 +99,7 @@ export default function Index() {
           </div>
         </header>
 
-        <div className="space-y-8 md:space-y-12">
+        <div className="space-y-10 md:space-y-16">
           <SearchResults searchTerm={searchTerm} results={searchResults} />
 
           {!searchTerm && (

@@ -27,16 +27,16 @@ export function SearchBar({ onSearch, className, placeholder = "Поиск фи�
   return (
     <div
       className={cn(
-        "relative flex items-center max-w-2xl w-full transition-all duration-300",
-        focused ? "scale-[1.02]" : "",
+        "cinema-search relative flex w-full max-w-2xl items-center transition-all duration-300",
+        focused ? "scale-[1.015]" : "",
         className
       )}
     >
-      <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
+      <Search className="absolute left-4 z-10 h-5 w-5 text-primary/90" />
       <Input
         type="search"
         placeholder={placeholder}
-        className="pl-10 pr-12 bg-secondary/50 border-secondary-foreground/10 backdrop-blur-sm h-12 text-lg"
+        className="h-14 border-foreground/10 bg-card/70 py-3 pl-12 pr-14 text-base shadow-[0_14px_36px_hsl(229_55%_3%/0.28)] md:text-lg"
         onChange={handleChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
@@ -46,8 +46,9 @@ export function SearchBar({ onSearch, className, placeholder = "Поиск фи�
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2"
+          className="absolute right-2 h-10 w-10 text-muted-foreground hover:text-primary"
           onClick={handleClear}
+          aria-label="Очистить поиск"
         >
           <SearchX className="h-5 w-5" />
         </Button>

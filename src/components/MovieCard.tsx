@@ -4,7 +4,7 @@ import { Heart, Share2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { soundEffects } from "@/utils/soundEffects";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
@@ -26,6 +26,20 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const previewVideo = previewVideoRef.current;
+    if (!previewVideo) return;
+
+    if (isHovered) {
+      void previewVideo.play().catch(() => undefined);
+      return;
+    }
+
+    previewVideo.pause();
+    previewVideo.currentTime = 0;
+  }, [isHovered]);
   
   const { user } = useFirebaseAuth();
   const { savedItems, isSaved, addToSaved, removeFromSaved, addToHistory } = useFirebaseStorage();
@@ -140,9 +154,9 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
   };
 
   return (
-    <div className={cn("group flex flex-col gap-2", className)}>
+    <div className={cn("group flex flex-col gap-2.5", className)}>
       <motion.div
-        className="relative aspect-[2/3] overflow-hidden rounded-lg bg-secondary/30"
+        className="cinema-card relative aspect-[2/3] overflow-hidden rounded-2xl bg-secondary/30"
         whileHover={{ scale: 1.05 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
         onHoverStart={() => setIsHovered(true)}
@@ -151,10 +165,24 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
         <motion.img
           src={image || "/placeholder.svg"}
           alt={title}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
           onClick={handleClick}
           whileHover={{ scale: 1.1 }}
           transition={{ duration: 0.5 }}
+        />
+        <video
+          ref={previewVideoRef}
+          src="/cinematic-preview.mp4"
+          poster="/cinematic-preview-cover.png"
+          className={cn(
+            "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
+            isHovered ? "opacity-80" : "opacity-0"
+          )}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
         />
         <AnimatePresence>
           {isHovered && (
@@ -162,12 +190,12 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute top-2 right-2 flex gap-2"
+              className="absolute right-3 top-3 z-20 flex gap-2"
             >
               <Button
                 size="icon"
                 variant="secondary"
-                className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                className="h-9 w-9 border border-white/15 bg-[#070914]/75 text-white backdrop-blur-sm hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
                 onClick={handleLike}
                 disabled={isLoading}
               >
@@ -181,7 +209,7 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
               <Button
                 size="icon"
                 variant="secondary"
-                className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                className="h-9 w-9 border border-white/15 bg-[#070914]/75 text-white backdrop-blur-sm hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
                 onClick={handleShare}
               >
                 <motion.div whileTap={{ scale: 0.8 }}>
@@ -192,7 +220,7 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
           )}
         </AnimatePresence>
         <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent"
+          className="absolute inset-0 z-10 bg-gradient-to-t from-[#070914] via-[#070914]/22 to-transparent"
           initial={{ opacity: 0 }}
           whileHover={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
@@ -203,16 +231,16 @@ export function MovieCard({ title, image, link, className, type = 'movie', year,
               initial={{ y: 20, opacity: 0 }}
               whileHover={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="flex items-center gap-2 text-primary"
+              className="flex items-center gap-3 text-primary"
             >
-              <Play className="h-5 w-5" />
-              <span className="text-sm font-medium">Смотреть</span>
+              <span className="cinema-play-button h-10 w-10"><Play className="h-4 w-4 translate-x-px" fill="currentColor" /></span>
+              <span className="text-xs font-bold uppercase tracking-[0.16em]">Смотреть</span>
             </motion.div>
           </div>
         </motion.div>
       </motion.div>
       <motion.h3
-        className="font-bold text-lg tracking-wide truncate text-foreground"
+        className="truncate text-lg font-bold tracking-[-0.02em] text-foreground"
         whileHover={{ color: 'hsl(var(--primary))' }}
         transition={{ duration: 0.2 }}
       >

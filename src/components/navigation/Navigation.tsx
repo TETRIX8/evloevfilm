@@ -11,11 +11,10 @@ import { FirebaseUserInfo } from "../FirebaseUserInfo";
 export function Navigation() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   const { user: firebaseUser, logout: firebaseLogout } = useFirebaseAuth();
 
   useEffect(() => {
-    // Check Firebase authentication status
     setIsAuthenticated(!!firebaseUser);
     if (firebaseUser) {
       checkFirebaseAdminStatus(firebaseUser.email);
@@ -25,10 +24,8 @@ export function Navigation() {
   }, [firebaseUser]);
 
   const checkFirebaseAdminStatus = async (email: string | null) => {
-    // For Firebase, you can implement admin check based on email or other criteria
-    // For now, we'll check if the email contains 'admin' or is a specific admin email
     if (email) {
-      const adminEmails = ['admin@evloevfilm.com', 'tetrixuno@gmail.com'];
+      const adminEmails = ["admin@evloevfilm.com", "tetrixuno@gmail.com"];
       setIsAdmin(adminEmails.includes(email.toLowerCase()));
     } else {
       setIsAdmin(false);
@@ -44,23 +41,26 @@ export function Navigation() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container flex items-center justify-between h-16 px-4 md:px-6">
-        <div className="flex items-center gap-2 md:gap-4">
+    <nav className="cinema-nav fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl">
+      <div className="container flex h-[4.5rem] items-center justify-between px-4 md:h-20 md:px-6">
+        <div className="flex items-center gap-2 md:gap-5">
           <MobileMenu isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            whileHover={{ y: -1 }}
+            transition={{ type: "spring", stiffness: 360, damping: 18 }}
             className="flex-shrink-0"
           >
-            <Link to="/" className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary/50 to-primary bg-clip-text text-transparent">
+            <Link
+              to="/"
+              className="cinema-wordmark bg-gradient-to-r from-primary via-amber-100 to-primary bg-clip-text text-lg font-bold text-transparent md:text-xl"
+            >
               EVLOEVFILM
             </Link>
           </motion.div>
           <DesktopMenu isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
         </div>
-        
-        <div className="flex items-center gap-2 md:gap-4">
+
+        <div className="flex items-center gap-1.5 md:gap-3">
           <ThemeToggle />
           <FirebaseUserInfo onLogout={handleLogout} />
         </div>
