@@ -85,11 +85,11 @@ export default function Index() {
       
       <main className="container relative z-10 space-y-8 px-4 pb-20 pt-28 md:space-y-12 md:px-6 md:pb-28 md:pt-36">
         <header className="cinema-hero-copy mx-auto max-w-3xl space-y-5 py-2 text-center md:py-5">
-          <h2 className="text-4xl font-bold leading-[0.98] tracking-[-0.045em] md:text-6xl">
-            Найди свой любимый фильм
-          </h2>
+          <h1 className="text-4xl font-bold leading-[0.98] tracking-[-0.045em] md:text-6xl">
+            Фильмы и сериалы онлайн на EvloevFilm
+          </h1>
           <p className="mx-auto max-w-xl px-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-            Используйте поиск чтобы найти интересующий вас фильм
+            Найдите любимый фильм, сериал или аниме с помощью поиска и начните смотреть онлайн.
           </p>
           <div className="px-4 md:px-0">
             <SearchBar
