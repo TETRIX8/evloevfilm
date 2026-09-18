@@ -1,41 +1,17 @@
-interface WatchHistoryItem {
-  title: string;
-  image: string;
-  link: string;
-  lastWatched: string;
-  progress: number;
-}
+import { auth } from '@/integrations/firebase/config';
+import { userDataApi } from '@/services/user-data';
 
-export const addToWatchHistory = (movie: { title: string; image: string; link: string }) => {
-  const history = JSON.parse(localStorage.getItem("watchHistory") || "[]") as WatchHistoryItem[];
-  
-  // Remove existing entry if present
-  const filteredHistory = history.filter(item => item.title !== movie.title);
-  
-  // Add new entry at the beginning
-  filteredHistory.unshift({
-    ...movie,
-    lastWatched: new Date().toISOString(),
-    progress: 0
-  });
-  
-  // Keep only last 20 items
-  const limitedHistory = filteredHistory.slice(0, 20);
-  
-  localStorage.setItem("watchHistory", JSON.stringify(limitedHistory));
+export interface WatchHistoryItem { title: string; image: string; link: string; lastWatched: string; progress: number; }
+export const addToWatchHistory = async (movie: { title: string; image: string; link: string }) => {
+  if (!auth.currentUser) return;
+  await userDataApi.addHistory({ title: movie.title, poster: movie.image, url: movie.link, type: 'movie', progress: 0 });
 };
-
-export const updateWatchProgress = (title: string, progress: number) => {
-  const history = JSON.parse(localStorage.getItem("watchHistory") || "[]") as WatchHistoryItem[];
-  const updatedHistory = history.map(item => {
-    if (item.title === title) {
-      return { ...item, progress };
-    }
-    return item;
-  });
-  localStorage.setItem("watchHistory", JSON.stringify(updatedHistory));
+export const updateWatchProgress = async (link: string, progress: number) => {
+  if (!auth.currentUser) return;
+  await userDataApi.updateProgress(link, progress);
 };
-
-export const getWatchHistory = () => {
-  return JSON.parse(localStorage.getItem("watchHistory") || "[]") as WatchHistoryItem[];
+export const getWatchHistory = async (): Promise<WatchHistoryItem[]> => {
+  if (!auth.currentUser) return [];
+  const data = await userDataApi.get();
+  return data.history.map((item) => ({ title: item.title, image: item.poster, link: item.url, lastWatched: item.watchedAt, progress: item.progress || 0 }));
 };

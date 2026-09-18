@@ -1,241 +1,49 @@
-import { useState, useEffect } from 'react';
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from '@/integrations/firebase/config';
+import { useEffect, useState } from 'react';
 import { useFirebaseAuth } from './use-firebase-auth';
+import { userDataApi, type BlobHistoryItem, type BlobSavedItem } from '@/services/user-data';
 
-export interface SavedItem {
-  id: string;
-  title: string;
-  type: 'movie' | 'anime';
-  poster: string;
-  year?: number;
-  rating?: number;
-  description?: string;
-  url: string;
-  createdAt: Timestamp;
+export class BlobTimestamp {
+  constructor(private readonly value: string) {}
+  toDate() { return new Date(this.value); }
+  toJSON() { return this.value; }
 }
-
-export interface HistoryItem {
-  id: string;
-  title: string;
-  type: 'movie' | 'anime';
-  poster: string;
-  year?: number;
-  rating?: number;
-  description?: string;
-  url: string;
-  watchedAt: Timestamp;
-  progress?: number; // для аниме - прогресс просмотра
-  episode?: number; // для аниме - номер серии
-}
+export interface SavedItem extends Omit<BlobSavedItem, 'createdAt'> { createdAt: BlobTimestamp; }
+export interface HistoryItem extends Omit<BlobHistoryItem, 'createdAt' | 'watchedAt'> { createdAt: BlobTimestamp; watchedAt: BlobTimestamp; }
+const asSaved = (item: BlobSavedItem): SavedItem => ({ ...item, createdAt: new BlobTimestamp(item.createdAt) });
+const asHistory = (item: BlobHistoryItem): HistoryItem => ({ ...item, createdAt: new BlobTimestamp(item.createdAt), watchedAt: new BlobTimestamp(item.watchedAt) });
 
 export function useFirebaseStorage() {
   const { user } = useFirebaseAuth();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Загрузить избранное
-  const loadSavedItems = async () => {
-    if (!user) {
-      console.log('Cannot load saved items: user is not authenticated');
-      return;
-    }
-    
-    console.log('Loading saved items for user:', user.uid);
-    setLoading(true);
-    try {
-      const savedRef = collection(db, 'users', user.uid, 'saved');
-      const q = query(savedRef, orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      
-      const items = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as SavedItem[];
-      
-      console.log('Loaded saved items:', items.length, 'items');
-      setSavedItems(items);
-    } catch (error: any) {
-      console.error('Error loading saved items:', error);
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      
-      // Если ошибка связана с правами доступа, показываем более понятное сообщение
-      if (error.code === 'permission-denied') {
-        console.warn('Firestore permission denied. Check Firestore security rules.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Загрузить историю
-  const loadHistoryItems = async () => {
+  const load = async () => {
     if (!user) return;
-    
     setLoading(true);
-    try {
-      const historyRef = collection(db, 'users', user.uid, 'history');
-      const q = query(historyRef, orderBy('watchedAt', 'desc'), limit(50));
-      const querySnapshot = await getDocs(q);
-      
-      const items = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as HistoryItem[];
-      
-      setHistoryItems(items);
-    } catch (error: any) {
-      console.error('Error loading history items:', error);
-      // Если ошибка связана с правами доступа, показываем более понятное сообщение
-      if (error.code === 'permission-denied') {
-        console.warn('Firestore rules not configured. Please set up Firestore security rules.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    try { const data = await userDataApi.get(); setSavedItems(data.saved.map(asSaved)); setHistoryItems(data.history.map(asHistory)); }
+    catch (error) { console.error('Ошибка загрузки данных Vercel Blob:', error); }
+    finally { setLoading(false); }
   };
-
-  // Добавить в избранное
   const addToSaved = async (item: Omit<SavedItem, 'id' | 'createdAt'>) => {
     if (!user) return false;
-    
-    try {
-      const savedRef = collection(db, 'users', user.uid, 'saved');
-      
-      // Фильтруем undefined значения
-      const cleanItem = Object.fromEntries(
-        Object.entries({
-          ...item,
-          createdAt: Timestamp.now()
-        }).filter(([_, value]) => value !== undefined)
-      );
-      
-      const docRef = await addDoc(savedRef, cleanItem);
-      
-      // Обновляем локальное состояние
-      const newItem: SavedItem = {
-        id: docRef.id,
-        ...item,
-        createdAt: Timestamp.now()
-      };
-      setSavedItems(prev => [newItem, ...prev]);
-      
-      return true;
-    } catch (error) {
-      console.error('Error adding to saved:', error);
-      return false;
-    }
+    try { const data = await userDataApi.save(item); setSavedItems(data.saved.map(asSaved)); return true; }
+    catch (error) { console.error(error); return false; }
   };
-
-  // Удалить из избранного
-  const removeFromSaved = async (itemId: string) => {
+  const removeFromSaved = async (id: string) => {
     if (!user) return false;
-    
-    try {
-      const savedRef = doc(db, 'users', user.uid, 'saved', itemId);
-      await deleteDoc(savedRef);
-      
-      // Обновляем локальное состояние
-      setSavedItems(prev => prev.filter(item => item.id !== itemId));
-      
-      return true;
-    } catch (error) {
-      console.error('Error removing from saved:', error);
-      return false;
-    }
+    try { const item = savedItems.find((entry) => entry.id === id); const data = await userDataApi.unsave(id, item?.url || ''); setSavedItems(data.saved.map(asSaved)); return true; }
+    catch (error) { console.error(error); return false; }
   };
-
-  // Проверить, есть ли в избранном
-  const isSaved = (url: string) => {
-    return savedItems.some(item => item.url === url);
-  };
-
-  // Добавить в историю
-  const addToHistory = async (item: Omit<HistoryItem, 'id' | 'watchedAt'>) => {
+  const addToHistory = async (item: Omit<HistoryItem, 'id' | 'createdAt' | 'watchedAt'>) => {
     if (!user) return false;
-    
-    try {
-      const historyRef = collection(db, 'users', user.uid, 'history');
-      
-      // Фильтруем undefined значения
-      const cleanItem = Object.fromEntries(
-        Object.entries({
-          ...item,
-          watchedAt: Timestamp.now()
-        }).filter(([_, value]) => value !== undefined)
-      );
-      
-      const docRef = await addDoc(historyRef, cleanItem);
-      
-      // Обновляем локальное состояние
-      const newItem: HistoryItem = {
-        id: docRef.id,
-        ...item,
-        watchedAt: Timestamp.now()
-      };
-      setHistoryItems(prev => [newItem, ...prev]);
-      
-      return true;
-    } catch (error) {
-      console.error('Error adding to history:', error);
-      return false;
-    }
+    try { const data = await userDataApi.addHistory(item); setHistoryItems(data.history.map(asHistory)); return true; }
+    catch (error) { console.error(error); return false; }
   };
-
-  // Очистить историю
   const clearHistory = async () => {
     if (!user) return false;
-    
-    try {
-      const historyRef = collection(db, 'users', user.uid, 'history');
-      const querySnapshot = await getDocs(historyRef);
-      
-      const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
-      
-      setHistoryItems([]);
-      return true;
-    } catch (error) {
-      console.error('Error clearing history:', error);
-      return false;
-    }
+    try { await userDataApi.clearHistory(); setHistoryItems([]); return true; }
+    catch (error) { console.error(error); return false; }
   };
-
-  // Загрузить данные при изменении пользователя
-  useEffect(() => {
-    if (user) {
-      loadSavedItems();
-      loadHistoryItems();
-    } else {
-      setSavedItems([]);
-      setHistoryItems([]);
-    }
-  }, [user]);
-
-  return {
-    savedItems,
-    historyItems,
-    loading,
-    addToSaved,
-    removeFromSaved,
-    isSaved,
-    addToHistory,
-    clearHistory,
-    loadSavedItems,
-    loadHistoryItems
-  };
+  useEffect(() => { if (user) void load(); else { setSavedItems([]); setHistoryItems([]); } }, [user?.uid]);
+  return { savedItems, historyItems, loading, addToSaved, removeFromSaved, isSaved: (url: string) => savedItems.some((item) => item.url === url), addToHistory, clearHistory, loadSavedItems: load, loadHistoryItems: load };
 }

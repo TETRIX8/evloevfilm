@@ -1,180 +1,29 @@
-
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { soundEffects } from "@/utils/soundEffects";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useFirebaseAuth } from '@/hooks/use-firebase-auth';
+import { useFirebaseStorage } from '@/hooks/use-firebase-storage';
+import { soundEffects } from '@/utils/soundEffects';
 
 export function useMovieCard(title: string, image: string, link: string) {
   const navigate = useNavigate();
-  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useFirebaseAuth();
+  const { savedItems, isSaved, addToSaved, removeFromSaved } = useFirebaseStorage();
   const [isHovered, setIsHovered] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let isSubscribed = true;
-
-    const checkSavedStatus = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          return;
-        }
-
-        // Only proceed if the component is still mounted
-        if (!isSubscribed) return;
-
-        if (!session?.user?.id) {
-          setIsLoading(false);
-          return;
-        }
-
-        setUserId(session.user.id);
-        const { data, error } = await supabase
-          .from('saved_movies')
-          .select()
-          .eq('user_id', session.user.id)
-          .eq('title', title)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error checking saved status:', error);
-          return;
-        }
-
-        // Only update state if the component is still mounted
-        if (isSubscribed) {
-          setIsLiked(!!data);
-        }
-      } catch (error) {
-        console.error('Error in checkSavedStatus:', error);
-      } finally {
-        if (isSubscribed) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    checkSavedStatus();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      if (isSubscribed) {
-        checkSavedStatus();
-      }
-    });
-
-    return () => {
-      isSubscribed = false;
-      subscription.unsubscribe();
-    };
-  }, [title]);
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      soundEffects.play("click");
-      navigate(`/movie/${encodeURIComponent(title)}`, {
-        state: { title, image, iframeUrl: link }
-      });
-    } catch (error) {
-      console.error('Navigation error:', error);
-      toast.error("Произошла ошибка при переходе к фильму");
-    }
-  };
-
+  const [isLoading, setIsLoading] = useState(false);
+  const isLiked = isSaved(link);
+  const handleClick = (e: React.MouseEvent) => { e.preventDefault(); soundEffects.play('click'); navigate(`/movie/${encodeURIComponent(title)}`, { state: { title, image, iframeUrl: link } }); };
   const handleLike = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!userId) {
-      toast.error("Войдите в систему, чтобы сохранять фильмы", {
-        action: {
-          label: "Войти",
-          onClick: () => navigate("/profile")
-        }
-      });
-      return;
-    }
-
+    e.preventDefault(); e.stopPropagation();
+    if (!user) { toast.error('Войдите в систему, чтобы сохранять фильмы'); return; }
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      if (!isLiked) {
-        const { error } = await supabase
-          .from('saved_movies')
-          .insert([
-            { user_id: userId, title, image, link }
-          ]);
-        
-        if (error) {
-          console.error('Error saving movie:', error);
-          toast.error("Ошибка при сохранении фильма");
-          return;
-        }
-        
-        soundEffects.play("save");
-        toast.success("Фильм добавлен в сохраненные");
-      } else {
-        const { error } = await supabase
-          .from('saved_movies')
-          .delete()
-          .eq('user_id', userId)
-          .eq('title', title);
-        
-        if (error) {
-          console.error('Error removing movie:', error);
-          toast.error("Ошибка при удалении фильма");
-          return;
-        }
-        
-        soundEffects.play("save");
-        toast.success("Фильм удален из сохраненных");
-      }
-      
-      setIsLiked(!isLiked);
-    } catch (error) {
-      console.error('Error in handleLike:', error);
-      toast.error("Произошла ошибка");
-    } finally {
-      setIsLoading(false);
-    }
+      const saved = savedItems.find((item) => item.url === link);
+      const ok = saved ? await removeFromSaved(saved.id) : await addToSaved({ title, poster: image, url: link, type: 'movie' });
+      if (!ok) throw new Error('save failed');
+    } catch (error) { console.error(error); toast.error('Ошибка сохранения фильма'); }
+    finally { setIsLoading(false); }
   };
-
-  const handleShare = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      soundEffects.play("click");
-      const shareUrl = `${window.location.origin}/movie/${encodeURIComponent(title)}`;
-      
-      if (navigator.share) {
-        navigator.share({
-          title: title,
-          url: shareUrl
-        }).catch(error => {
-          console.error('Error sharing:', error);
-          toast.error("Ошибка при попытке поделиться");
-        });
-      } else {
-        navigator.clipboard.writeText(shareUrl);
-        toast.success("Ссылка скопирована в буфер обмена");
-      }
-    } catch (error) {
-      console.error('Share error:', error);
-      toast.error("Произошла ошибка при попытке поделиться");
-    }
-  };
-
-  return {
-    isLiked,
-    isHovered,
-    isLoading,
-    setIsHovered,
-    handleClick,
-    handleLike,
-    handleShare
-  };
+  const handleShare = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard?.writeText(`${window.location.origin}/movie/${encodeURIComponent(title)}`); toast.success('Ссылка скопирована в буфер обмена'); };
+  return { isLiked, isHovered, isLoading, setIsHovered, handleClick, handleLike, handleShare };
 }

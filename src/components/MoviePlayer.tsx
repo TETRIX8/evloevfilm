@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
+import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
+import { useFirebaseStorage } from "@/hooks/use-firebase-storage";
 import { fetchMovieDetails, searchMovies } from "@/services/api";
 import { VPNAdvertisement } from "./VPNAdvertisement";
 import { fetchKinopoiskMovie, fetchMovieStills, type KinopoiskMovie, type MovieStill } from "@/services/kinopoisk";
@@ -43,6 +45,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLiked, setIsLiked] = useState(false);
+  const { user } = useFirebaseAuth();
+  const { savedItems, isSaved, addToSaved, removeFromSaved } = useFirebaseStorage();
   const [showVPNAd, setShowVPNAd] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
   const imageUrl = location.state?.image || "/placeholder.svg";
@@ -58,9 +62,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   });
 
   useEffect(() => {
-    const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
-    const isSaved = savedMovies.some((movie: any) => movie.title === title);
-    setIsLiked(isSaved);
+    setIsLiked(isSaved(iframeUrl));
 
     const fetchDetails = async () => {
       const details = await fetchMovieDetails(title);
@@ -91,7 +93,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     const interval = setInterval(() => {
       if (iframeRef.current) {
         const progress = Math.random();
-        updateWatchProgress(title, progress);
+        updateWatchProgress(iframeUrl, progress);
       }
     }, 30000);
 
@@ -120,24 +122,14 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
     return () => clearInterval(interval);
   }, [title, imageUrl, iframeUrl, adBlockEnabled, showPlayer]);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     soundEffects.play("click");
-    const savedMovies = JSON.parse(localStorage.getItem("savedMovies") || "[]");
-    if (!isLiked) {
-      savedMovies.push({
-        title,
-        image: imageUrl,
-        link: iframeUrl,
-        savedAt: new Date().toISOString()
-      });
-      toast("Фильм добавлен в сохраненные");
-    } else {
-      const index = savedMovies.findIndex((movie: any) => movie.title === title);
-      if (index > -1) savedMovies.splice(index, 1);
-      toast("Фильм удален из сохраненных");
-    }
-    localStorage.setItem("savedMovies", JSON.stringify(savedMovies));
-    setIsLiked(!isLiked);
+    if (!user) { toast.error("Войдите в систему, чтобы сохранять фильмы"); return; }
+    const saved = savedItems.find((item) => item.url === iframeUrl);
+    const ok = saved
+      ? await removeFromSaved(saved.id)
+      : await addToSaved({ title, poster: imageUrl, url: iframeUrl, type: "movie" });
+    if (ok) { setIsLiked(!saved); toast(saved ? "Фильм удален из сохраненных" : "Фильм добавлен в сохраненные"); }
   };
 
   const handleShare = () => {

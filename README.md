@@ -64,7 +64,19 @@ npm start
 ---
 
 > *"Мы не просто показываем фильмы — мы создаем атмосферу."*  
-> © Команда EVOLVEFILM  
+> © Команда EVOLVEFILM
 
+## Vercel: избранное, сохранения и история
+
+Избранное, сохранения и история просмотров хранятся через защищённый endpoint `/api/user-data` в **приватном Vercel Blob**. Данные разделены по Firebase UID, поэтому один пользователь не может прочитать JSON другого пользователя. `localStorage`, Firestore и Supabase больше не используются для этих трёх функций.
+
+Перед деплоем:
+
+1. В Vercel откройте проект и подключите Storage → Blob к этому проекту. Vercel автоматически добавит `BLOB_READ_WRITE_TOKEN` (или OIDC-переменные `BLOB_STORE_ID` и `VERCEL_OIDC_TOKEN`).
+2. Добавьте секрет `FIREBASE_SERVICE_ACCOUNT_JSON` со значением всего JSON service account Firebase. Не добавляйте этот секрет в репозиторий и не используйте его с префиксом `VITE_`.
+3. Для frontend оставьте существующие `VITE_FIREBASE_*` переменные, если они уже настроены в Firebase-проекте.
+4. Выполните деплой с Build Command `npm run build` и Output Directory `dist`. API-функция `api/user-data.ts` будет опубликована Vercel автоматически.
+
+Локальная проверка frontend выполняется командой `npm run build`. Для проверки API локально используйте `vercel dev`, чтобы Vercel подгрузил serverless routes и переменные окружения.
 
 
