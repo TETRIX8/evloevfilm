@@ -1,6 +1,4 @@
 import { get, head, put } from '@vercel/blob';
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 type SavedItem = {
@@ -9,19 +7,9 @@ type SavedItem = {
 };
 type HistoryItem = SavedItem & { watchedAt: string; progress?: number; episode?: number };
 type UserData = { saved: SavedItem[]; history: HistoryItem[] };
-
 type FirebaseLookupResponse = { users?: Array<{ localId?: string }> };
 
-function firebaseAuth() {
-  if (!getApps().length) {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-    if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is not configured');
-    initializeApp({ credential: cert(JSON.parse(raw)) });
-  }
-  return getAuth();
-}
-
-async function firebaseRestUserId(idToken: string) {
+async function firebaseUserId(idToken: string) {
   const apiKey = process.env.FIREBASE_WEB_API_KEY || 'AIzaSyCUFtk5_2-Ka_HpEfHFNA-nuXXMNlIH9Nc';
   const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
     method: 'POST',
@@ -36,11 +24,8 @@ async function firebaseRestUserId(idToken: string) {
 async function userId(req: VercelRequest) {
   const header = req.headers.authorization || '';
   if (!header.startsWith('Bearer ')) return null;
-  const idToken = header.slice(7);
-  try {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) return (await firebaseAuth().verifyIdToken(idToken)).uid;
-    return await firebaseRestUserId(idToken);
-  } catch { return null; }
+  try { return await firebaseUserId(header.slice(7)); }
+  catch { return null; }
 }
 
 const pathname = (uid: string) => `evloevfilm/users/${uid}.json`;
