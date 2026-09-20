@@ -1,6 +1,7 @@
 
 import { useLocation, Navigate } from "react-router-dom";
 import { MoviePlayer } from "@/components/MoviePlayer";
+import { Navigation } from "@/components/navigation/Navigation";
 import { useEffect, useState } from "react";
 import { fetchMovieDetails, MovieDetails } from "@/services/api";
 
@@ -48,5 +49,12 @@ export default function Movie() {
     return <Navigate to="/" replace />;
   }
 
-  return <MoviePlayer title={movieData.title} iframeUrl={movieData.iframeUrl} />;
+  return (
+    <div className="page-shell">
+      <Navigation />
+      <div className="pt-[72px]">
+        <MoviePlayer title={movieData.title} iframeUrl={movieData.iframeUrl} />
+      </div>
+    </div>
+  );
 }

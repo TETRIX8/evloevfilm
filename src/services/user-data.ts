@@ -40,7 +40,7 @@ export const userDataApi = {
   get: () => request(),
   save: (item: Omit<BlobSavedItem, 'id' | 'createdAt'>) => request({ action: 'save', item }),
   unsave: (id: string, url: string) => request({ action: 'unsave', id, url }),
-  addHistory: (item: Omit<BlobHistoryItem, 'id' | 'watchedAt'>) => request({ action: 'history', item }),
+  addHistory: (item: Omit<BlobHistoryItem, 'id' | 'createdAt' | 'watchedAt'>) => request({ action: 'history', item }),
   updateProgress: (url: string, progress: number) => request({ action: 'progress', url, progress }),
   clearHistory: () => request({ action: 'clear-history' }),
 };

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Search, SearchX } from "lucide-react";
 import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
 
 interface SearchBarProps {
   onSearch: (term: string) => void;
@@ -13,45 +12,13 @@ interface SearchBarProps {
 export function SearchBar({ onSearch, className, placeholder = "Поиск фильмов..." }: SearchBarProps) {
   const [focused, setFocused] = useState(false);
   const [value, setValue] = useState("");
-
-  const handleClear = () => {
-    setValue("");
-    onSearch("");
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
-    onSearch(e.target.value);
-  };
+  const handleClear = () => { setValue(""); onSearch(""); };
 
   return (
-    <div
-      className={cn(
-        "relative flex items-center max-w-2xl w-full transition-all duration-300",
-        focused ? "scale-[1.02]" : "",
-        className
-      )}
-    >
-      <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder={placeholder}
-        className="pl-10 pr-12 bg-secondary/50 border-secondary-foreground/10 backdrop-blur-sm h-12 text-lg"
-        onChange={handleChange}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        value={value}
-      />
-      {value && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-2"
-          onClick={handleClear}
-        >
-          <SearchX className="h-5 w-5" />
-        </Button>
-      )}
+    <div className={cn("relative flex w-full items-center transition-all duration-200", focused && "-translate-y-0.5", className)}>
+      <Search className="pointer-events-none absolute left-4 h-4 w-4 text-primary" />
+      <Input type="search" placeholder={placeholder} className="h-14 rounded-2xl border-white/[0.11] bg-background/80 pl-11 pr-12 text-sm shadow-[0_12px_30px_rgba(0,0,0,.14)] placeholder:text-muted-foreground/80 focus-visible:border-primary/60 sm:text-base" onChange={(event) => { setValue(event.target.value); onSearch(event.target.value); }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} value={value} />
+      {value && <button type="button" onClick={handleClear} className="absolute right-3 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-white/[0.07] hover:text-foreground" aria-label="Очистить поиск"><SearchX className="h-4 w-4" /></button>}
     </div>
   );
 }

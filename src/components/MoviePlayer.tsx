@@ -7,7 +7,7 @@ import { soundEffects } from "../utils/soundEffects";
 import { addToWatchHistory, updateWatchProgress } from "../utils/watchHistory";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { useFirebaseStorage } from "@/hooks/use-firebase-storage";
-import { fetchMovieDetails, searchMovies } from "@/services/api";
+import { fetchMovieDetails, searchMovies, type MovieDetails } from "@/services/api";
 import { VPNAdvertisement } from "./VPNAdvertisement";
 import { fetchKinopoiskMovie, fetchMovieStills, type KinopoiskMovie, type MovieStill } from "@/services/kinopoisk";
 import { motion, AnimatePresence } from "framer-motion";
@@ -51,7 +51,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   const [showPlayer, setShowPlayer] = useState(false);
   const imageUrl = location.state?.image || "/placeholder.svg";
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [movieDetails, setMovieDetails] = useState<any>(null);
+  const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
   const [kinopoiskData, setKinopoiskData] = useState<KinopoiskMovie | null>(null);
   const [allohaDetails, setAllohaDetails] = useState<AllohaMovieData | null>(null);
   const [movieStills, setMovieStills] = useState<MovieStill[]>([]);
@@ -251,8 +251,8 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background/95">
-      <div className="container mx-auto px-4 py-6 lg:py-8">
+    <div className="min-h-screen bg-background/95 soft-grid">
+      <div className="container mx-auto px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
         <button
           onClick={handleBack}
           className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group mb-6"
@@ -569,7 +569,7 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto flex items-center gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto flex items-center gap-2 bg-primary transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02]"
                   onClick={handleStartWatching}
                   disabled={showPlayer}
                 >

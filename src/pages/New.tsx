@@ -1,50 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
+import { Film, Sparkles } from "lucide-react";
 import { MovieGrid } from "@/components/MovieGrid";
 import { Navigation } from "@/components/navigation/Navigation";
-import { toast } from "sonner";
 
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://evloevfilmapi.vercel.app/api/list";
 
+interface CatalogueMovie { name: string; poster: string; iframe_url: string; }
+interface CatalogueResponse { results?: CatalogueMovie[]; }
+
 export default function New() {
-  const { data: newMovies, error } = useQuery({
-    queryKey: ["new-movies"],
+  const currentYear = new Date().getFullYear();
+  const { data: newMovies, isLoading, isError } = useQuery({
+    queryKey: ["new-movies", currentYear],
     queryFn: async () => {
-      console.log("Fetching new movies...");
-      const response = await fetch(
-        `${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=2024`
-      );
+      const response = await fetch(`${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=${currentYear}`);
       if (!response.ok) throw new Error("Failed to fetch new movies");
-      const data = await response.json();
-      console.log("New movies data:", data);
-      
-      return data.results?.map((movie: any) => ({
-        title: movie.name,
-        image: movie.poster,
-        link: movie.iframe_url
-      })) || [];
+      const data = await response.json() as CatalogueResponse;
+      return data.results?.map((movie) => ({ title: movie.name, image: movie.poster, link: movie.iframe_url })) || [];
     },
   });
 
-  if (error) {
-    toast.error("Failed to fetch new movies. Please try again later.");
-  }
-
   return (
-    <div className="min-h-screen">
+    <div className="page-shell">
       <Navigation />
-      
-      <main className="container pt-24 pb-16 space-y-8">
-        <header className="space-y-4">
-          <h2 className="text-4xl font-bold">
-            Новинки 2024
-          </h2>
-          <p className="text-muted-foreground">
-            Самые свежие фильмы этого года
-          </p>
+      <main className="content-container pt-28">
+        <header className="relative overflow-hidden rounded-[1.5rem] border border-white/[0.09] bg-[linear-gradient(120deg,rgba(255,174,75,.15),rgba(255,255,255,.03)_35%,rgba(47,125,182,.10))] px-6 py-10 sm:px-10 sm:py-12">
+          <Sparkles className="absolute -right-4 -top-6 h-32 w-32 text-primary/10" aria-hidden="true" />
+          <div className="relative max-w-2xl"><p className="section-eyebrow">Обновляется вместе с каталогом</p><h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.07em] sm:text-4xl">Новинки {currentYear}</h1><p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Свежие фильмы, которые уже можно добавить в список на вечер.</p></div>
         </header>
-
-        <MovieGrid movies={newMovies} />
+        <section className="mt-10"><div className="mb-6 flex items-center gap-3"><Film className="h-4 w-4 text-primary" /><p className="text-sm font-bold text-muted-foreground">{isLoading ? "Собираем подборку…" : isError ? "Не удалось загрузить подборку" : "Фильмы, которые смотрят прямо сейчас"}</p></div>{isLoading ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">{Array.from({ length: 10 }).map((_, index) => <div key={index} className="aspect-[2/3] animate-pulse rounded-2xl border border-white/[0.07] bg-secondary/60" />)}</div> : isError ? <div className="surface-panel p-8 text-center text-sm text-muted-foreground">Не удалось получить список новинок. Обновите страницу немного позже.</div> : <MovieGrid movies={newMovies || []} />}</section>
       </main>
     </div>
   );

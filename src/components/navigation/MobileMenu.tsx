@@ -1,10 +1,10 @@
-
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, ShieldOff, MessageSquare, Settings, X, Zap } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, MessageCircle, Settings, X, Zap, Compass } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface MobileMenuProps {
   isAuthenticated: boolean;
@@ -13,132 +13,95 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
-
+  const location = useLocation();
   const menuSections = [
     {
-      title: "Профиль",
+      title: "Каталог",
       items: [
-        { title: "Профиль", url: "/profile", icon: User },
-        { title: "Сохраненные", url: "/saved", icon: Bookmark },
-        { title: "История просмотров", url: "/history", icon: History },
-      ]
-    },
-    {
-      title: "Контент",
-      items: [
+        { title: "Главная", url: "/", icon: Compass },
         { title: "Новинки", url: "/new", icon: Film },
         { title: "Аниме", url: "https://evloevfilmanime.vercel.app/", icon: Zap, external: true },
-        { title: "Онлайн чат", url: "/chat", icon: MessageSquare },
-      ]
+      ],
     },
     {
-      title: "Настройки и поддержка",
+      title: "Моё кино",
+      items: [
+        { title: "Профиль", url: "/profile", icon: User },
+        { title: "Избранное", url: "/saved", icon: Bookmark },
+        { title: "История", url: "/history", icon: History },
+        { title: "Чат", url: "/chat", icon: MessageCircle },
+      ],
+    },
+    {
+      title: "Помощь",
       items: [
         { title: "Настройки", url: "/settings", icon: Settings },
-        { title: "О нас", url: "/about", icon: Info },
+        { title: "О сервисе", url: "/about", icon: Info },
         { title: "Поддержка", url: "/support", icon: HelpCircle },
-        { title: "Блокировка рекламы", url: "/adblock", icon: ShieldOff },
-      ]
-    }
+      ],
+    },
   ];
 
-  if (isAdmin) {
-    menuSections[1].items.push({ title: "Админ панель", url: "/admin", icon: BarChart });
-  }
+  if (isAdmin) menuSections[1].items.push({ title: "Админ-панель", url: "/admin", icon: BarChart });
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden relative">
-          <Menu className="h-6 w-6" />
-          <span className="sr-only">Открыть меню</span>
+        <Button variant="ghost" size="icon" className="relative -ml-2 lg:hidden" aria-label="Открыть меню">
+          <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent 
-        side="left" 
-        className="w-[300px] sm:w-[350px] p-0 bg-background/95 backdrop-blur-md"
-      >
-        <SheetHeader className="p-6 pb-4 border-b">
+      <SheetContent side="left" className="flex w-[310px] flex-col border-r-white/[0.08] bg-[#111318] p-0 text-foreground sm:w-[360px]">
+        <SheetHeader className="border-b border-white/[0.08] px-6 py-5 text-left">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-bold bg-gradient-to-r from-primary/80 to-primary bg-clip-text text-transparent">
-              EVLOEVFILM
-            </SheetTitle>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setOpen(false)}
-              className="h-8 w-8"
-            >
+            <div>
+              <SheetTitle className="font-display text-base font-semibold tracking-[-0.07em] text-foreground">EVLOEVFILM</SheetTitle>
+              <p className="mt-1 text-xs text-muted-foreground">Кино, выбранное для вас</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="h-9 w-9" aria-label="Закрыть меню">
               <X className="h-4 w-4" />
             </Button>
           </div>
         </SheetHeader>
-        
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            {/* Кнопка входа для неавторизованных пользователей */}
-            {!isAuthenticated && (
-              <div className="mb-6">
-                <Button 
-                  className="w-full h-12 text-base font-medium bg-primary hover:bg-primary/90" 
-                  asChild
-                  onClick={() => setOpen(false)}
-                >
-                  <Link to="/auth">
-                    <LogIn className="h-5 w-5 mr-3" />
-                    Войти в аккаунт
-                  </Link>
-                </Button>
-              </div>
-            )}
 
-            {/* Секции меню */}
-            {menuSections.map((section, sectionIndex) => (
-              <div key={section.title} className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                  {section.title}
-                </h3>
-                <div className="space-y-1">
-                  {section.items.map((item) => (
-                    <Button 
-                      key={item.title}
-                      variant="ghost" 
-                      className="w-full justify-start h-12 text-base font-medium px-3 hover:bg-accent hover:text-accent-foreground rounded-lg transition-all duration-200" 
-                      asChild
-                      onClick={() => setOpen(false)}
-                    >
-                      {item.external ? (
-                        <a href={item.url} target="_blank" rel="noopener noreferrer">
-                          <item.icon className="h-5 w-5 mr-4 flex-shrink-0" />
-                          <span className="truncate">{item.title}</span>
-                        </a>
-                      ) : (
-                        <Link to={item.url}>
-                          <item.icon className="h-5 w-5 mr-4 flex-shrink-0" />
-                          <span className="truncate">{item.title}</span>
-                        </Link>
-                      )}
-                    </Button>
-                  ))}
+        <div className="flex-1 overflow-y-auto px-5 py-6">
+          {!isAuthenticated && (
+            <Link to="/auth" onClick={() => setOpen(false)} className="mb-7 flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-extrabold text-primary-foreground">
+              <LogIn className="h-4 w-4" /> Войти в аккаунт
+            </Link>
+          )}
+
+          <div className="space-y-6">
+            {menuSections.map((section, index) => (
+              <div key={section.title}>
+                <p className="px-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-primary">{section.title}</p>
+                <div className="mt-2 space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = !item.external && location.pathname === item.url;
+                    const itemClass = cn(
+                      "flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-white/[0.07] hover:text-foreground",
+                      active && "bg-white/[0.08] text-foreground"
+                    );
+                    return item.external ? (
+                      <a key={item.title} href={item.url} target="_blank" rel="noopener noreferrer" className={itemClass}>
+                        <Icon className="h-4 w-4 text-primary" /> {item.title}
+                      </a>
+                    ) : (
+                      <Link key={item.title} to={item.url} onClick={() => setOpen(false)} className={itemClass}>
+                        <Icon className="h-4 w-4 text-primary" /> {item.title}
+                      </Link>
+                    );
+                  })}
                 </div>
-                {sectionIndex < menuSections.length - 1 && (
-                  <Separator className="my-4" />
-                )}
+                {index < menuSections.length - 1 && <Separator className="mt-5 bg-white/[0.07]" />}
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Нижняя часть меню */}
-          <div className="border-t p-6 bg-muted/30">
-            <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Версия 2.0
-              </p>
-              <p className="text-xs text-muted-foreground">
-                © 2024 EVLOEVFILM
-              </p>
-            </div>
-          </div>
+        <div className="border-t border-white/[0.08] px-6 py-5">
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} EVLOEVFILM</p>
         </div>
       </SheetContent>
     </Sheet>

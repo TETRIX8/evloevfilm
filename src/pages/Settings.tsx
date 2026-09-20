@@ -13,6 +13,7 @@ import { BackgroundUploader } from "@/components/settings/BackgroundUploader";
 import { ColorThemeSelector } from "@/components/settings/ColorThemeSelector";
 import { LoadingAnimationSelector } from "@/components/settings/LoadingAnimationSelector";
 import { WebGLAnimationSelector } from "@/components/settings/WebGLAnimationSelector";
+import { Navigation } from "@/components/navigation/Navigation";
 import { toast } from "sonner";
 import { soundEffects } from "@/utils/soundEffects";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -296,9 +297,11 @@ export default function Settings() {
   };
 
   return (
-    <div className="container max-w-4xl py-4 md:py-10 mt-8 md:mt-16 px-3 md:px-6">
+    <div className="page-shell">
+      <Navigation />
+      <main className="content-container max-w-4xl pt-28">
       <div className="flex items-center justify-between mb-4 md:mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Настройки</h1>
+        <div><p className="section-eyebrow">Персонализация</p><h1 className="section-heading">Настройки</h1></div>
         <div className="flex items-center gap-1 md:gap-2">
           {hasChanges && (
             <>
@@ -496,6 +499,7 @@ export default function Settings() {
           Сбросить настройки
         </Button>
       </div>
+      </main>
     </div>
   );
 }

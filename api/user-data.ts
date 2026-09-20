@@ -36,8 +36,9 @@ async function readData(uid: string): Promise<UserData> {
     if (!response.ok) throw new Error(`Blob read failed: ${response.status}`);
     const value = await response.json();
     return { saved: Array.isArray(value.saved) ? value.saved : [], history: Array.isArray(value.history) ? value.history : [] };
-  } catch (error: any) {
-    if (error?.statusCode === 404 || error?.status === 404 || /not found/i.test(error?.message || '')) return emptyData();
+  } catch (error: unknown) {
+    const blobError = error as { statusCode?: number; status?: number; message?: string };
+    if (blobError.statusCode === 404 || blobError.status === 404 || /not found/i.test(blobError.message || '')) return emptyData();
     throw error;
   }
 }
@@ -71,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else if (body.action === 'unsave') {
       data.saved = data.saved.filter((entry) => entry.id !== body.id && entry.url !== body.url);
     } else if (body.action === 'history') {
-      const item = { ...body.item, id: body.item.id || crypto.randomUUID(), watchedAt: now };
+      const item = { ...body.item, id: body.item.id || crypto.randomUUID(), createdAt: body.item.createdAt || now, watchedAt: now };
       data.history = [item, ...data.history.filter((entry) => entry.url !== item.url)].slice(0, 50);
     } else if (body.action === 'progress') {
       data.history = data.history.map((entry) => entry.url === body.url ? { ...entry, progress: body.progress } : entry);
