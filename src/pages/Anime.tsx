@@ -237,7 +237,7 @@ export default function Anime() {
         >
           <div className="space-y-4">
             <motion.h1 
-              className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent"
+              className="font-display text-4xl font-semibold tracking-[-0.07em] text-foreground md:text-6xl"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -340,7 +340,7 @@ export default function Anime() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <Card className="bg-gradient-to-r from-primary/10 via-purple-400/10 to-pink-400/10 border-primary/20">
+              <Card className="border-primary/20 bg-primary/[0.08]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     {displayInfo.icon}
@@ -436,7 +436,7 @@ export default function Anime() {
                           russian_kp: ''
                         },
                         description: item.description || '',
-                        kind: item.kind as any,
+                        kind: item.kind as AnimeSearchItem['kind'],
                         score: parseFloat(item.score) || 0,
                         status: item.status,
                         rating: item.rating,
@@ -609,12 +609,12 @@ export default function Anime() {
                   transition={{ delay: 0.5 }}
                   className="space-y-6"
                 >
-                  <Card className="bg-gradient-to-r from-purple-500/10 via-pink-400/10 to-rose-400/10 border-purple-500/20">
+                  <Card className="border-primary/20 bg-primary/[0.08]">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-2xl">
-                        <BookOpen className="h-6 w-6 text-purple-400" />
+                        <BookOpen className="h-6 w-6 text-primary" />
                         Подборки аниме
-                        <Badge variant="secondary" className="ml-auto bg-purple-500/20 text-purple-300">
+                        <Badge variant="secondary" className="ml-auto bg-primary/15 text-primary">
                           Тематические
                         </Badge>
                       </CardTitle>

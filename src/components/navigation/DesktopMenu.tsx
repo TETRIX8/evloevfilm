@@ -1,92 +1,44 @@
-
-import { Button } from "@/components/ui/button";
-import { Bookmark, Film, History, Info, HelpCircle, BarChart, MessageSquare, Settings, Zap } from "lucide-react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { Compass, Film, MessageCircle, Zap } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface DesktopMenuProps {
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
 
-export function DesktopMenu({ isAuthenticated, isAdmin }: DesktopMenuProps) {
+const primaryLinks = [
+  { title: "Главная", url: "/", icon: Compass },
+  { title: "Новинки", url: "/new", icon: Film },
+  { title: "Аниме", url: "https://evloevfilmanime.vercel.app/", icon: Zap, external: true },
+  { title: "Чат", url: "/chat", icon: MessageCircle },
+];
+
+export function DesktopMenu(_: DesktopMenuProps) {
+  const location = useLocation();
+
   return (
-    <div className="hidden lg:flex items-center gap-2">
-      {/* Show these items always, not just when authenticated */}
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/saved">
-            <Bookmark className="h-4 w-4" />
-            Сохраненные
-          </Link>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/history">
-            <History className="h-4 w-4" />
-            История просмотров
-          </Link>
-        </Button>
-      </motion.div>
-      {isAdmin && (
-        <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-          <Button variant="ghost" className="gap-2" asChild>
-            <Link to="/admin">
-              <BarChart className="h-4 w-4" />
-              Админ панель
-            </Link>
-          </Button>
-        </motion.div>
-      )}
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/chat">
-            <MessageSquare className="h-4 w-4" />
-            Онлайн чат
-          </Link>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/new">
-            <Film className="h-4 w-4" />
-            Новинки
-          </Link>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <a href="https://evloevfilmanime.vercel.app/" target="_blank" rel="noopener noreferrer">
-            <Zap className="h-4 w-4" />
-            Аниме
+    <div className="hidden items-center gap-1 xl:flex" aria-label="Разделы каталога">
+      {primaryLinks.map((item) => {
+        const Icon = item.icon;
+        const active = !item.external && location.pathname === item.url;
+        const className = cn(
+          "nav-link gap-2",
+          active && "bg-white/[0.08] text-foreground"
+        );
+
+        return item.external ? (
+          <a key={item.title} href={item.url} target="_blank" rel="noopener noreferrer" className={className}>
+            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            {item.title}
           </a>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/settings">
-            <Settings className="h-4 w-4" />
-            Настройки
+        ) : (
+          <Link key={item.title} to={item.url} className={className}>
+            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+            {item.title}
           </Link>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/about">
-            <Info className="h-4 w-4" />
-            О нас
-          </Link>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-        <Button variant="ghost" className="gap-2" asChild>
-          <Link to="/support">
-            <HelpCircle className="h-4 w-4" />
-            Поддержка
-          </Link>
-        </Button>
-      </motion.div>
+        );
+      })}
     </div>
   );
 }

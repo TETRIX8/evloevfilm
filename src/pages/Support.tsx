@@ -1,13 +1,12 @@
-
 import { Navigation } from "@/components/navigation/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import emailjs from '@emailjs/browser';
+import emailjs from "@emailjs/browser";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { Headphones, Mail, Send } from "lucide-react";
 
 export default function Support() {
   const [subject, setSubject] = useState("");
@@ -16,158 +15,28 @@ export default function Support() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.email) {
-        setUserEmail(session.user.email);
-      }
-    });
-  }, []);
+  useEffect(() => { supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user?.email) setUserEmail(session.user.email); }); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const result = await emailjs.sendForm(
-        'service_vcaxptx',
-        'template_91c1fvw',
-        formRef.current!,
-        'aoak44iftoobsH4Xm'
-      );
-
-      if (result.text === 'OK') {
-        toast.success("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
-        setSubject("");
-        setMessage("");
-      } else {
-        throw new Error("Не удалось отправить сообщение");
-      }
+      const result = await emailjs.sendForm("service_vcaxptx", "template_91c1fvw", formRef.current!, "aoak44iftoobsH4Xm");
+      if (result.text !== "OK") throw new Error("Email service failed");
+      toast.success("Сообщение отправлено. Мы ответим по указанному email.");
+      setSubject(""); setMessage("");
     } catch (error) {
-      console.error("Error sending support email:", error);
-      toast.error("Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.");
-    } finally {
-      setIsSubmitting(false);
-    }
+      console.error("Support request error:", error);
+      toast.error("Не удалось отправить сообщение. Попробуйте позже.");
+    } finally { setIsSubmitting(false); }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-background via-purple-500/5 to-background">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-      </div>
-      
-      <Navigation />
-      
-      <main className="container pt-24 pb-16 relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-xl mx-auto space-y-8"
-        >
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-center space-y-2"
-          >
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500">
-              Поддержка
-            </h1>
-            <p className="text-muted-foreground">
-              У вас есть вопросы? Мы здесь, чтобы помочь!
-            </p>
-          </motion.div>
-
-          <motion.form 
-            ref={formRef} 
-            onSubmit={handleSubmit} 
-            className="space-y-6 bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-primary/10 shadow-xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
-            <motion.div 
-              className="space-y-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="Ваш email"
-                required
-                readOnly={!!userEmail}
-                className={`${userEmail ? "bg-muted" : ""} transition-all duration-300 hover:shadow-md focus:shadow-lg`}
-              />
-            </motion.div>
-
-            <motion.div 
-              className="space-y-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-            >
-              <label htmlFor="subject" className="text-sm font-medium">
-                Тема
-              </label>
-              <Input
-                id="subject"
-                name="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="О чем вы хотите сообщить?"
-                required
-                className="transition-all duration-300 hover:shadow-md focus:shadow-lg"
-              />
-            </motion.div>
-
-            <motion.div 
-              className="space-y-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-            >
-              <label htmlFor="message" className="text-sm font-medium">
-                Сообщение
-              </label>
-              <Textarea
-                id="message"
-                name="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Опишите вашу проблему или вопрос..."
-                required
-                className="min-h-[150px] transition-all duration-300 hover:shadow-md focus:shadow-lg"
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-            >
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-[1.02]" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Отправка..." : "Отправить сообщение"}
-              </Button>
-            </motion.div>
-          </motion.form>
-        </motion.div>
-      </main>
+    <div className="page-shell soft-grid"><Navigation />
+      <main className="content-container pt-28"><div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[.8fr_1.2fr]">
+        <section className="surface-panel h-fit p-6 sm:p-8"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary"><Headphones className="h-6 w-6" /></span><p className="section-eyebrow mt-7">На связи</p><h1 className="section-heading">Поддержка</h1><p className="mt-4 text-sm leading-6 text-muted-foreground">Опишите, что произошло: чем точнее детали, тем быстрее получится помочь.</p><div className="mt-8 border-t border-white/[0.08] pt-5"><p className="text-sm font-bold">О чём можно написать?</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Вход в аккаунт, работа плеера, избранное, ошибки в каталоге или предложение для сервиса.</p></div></section>
+        <form ref={formRef} onSubmit={handleSubmit} className="surface-panel space-y-5 p-6 sm:p-8"><div><p className="section-eyebrow">Обращение</p><h2 className="mt-2 text-xl font-extrabold">Как можем помочь?</h2></div><label className="block text-sm font-bold">Email<Input id="email" name="email" type="email" value={userEmail} onChange={(event) => setUserEmail(event.target.value)} placeholder="name@example.com" required readOnly={Boolean(userEmail)} className="mt-2" /></label><label className="block text-sm font-bold">Тема<Input id="subject" name="subject" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Коротко опишите вопрос" required className="mt-2" /></label><label className="block text-sm font-bold">Сообщение<Textarea id="message" name="message" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Опишите ситуацию и укажите, на каком шаге возникла проблема" required className="mt-2 min-h-[160px] rounded-xl border-input bg-background/80" /></label><Button type="submit" disabled={isSubmitting} className="h-12 w-full"><Send className="h-4 w-4" />{isSubmitting ? "Отправляем…" : "Отправить сообщение"}</Button><p className="flex items-center gap-2 text-xs text-muted-foreground"><Mail className="h-3.5 w-3.5 text-primary" />Ответ придёт на указанный email.</p></form>
+      </div></main>
     </div>
   );
 }
