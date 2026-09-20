@@ -68,15 +68,14 @@ npm start
 
 ## Vercel: избранное, сохранения и история
 
-Избранное, сохранения и история просмотров хранятся через защищённый endpoint `/api/user-data` в **приватном Vercel Blob**. Данные разделены по Firebase UID, поэтому один пользователь не может прочитать JSON другого пользователя. `localStorage`, Firestore и Supabase больше не используются для этих трёх функций.
+Избранное, сохранения и история просмотров хранятся через endpoint `/api/user-data` в Vercel Blob. Данные разделены по Firebase UID. Для приватного режима задайте `BLOB_ACCESS=private` и используйте **Private Blob Store**; для уже созданного Public Store оставьте `BLOB_ACCESS=public` (это режим совместимости, при котором URL JSON нельзя считать секретным). `localStorage`, Firestore и Supabase больше не используются для этих трёх функций.
 
 Перед деплоем:
 
-1. В Vercel откройте проект и подключите Storage → Blob к этому проекту. Vercel автоматически добавит `BLOB_READ_WRITE_TOKEN` (или OIDC-переменные `BLOB_STORE_ID` и `VERCEL_OIDC_TOKEN`).
-2. Добавьте секрет `FIREBASE_SERVICE_ACCOUNT_JSON` со значением всего JSON service account Firebase. Не добавляйте этот секрет в репозиторий и не используйте его с префиксом `VITE_`.
+1. В Vercel откройте проект и подключите Storage → Blob к этому проекту. Vercel автоматически добавит `BLOB_READ_WRITE_TOKEN` (или OIDC-переменные `BLOB_STORE_ID` и `VERCEL_OIDC_TOKEN`). Если Store отмечен как Public, задайте `BLOB_ACCESS=public`; для нового Private Store задайте `BLOB_ACCESS=private`.
+2. Сервер может проверить Firebase ID token через `FIREBASE_SERVICE_ACCOUNT_JSON`; если этот секрет не задан, API использует Firebase Identity Toolkit и `FIREBASE_WEB_API_KEY` (или ключ проекта по умолчанию). Для production рекомендуется добавить `FIREBASE_SERVICE_ACCOUNT_JSON`. Не добавляйте секрет в репозиторий и не используйте его с префиксом `VITE_`.
 3. Для frontend оставьте существующие `VITE_FIREBASE_*` переменные, если они уже настроены в Firebase-проекте.
 4. Выполните деплой с Build Command `npm run build` и Output Directory `dist`. API-функция `api/user-data.ts` будет опубликована Vercel автоматически.
 
 Локальная проверка frontend выполняется командой `npm run build`. Для проверки API локально используйте `vercel dev`, чтобы Vercel подгрузил serverless routes и переменные окружения.
-
 
