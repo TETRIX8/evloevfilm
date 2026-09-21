@@ -1,38 +1,73 @@
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import Client from "@gpt4free/g4f.dev";
+import { ExternalLink, Film, Loader2, MessageCircle, Send, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Navigation } from "@/components/navigation/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Trash2, RefreshCw, MessageCircle } from "lucide-react";
+import { fetchMovies, searchMovies, type MovieData } from "@/services/api";
 import { toast } from "sonner";
-import { Navigation } from "@/components/navigation/Navigation";
 
 interface ChatMessage {
   id: string;
-  sender_name: string;
+  role: "user" | "assistant";
   content: string;
+  movies?: MovieData[];
+}
+
+const client = new Client();
+const starterMessage: ChatMessage = {
+  id: "welcome",
+  role: "assistant",
+  content: "Привет! Я помогу найти фильм или сериал под ваше настроение. Напишите, например: «хочу мрачный детектив на вечер» или название фильма — я дам рекомендации и ссылки для просмотра на EVLOEVFILM.",
+};
+
+function movieUrl(title: string) {
+  return `/movie/${encodeURIComponent(title)}`;
+}
+
+async function findCandidates(message: string) {
+  const exactMatches = await searchMovies(message).catch(() => []);
+  if (exactMatches.length) return exactMatches.slice(0, 8);
+  return (await fetchMovies("films", "", { sort: "-views", limit: 24 }).catch(() => [])).slice(0, 8);
 }
 
 export default function Chat() {
-  const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isJoined, setIsJoined] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [password, setPassword] = useState("");
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([starterMessage]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  useEffect(() => { if (!isJoined) return; const channel = supabase.channel("chat_messages").on("postgres_changes", { event: "INSERT", schema: "public", table: "simple_messages" }, (payload) => setMessages((current) => [...current, payload.new as ChatMessage])).on("postgres_changes", { event: "DELETE", schema: "public", table: "simple_messages" }, (payload) => setMessages((current) => payload.old ? current.filter((msg) => msg.id !== (payload.old as ChatMessage).id) : [])).subscribe(); fetchMessages(); return () => { supabase.removeChannel(channel); }; }, [isJoined]);
-  useEffect(() => { scrollToBottom(); }, [messages]);
-  const fetchMessages = async () => { const { data, error } = await supabase.from("simple_messages").select("*").order("created_at", { ascending: true }); if (error) return toast.error("Не удалось загрузить сообщения"); setMessages((data || []) as ChatMessage[]); };
-  const handlePasswordSubmit = (event: React.FormEvent) => { event.preventDefault(); if (password === "Tetrixuno") { setIsAdmin(true); setIsJoined(true); toast.success("Вы вошли как администратор"); } else { toast.error("Неверный пароль"); setPassword(""); } };
-  const handleJoin = (event: React.FormEvent) => { event.preventDefault(); if (!username.trim()) return; if (username === "AK") setShowPasswordInput(true); else { setIsJoined(true); toast.success("Добро пожаловать в чат"); } };
-  const handleSubmit = async (event: React.FormEvent) => { event.preventDefault(); if (!message.trim()) return; const { error } = await supabase.from("simple_messages").insert([{ sender_name: username, content: message }]); if (error) return toast.error("Не удалось отправить сообщение"); setMessage(""); };
-  const handleDeleteMessage = async (messageId: string) => { if (!isAdmin) return; const { error } = await supabase.from("simple_messages").delete().eq("id", messageId); toast[error ? "error" : "success"](error ? "Не удалось удалить сообщение" : "Сообщение удалено"); };
-  const handleClearChat = async () => { if (!isAdmin || !window.confirm("Очистить сообщения в чате?")) return; const { error } = await supabase.from("simple_messages").delete().neq("id", "0"); toast[error ? "error" : "success"](error ? "Не удалось очистить чат" : "Чат очищен"); };
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const prompt = message.trim();
+    if (!prompt || isLoading) return;
 
-  if (!isJoined) return <div className="page-shell soft-grid"><Navigation /><main className="content-container grid min-h-screen place-items-center pt-28"><section className="surface-panel w-full max-w-md p-7 sm:p-9"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary"><MessageCircle className="h-6 w-6" /></span><p className="section-eyebrow mt-7">Сообщество</p><h1 className="mt-2 text-2xl font-extrabold">Присоединиться к чату</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Выберите имя, чтобы обмениваться рекомендациями и обсуждать кино.</p>{!showPasswordInput ? <form onSubmit={handleJoin} className="mt-6 space-y-3"><Input placeholder="Ваше имя" value={username} onChange={(event) => setUsername(event.target.value)} required /><Button type="submit" className="h-11 w-full">Войти в чат</Button></form> : <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-3"><Input type="password" placeholder="Пароль администратора" value={password} onChange={(event) => setPassword(event.target.value)} required /><Button type="submit" className="h-11 w-full">Подтвердить</Button></form>}</section></main></div>;
+    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: "user", content: prompt };
+    setMessages((current) => [...current, userMessage]);
+    setMessage("");
+    setIsLoading(true);
 
-  return <div className="page-shell"><Navigation /><main className="content-container pt-28"><section className="surface-panel mx-auto max-w-4xl overflow-hidden"><header className="flex flex-col justify-between gap-4 border-b border-white/[0.08] px-5 py-5 sm:flex-row sm:items-center sm:px-6"><div><p className="section-eyebrow">Сообщество</p><h1 className="mt-1 text-xl font-extrabold">Онлайн-чат</h1><p className="mt-1 text-xs text-muted-foreground">Вы вошли как {username}{isAdmin ? " · администратор" : ""}</p></div>{isAdmin && <Button variant="outline" size="sm" onClick={handleClearChat} className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"><RefreshCw className="h-3.5 w-3.5" />Очистить</Button>}</header><div className="h-[58vh] space-y-4 overflow-y-auto bg-black/10 p-5 sm:p-6">{messages.length ? messages.map((msg) => <div key={msg.id} className={`flex ${msg.sender_name === username ? "justify-end" : "justify-start"}`}><div className="flex max-w-[85%] items-start gap-2"><div className={`rounded-2xl px-4 py-3 text-sm leading-6 ${msg.sender_name === username ? "rounded-br-md bg-primary text-primary-foreground" : "rounded-bl-md border border-white/[0.08] bg-secondary text-foreground"}`}><p className={`mb-1 text-[10px] font-extrabold uppercase tracking-wide ${msg.sender_name === username ? "text-primary-foreground/70" : "text-primary"}`}>{msg.sender_name}</p><p>{msg.content}</p></div>{isAdmin && <button type="button" onClick={() => handleDeleteMessage(msg.id)} className="mt-1 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-white/[0.08] hover:text-destructive" aria-label="Удалить сообщение"><Trash2 className="h-3.5 w-3.5" /></button>}</div></div>) : <p className="pt-10 text-center text-sm text-muted-foreground">Чат ждёт первого сообщения.</p>}<div ref={messagesEndRef} /></div><form onSubmit={handleSubmit} className="border-t border-white/[0.08] p-4 sm:p-5"><div className="flex gap-2"><Input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Напишите сообщение…" className="h-11" /><Button type="submit" size="icon" className="h-11 w-11 shrink-0" aria-label="Отправить сообщение"><Send className="h-4 w-4" /></Button></div></form></section></main></div>;
+    try {
+      const candidates = await findCandidates(prompt);
+      const catalogue = candidates.map((movie, index) => `${index + 1}. ${movie.title} (${movie.year || "год неизвестен"}) — рейтинг ${movie.kinopoisk_rating || "нет"}`).join("\n");
+      const result = await client.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: "Ты киноконсультант сайта EVLOEVFILM. Отвечай по-русски, кратко и живо. Рекомендуй только фильмы из переданного каталога, не выдумывай названия и факты. Не вставляй внешние ссылки: ссылки на просмотр будут добавлены интерфейсом сайта. Если подборка не идеально совпадает с запросом, честно скажи, что выбрал наиболее близкие варианты." },
+          { role: "user", content: `Запрос пользователя: ${prompt}\n\nДоступный каталог EVLOEVFILM:\n${catalogue || "Каталог временно недоступен"}\n\nСделай короткое объяснение выбора и назови 1–3 лучших варианта из этого списка.` },
+        ],
+      });
+      const answer = result?.choices?.[0]?.message?.content || "Вот несколько вариантов из каталога:";
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: answer, movies: candidates.slice(0, 3) }]);
+    } catch (error) {
+      console.error("AI movie advisor error:", error);
+      toast.error("ИИ временно недоступен. Показываю варианты из каталога.");
+      const fallback = await findCandidates(prompt).catch(() => []);
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: fallback.length ? "Не удалось подключить ИИ, но я нашёл ближайшие варианты в каталоге:" : "Сейчас каталог недоступен. Попробуйте повторить запрос через минуту.", movies: fallback.slice(0, 3) }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return <div className="page-shell"><Navigation /><main className="content-container pt-28"><section className="surface-panel mx-auto max-w-5xl overflow-hidden"><header className="border-b border-white/[0.08] px-5 py-6 sm:px-7"><p className="section-eyebrow flex items-center gap-2"><Sparkles className="h-3.5 w-3.5" /> AI-навигатор по каталогу</p><h1 className="mt-2 text-2xl font-extrabold sm:text-3xl">Посоветуй фильм</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">ИИ подбирает варианты из каталога EVLOEVFILM и даёт ссылки на страницы просмотра именно нашего сайта.</p></header><div className="min-h-[52vh] space-y-5 overflow-y-auto bg-black/10 p-5 sm:p-7">{messages.map((item) => <div key={item.id} className={`flex ${item.role === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-3xl ${item.role === "user" ? "w-fit" : "w-full"}`}><div className={`flex items-start gap-3 ${item.role === "user" ? "flex-row-reverse" : ""}`}><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.role === "user" ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>{item.role === "user" ? <MessageCircle className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}</span><div className={`rounded-2xl px-4 py-3 text-sm leading-6 ${item.role === "user" ? "rounded-tr-md bg-primary text-primary-foreground" : "rounded-tl-md border border-white/[0.08] bg-secondary text-foreground"}`}><p className="whitespace-pre-line">{item.content}</p></div></div>{item.movies?.length ? <div className="mt-3 grid gap-2 pl-12 sm:grid-cols-3">{item.movies.map((movie) => <Link key={`${item.id}-${movie.title}`} to={movieUrl(movie.title)} className="group rounded-xl border border-white/[0.08] bg-background/70 p-2 transition hover:border-primary/50 hover:bg-primary/5"><div className="flex gap-3"><img src={movie.image} alt="" className="h-16 w-11 rounded-lg object-cover" loading="lazy" /><div className="min-w-0"><p className="line-clamp-2 text-xs font-bold group-hover:text-primary">{movie.title}</p><p className="mt-1 text-[11px] text-muted-foreground">{movie.year || ""}{movie.kinopoisk_rating ? ` · ${movie.kinopoisk_rating}` : ""}</p><span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-primary">Смотреть <ExternalLink className="h-3 w-3" /></span></div></div></Link>)}</div> : null}</div></div>)}{isLoading && <div className="flex items-center gap-3 text-sm text-muted-foreground"><span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-primary"><Loader2 className="h-4 w-4 animate-spin" /></span>Подбираю фильмы из каталога…</div>}</div><form onSubmit={handleSubmit} className="border-t border-white/[0.08] p-4 sm:p-5"><div className="flex gap-2"><Input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Например: фантастика с сильной историей…" className="h-12" disabled={isLoading} /><Button type="submit" className="h-12 gap-2 px-4" disabled={isLoading || !message.trim()}><Send className="h-4 w-4" /><span className="hidden sm:inline">Спросить</span></Button></div><p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Film className="h-3 w-3" /> Ссылки ведут на страницы фильмов внутри EVLOEVFILM.</p></form></section></main></div>;
 }
