@@ -41,6 +41,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
+import { SEO } from "@/components/SEO";
 
 const POPULAR_GENRES = [
   "экшен", "приключения", "комедия", "драма", "фантастика", 
@@ -226,6 +227,7 @@ export default function Anime() {
       variants={pageVariants}
       className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90"
     >
+      <SEO title="Аниме онлайн" description="Смотреть аниме онлайн на EVLOEVFILM: популярные тайтлы, новинки, рейтинги и поиск по жанрам." path="/anime" />
       <Navigation />
       
       <main className="container mx-auto pt-24 pb-16 px-4 space-y-8">

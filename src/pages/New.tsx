@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Film, Sparkles } from "lucide-react";
 import { MovieGrid } from "@/components/MovieGrid";
 import { Navigation } from "@/components/navigation/Navigation";
+import { SEO } from "@/components/SEO";
 
 const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
 const BASE_URL = "https://evloevfilmapi.vercel.app/api/list";
@@ -23,6 +24,7 @@ export default function New() {
 
   return (
     <div className="page-shell">
+      <SEO title={`Новинки фильмов ${currentYear}`} description={`Смотреть новые фильмы ${currentYear} на EVLOEVFILM. Свежие премьеры и популярные новинки с удобным поиском.`} path="/new" />
       <Navigation />
       <main className="content-container pt-28">
         <header className="relative overflow-hidden rounded-[1.5rem] border border-white/[0.09] bg-[linear-gradient(120deg,rgba(255,174,75,.15),rgba(255,255,255,.03)_35%,rgba(47,125,182,.10))] px-6 py-10 sm:px-10 sm:py-12">

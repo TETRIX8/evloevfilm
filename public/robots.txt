@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /movie/
+Allow: /new
+Allow: /anime
+Disallow: /auth
+Disallow: /saved
+Disallow: /history
+Disallow: /profile
+Disallow: /settings
+Disallow: /admin
+Disallow: /chat
+Disallow: /api/
+
+Sitemap: https://evloevfilm.vercel.app/sitemap.xml

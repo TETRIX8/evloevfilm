@@ -8,6 +8,7 @@ import { SearchResults } from "@/components/SearchResults";
 import { useMovies, useMovieSearch } from "@/hooks/use-movies";
 import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 import { MovieCard } from "@/components/MovieCard";
+import { SEO } from "@/components/SEO";
 
 const referenceImage = "https://hf2medjbk42gnqik.public.blob.vercel-storage.com/public-photos/1789751594125-1000648248-Kg7qNfCuoMkKRQGTC2yfky2Kl0o6iA.png";
 
@@ -32,6 +33,7 @@ export default function Index() {
 
   return (
     <div className="page-shell">
+      <SEO />
       <Navigation />
 
       <main>
