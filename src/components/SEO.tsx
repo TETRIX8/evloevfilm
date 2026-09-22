@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_URL = "https://evloevfilm.vercel.app";
+const SITE_URL = "https://tetrixfilm.ru";
 const DEFAULT_TITLE = "EVLOEVFILM — фильмы, сериалы и аниме онлайн";
 const DEFAULT_DESCRIPTION = "Находите фильмы, сериалы и аниме по названию или настроению. Новинки, популярное, подборки и AI-рекомендации на EVLOEVFILM.";
 

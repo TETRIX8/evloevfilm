@@ -12,4 +12,4 @@ Disallow: /admin
 Disallow: /chat
 Disallow: /api/
 
-Sitemap: https://evloevfilm.vercel.app/sitemap.xml
+Sitemap: https://tetrixfilm.ru/sitemap.xml
