@@ -58,7 +58,13 @@ export const FirebaseAuth = ({ onSuccess, mode, onModeChange }: FirebaseAuthProp
     try {
       setIsLoading(true);
       if (!confirmation) {
-        const result = await sendPhoneCode(phone.trim(), "phone-recaptcha-container");
+        const normalizedPhone = normalizePhoneNumber(phone);
+        if (!normalizedPhone) {
+          toast.error("Введите корректный номер: +79856670606 или 89856670606");
+          return;
+        }
+        setPhone(normalizedPhone);
+        const result = await sendPhoneCode(normalizedPhone, "phone-recaptcha-container");
         setConfirmation(result);
       } else {
         await confirmPhoneCode(confirmation, verificationCode.trim());
@@ -102,10 +108,10 @@ export const FirebaseAuth = ({ onSuccess, mode, onModeChange }: FirebaseAuthProp
         <div className="relative"><Separator /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">или</span></div>
         {authMethod === "phone" ? (
           <form onSubmit={handlePhoneAuth} className="space-y-4">
-            <label className="block text-sm font-bold">Номер телефона<span className="relative mt-2 block"><Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" /><Input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+79991234567" className="pl-10" disabled={isLoading || Boolean(confirmation)} required /></span></label>
+            <label className="block text-sm font-bold">Номер телефона<span className="relative mt-2 block"><Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" /><Input type="tel" inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+79991234567 или 89991234567" className="pl-10" disabled={isLoading || Boolean(confirmation)} required /></span><span className="mt-2 block text-xs font-medium text-muted-foreground">Введите российский номер с 8 или в международном формате с +7.</span></label>
             {confirmation && <label className="block text-sm font-bold">Код из SMS<Input inputMode="numeric" value={verificationCode} onChange={(event) => setVerificationCode(event.target.value)} placeholder="123456" className="mt-2" disabled={isLoading} required /></label>}
             <div id="phone-recaptcha-container" />
-            <Button type="submit" className="h-12 w-full" disabled={isLoading || (confirmation ? verificationCode.length < 4 : phone.length < 7)}>{isLoading ? "Подождите…" : confirmation ? "Подтвердить код" : "Получить SMS-код"}</Button>
+            <Button type="submit" className="h-12 w-full" disabled={isLoading || (confirmation ? verificationCode.length < 4 : !normalizePhoneNumber(phone))}>{isLoading ? "Подождите…" : confirmation ? "Подтвердить код" : "Получить SMS-код"}</Button>
             {confirmation && <button type="button" onClick={() => setConfirmation(null)} className="w-full text-sm font-semibold text-muted-foreground hover:text-foreground">Изменить номер</button>}
           </form>
         ) : (
@@ -122,3 +128,16 @@ export const FirebaseAuth = ({ onSuccess, mode, onModeChange }: FirebaseAuthProp
     </Card>
   );
 };
+
+function normalizePhoneNumber(value: string): string | null {
+  const digits = value.replace(/\D/g, "");
+  const normalized = digits.startsWith("8") && digits.length === 11
+    ? `+7${digits.slice(1)}`
+    : digits.startsWith("7") && digits.length === 11
+      ? `+${digits}`
+      : value.trim().startsWith("+")
+        ? `+${digits}`
+        : null;
+
+  return normalized && /^\+[1-9]\d{7,14}$/.test(normalized) ? normalized : null;
+}
