@@ -1,4 +1,4 @@
-import { ArrowLeft, Heart, Share2, Search, Star, Clock, Globe, Award, Play } from "lucide-react";
+import { ArrowLeft, Heart, Share2, Search, Star, Clock, Globe, Award, Play, Radio } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { VPNAdvertisement } from "./VPNAdvertisement";
 import { fetchKinopoiskMovie, fetchMovieStills, type KinopoiskMovie, type MovieStill } from "@/services/kinopoisk";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchAllohaMovieDetails, type AllohaMovieData } from "@/services/alloha-api";
+import { CreateRoomModal } from "@/components/watch-together/CreateRoomModal";
 import {
   Carousel,
   CarouselContent,
@@ -576,6 +577,23 @@ export function MoviePlayer({ title, iframeUrl }: MoviePlayerProps) {
                   <Play className="h-5 w-5" />
                   {showPlayer ? "Воспроизводится" : "Смотреть"}
                 </Button>
+
+                <CreateRoomModal
+                  movieTitle={title}
+                  iframeUrl={iframeUrl}
+                  posterUrl={imageUrl}
+                  trigger={
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full sm:w-auto flex items-center gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary font-bold shadow-[0_0_20px_rgba(229,9,20,0.15)] transition-all"
+                    >
+                      <Radio className="h-5 w-5 animate-pulse text-amber-400" />
+                      Посмотреть вместе
+                    </Button>
+                  }
+                />
+
                 <Button
                   variant="secondary"
                   size="icon"
