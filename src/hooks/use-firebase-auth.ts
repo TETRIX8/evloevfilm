@@ -3,6 +3,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   User,
@@ -23,6 +25,10 @@ export function useFirebaseAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    void getRedirectResult(auth).catch((error: { code?: string }) => {
+      if (error.code) toast.error(getErrorMessage(error.code));
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser({
@@ -78,9 +84,17 @@ export function useFirebaseAuth() {
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
-      const result = await signInWithPopup(auth, googleProvider);
-      toast.success('Успешный вход через Google!');
-      return result.user;
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        toast.success('Успешный вход через Google!');
+        return result.user;
+      } catch (error: any) {
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+          await signInWithRedirect(auth, googleProvider);
+          return null;
+        }
+        throw error;
+      }
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       toast.error(errorMessage);
@@ -135,8 +149,15 @@ function getErrorMessage(errorCode: string): string {
       return 'Вход отменен пользователем';
     case 'auth/cancelled-popup-request':
       return 'Вход отменен';
+    case 'auth/popup-blocked':
+      return 'Браузер заблокировал окно Google. Повторите попытку или разрешите всплывающие окна для сайта';
+    case 'auth/unauthorized-domain':
+      return 'Домен сайта не добавлен в Firebase Auth: добавьте tetrixfilm.ru в Authorized domains';
+    case 'auth/operation-not-allowed':
+      return 'Вход через Google не включён в Firebase Authentication';
+    case 'auth/internal-error':
+      return 'Firebase временно не смог завершить вход через Google. Попробуйте ещё раз';
     default:
       return 'Произошла ошибка при авторизации';
   }
 }
-
