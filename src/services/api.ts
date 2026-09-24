@@ -1,36 +1,90 @@
-const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
-const BASE_URL = "https://evloevfilmapi.vercel.app/api/list";
+const LEGACY_API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
+const LEGACY_BASE_URL = "https://evloevfilmapi.vercel.app/api/list";
+const CATALOG_BASE_URL = import.meta.env.VITE_CATALOG_API_URL || "/api";
 
-export interface MovieApiResponse {
-  total: number;
-  results: Array<{
-    id: number;
-    name: string;
-    poster: string;
-    iframe_url: string;
-    description?: string;
-    year?: number;
-    rating?: number;
-    genres?: string[];
-    kinopoisk_id?: string;
-    trailer?: string;
-  }>;
+export interface VeoNamedItem {
+  id: number;
+  name: string;
+  slug?: string | null;
 }
 
-export interface MovieData {
+export interface VeoRating {
+  rating?: number;
+  votes?: number;
+}
+
+export interface VeoContent {
+  id: number;
   title: string;
-  image: string;
-  link: string;
+  originalTitle?: string;
+  description?: string;
   year?: number;
-  kinopoisk_rating?: number;
+  kinopoiskId?: number;
+  imdbId?: string;
+  contentType?: { id?: number; name?: string; slug?: string };
+  ratings?: { kinopoisk?: VeoRating; imdb?: VeoRating };
+  genres?: VeoNamedItem[];
+  countries?: VeoNamedItem[];
+  createdAt?: string;
+  updatedAt?: string;
+  posterUrl?: string;
+  voiceAuthors?: string;
+  voiceAuthorsV2?: VeoNamedItem[];
+  audioTracks?: string;
+  seasonsCount?: number;
+  episodesCount?: number;
+  episodesBySeason?: Record<string, number>;
+  episodesByVoiceAuthors?: unknown[];
+  playerUrl?: string;
 }
 
-export interface MovieDetails {
+interface VeoCatalogResponse {
+  data?: VeoContent[];
+  results?: VeoContent[];
+  total?: number;
+  pagination?: unknown;
+}
+
+interface LegacyMovie {
+  id: number;
+  name: string;
+  poster: string;
+  iframe_url: string;
   description?: string;
   year?: number;
   rating?: number;
   genres?: string[];
   kinopoisk_id?: string;
+  trailer?: string;
+}
+
+interface LegacyResponse {
+  total?: number;
+  results?: LegacyMovie[];
+}
+
+export interface MovieData {
+  id?: number;
+  title: string;
+  originalTitle?: string;
+  image: string;
+  link: string;
+  year?: number;
+  rating?: number;
+  kinopoisk_rating?: number;
+  kinopoisk_votes?: number;
+  imdb_rating?: number;
+  description?: string;
+  genres?: string[];
+  countries?: string[];
+  kinopoisk_id?: string;
+  imdb_id?: string;
+  seasons_count?: number;
+  episodes_count?: number;
+  voice_authors?: string;
+}
+
+export interface MovieDetails extends MovieData {
   trailer?: string;
   iframe_url: string;
   poster: string;
@@ -41,118 +95,107 @@ interface FetchOptions {
   limit?: number;
 }
 
-async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        },
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return response;
-    } catch (error) {
-      console.error(`Attempt ${i + 1} failed:`, error);
-      if (i === retries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, i), 5000)));
-    }
+function mapVeoContent(item: VeoContent): MovieData {
+  return {
+    id: item.id,
+    title: item.title,
+    originalTitle: item.originalTitle,
+    image: item.posterUrl || "/placeholder.svg",
+    link: item.playerUrl || "",
+    year: item.year,
+    rating: item.ratings?.kinopoisk?.rating,
+    kinopoisk_rating: item.ratings?.kinopoisk?.rating,
+    kinopoisk_votes: item.ratings?.kinopoisk?.votes,
+    imdb_rating: item.ratings?.imdb?.rating,
+    description: item.description,
+    genres: item.genres?.map((genre) => genre.name).filter(Boolean) as string[] | undefined,
+    countries: item.countries?.map((country) => country.name).filter(Boolean) as string[] | undefined,
+    kinopoisk_id: item.kinopoiskId ? String(item.kinopoiskId) : undefined,
+    imdb_id: item.imdbId,
+    seasons_count: item.seasonsCount,
+    episodes_count: item.episodesCount,
+    voice_authors: item.voiceAuthors,
+  };
+}
+
+function mapLegacyMovie(item: LegacyMovie): MovieData {
+  return {
+    id: item.id,
+    title: item.name,
+    image: item.poster,
+    link: item.iframe_url,
+    year: item.year,
+    rating: item.rating,
+    kinopoisk_rating: item.rating,
+    description: item.description,
+    genres: item.genres,
+    kinopoisk_id: item.kinopoisk_id,
+  };
+}
+
+async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...init,
+    headers: { Accept: "application/json", ...(init?.headers || {}) },
+    credentials: "omit",
+  });
+  if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+  return response.json() as Promise<T>;
+}
+
+async function fetchVeoCatalog(params: Record<string, string>): Promise<MovieData[]> {
+  const url = new URL(`${CATALOG_BASE_URL}/catalog`, window.location.origin);
+  Object.entries(params).forEach(([key, value]) => value && url.searchParams.set(key, value));
+  const payload = await requestJson<VeoCatalogResponse>(url.toString());
+  const items = payload.data || payload.results || [];
+  return items.map(mapVeoContent);
+}
+
+async function fetchLegacy(params: Record<string, string>): Promise<MovieData[]> {
+  const url = new URL(LEGACY_BASE_URL);
+  url.searchParams.set("token", LEGACY_API_TOKEN);
+  Object.entries(params).forEach(([key, value]) => value && url.searchParams.set(key, value));
+  const payload = await requestJson<LegacyResponse>(url.toString());
+  return (payload.results || []).map(mapLegacyMovie);
+}
+
+async function withFallback(primary: () => Promise<MovieData[]>, fallback: () => Promise<MovieData[]>): Promise<MovieData[]> {
+  try {
+    const result = await primary();
+    if (result.length) return result;
+  } catch (error) {
+    console.warn("VeoVeo request failed; using auxiliary movie API", error);
   }
-  throw new Error('Failed to fetch after retries');
+  return fallback();
 }
 
 export async function fetchMovieDetails(title: string): Promise<MovieDetails | null> {
-  try {
-    const url = new URL(BASE_URL);
-    url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('name', title);
-    url.searchParams.append('limit', '1');
-
-    const response = await fetchWithRetry(url.toString());
-    const data: MovieApiResponse = await response.json();
-    
-    if (!data.results?.[0]) return null;
-    
-    const movie = data.results[0];
-    return {
-      description: movie.description,
-      year: movie.year,
-      rating: movie.rating,
-      genres: movie.genres,
-      kinopoisk_id: movie.kinopoisk_id,
-      trailer: movie.trailer,
-      iframe_url: movie.iframe_url,
-      poster: movie.poster
-    };
-  } catch (error) {
-    console.error('Error fetching movie details:', error);
-    return null;
-  }
+  if (!title) return null;
+  const items = await withFallback(
+    () => fetchVeoCatalog({ q: title, pageSize: "10", type: "films" }),
+    () => fetchLegacy({ name: title, limit: "1" }),
+  );
+  const movie = items[0];
+  if (!movie || !movie.link) return null;
+  return { ...movie, iframe_url: movie.link, poster: movie.image };
 }
 
-export async function fetchMovies(
-  type: 'films' | 'serials' | 'cartoon', 
-  year: string = '', 
-  options: FetchOptions = {}
-): Promise<MovieData[]> {
-  try {
-    const url = new URL(BASE_URL);
-    url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('sort', options.sort || '-views');
-    url.searchParams.append('type', type);
-    url.searchParams.append('limit', options.limit?.toString() || '50');
-    
-    if (year) {
-      url.searchParams.append('year', year);
-    }
-    
-    if (type === 'serials') {
-      url.searchParams.append('join_seasons', 'false');
-    }
-
-    const response = await fetchWithRetry(url.toString());
-    const data: MovieApiResponse = await response.json();
-    
-    return data.results?.map(item => ({
-      title: item.name,
-      image: item.poster,
-      link: item.iframe_url,
-      year: item.year,
-      kinopoisk_rating: item.rating
-    })) || [];
-  } catch (error) {
-    console.error(`Error fetching ${type}:`, error);
-    throw error;
-  }
+export async function fetchMovies(type: "films" | "serials" | "cartoon", year = "", options: FetchOptions = {}): Promise<MovieData[]> {
+  const limit = String(options.limit || 50);
+  return withFallback(
+    () => fetchVeoCatalog({ type, year, pageSize: limit }),
+    () => fetchLegacy({ sort: options.sort || "-views", type, limit, year, ...(type === "serials" ? { join_seasons: "false" } : {}) }),
+  );
 }
 
 export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
-  if (!searchTerm) return [];
-  
-  try {
-    const url = new URL(BASE_URL);
-    url.searchParams.append('token', API_TOKEN);
-    url.searchParams.append('name', searchTerm);
+  if (!searchTerm.trim()) return [];
+  return withFallback(
+    () => fetchVeoCatalog({ q: searchTerm.trim(), pageSize: "30" }),
+    () => fetchLegacy({ name: searchTerm.trim() }),
+  );
+}
 
-    const response = await fetchWithRetry(url.toString());
-    const data: MovieApiResponse = await response.json();
-    
-    return data.results?.map(item => ({
-      title: item.name,
-      image: item.poster,
-      link: item.iframe_url,
-      year: item.year,
-      kinopoisk_rating: item.rating
-    })) || [];
-  } catch (error) {
-    console.error('Error searching movies:', error);
-    throw error;
-  }
+export async function fetchMovieFilters(): Promise<unknown> {
+  return requestJson(`${CATALOG_BASE_URL}/filters`);
 }

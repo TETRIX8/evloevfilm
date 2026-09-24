@@ -30,7 +30,7 @@ export function MovieCard({ title, image, link, className, type = "movie", year,
     try {
       soundEffects.play("click");
       if (user) await addToHistory({ title, type, poster: image, year, rating, description, url: link, progress: 0 });
-      navigate(`/movie/${encodeURIComponent(title)}`, { state: { title, image, iframeUrl: link } });
+      navigate(`/movie/${encodeURIComponent(title)}`, { state: { title, image, iframeUrl: link, description, year, rating } });
     } catch (error) {
       console.error("Navigation error:", error);
       toast.error("Не удалось открыть фильм");

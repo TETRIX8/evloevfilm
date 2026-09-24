@@ -3,23 +3,13 @@ import { Film, Sparkles } from "lucide-react";
 import { MovieGrid } from "@/components/MovieGrid";
 import { Navigation } from "@/components/navigation/Navigation";
 import { SEO } from "@/components/SEO";
-
-const API_TOKEN = "3794a7638b5863cc60d7b2b9274fa32e";
-const BASE_URL = "https://evloevfilmapi.vercel.app/api/list";
-
-interface CatalogueMovie { name: string; poster: string; iframe_url: string; }
-interface CatalogueResponse { results?: CatalogueMovie[]; }
+import { fetchMovies } from "@/services/api";
 
 export default function New() {
   const currentYear = new Date().getFullYear();
   const { data: newMovies, isLoading, isError } = useQuery({
     queryKey: ["new-movies", currentYear],
-    queryFn: async () => {
-      const response = await fetch(`${BASE_URL}?token=${API_TOKEN}&sort=-views&type=films&limit=50&year=${currentYear}`);
-      if (!response.ok) throw new Error("Failed to fetch new movies");
-      const data = await response.json() as CatalogueResponse;
-      return data.results?.map((movie) => ({ title: movie.name, image: movie.poster, link: movie.iframe_url })) || [];
-    },
+    queryFn: () => fetchMovies("films", String(currentYear), { limit: 50 }),
   });
 
   return (
