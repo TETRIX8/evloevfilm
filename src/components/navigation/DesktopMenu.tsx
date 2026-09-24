@@ -1,4 +1,4 @@
-import { Compass, Film, MessageCircle, Zap } from "lucide-react";
+import { Compass, Film, MessageCircle, Zap, Radio } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ interface DesktopMenuProps {
 const primaryLinks = [
   { title: "Главная", url: "/", icon: Compass },
   { title: "Новинки", url: "/new", icon: Film },
+  { title: "Посмотреть вместе", url: "/watch-together", icon: Radio },
   { title: "Аниме", url: "https://evloevfilmanime.vercel.app/", icon: Zap, external: true },
   { title: "Чат", url: "/chat", icon: MessageCircle },
 ];

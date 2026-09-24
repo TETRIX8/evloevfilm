@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, MessageCircle, Settings, X, Zap, Compass } from "lucide-react";
+import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, MessageCircle, Settings, X, Zap, Compass, Radio } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
       items: [
         { title: "Главная", url: "/", icon: Compass },
         { title: "Новинки", url: "/new", icon: Film },
+        { title: "Посмотреть вместе", url: "/watch-together", icon: Radio },
         { title: "Аниме", url: "https://evloevfilmanime.vercel.app/", icon: Zap, external: true },
       ],
     },

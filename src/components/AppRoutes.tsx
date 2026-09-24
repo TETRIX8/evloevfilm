@@ -19,6 +19,7 @@ import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
 import Chat from "@/pages/Chat";
 import Settings from "@/pages/Settings";
+import WatchTogether from "@/pages/WatchTogether";
 
 export function AppRoutes() {
   return (
@@ -178,6 +179,14 @@ export function AppRoutes() {
               <Settings />
             </PageTransition>
           </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="/watch-together" 
+        element={
+          <PageTransition>
+            <WatchTogether />
+          </PageTransition>
         }
       />
     </Routes>
