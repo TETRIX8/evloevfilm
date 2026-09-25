@@ -8,6 +8,7 @@ import { SearchResults } from "@/components/SearchResults";
 import { useMovies, useMovieSearch } from "@/hooks/use-movies";
 import { AIAssistant } from "@/components/ai-assistant/AIAssistant";
 import { MovieCard } from "@/components/MovieCard";
+import { MovieSphere } from "@/components/MovieSphere";
 import { SEO } from "@/components/SEO";
 
 const referenceImage = "https://hf2medjbk42gnqik.public.blob.vercel-storage.com/public-photos/1789751594125-1000648248-Kg7qNfCuoMkKRQGTC2yfky2Kl0o6iA.png";
@@ -77,6 +78,17 @@ export default function Index() {
         </section>
 
         <section className="content-container space-y-12 md:space-y-16">
+          {/* 3D Sphere Showcase */}
+          {newMovies.data && newMovies.data.length > 0 && (
+            <section className="pt-2">
+              <MovieSphere
+                movies={newMovies.data}
+                title="EVLOEVFILM"
+                subtitle="Интерактивная 3D-орбита фильмов"
+              />
+            </section>
+          )}
+
           <div className="surface-panel soft-grid mx-auto max-w-4xl px-5 py-8 sm:px-9 sm:py-10">
             <div className="mx-auto max-w-2xl text-center">
               <div className="section-eyebrow flex items-center justify-center gap-2"><Search className="h-3.5 w-3.5" /> Быстрый поиск</div>
