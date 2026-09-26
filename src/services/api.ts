@@ -50,6 +50,7 @@ interface LegacyMovie {
   name: string;
   poster: string;
   iframe_url: string;
+  origin_name?: string;
   description?: string;
   year?: number;
   rating?: number;
@@ -122,6 +123,7 @@ function mapLegacyMovie(item: LegacyMovie): MovieData {
   return {
     id: item.id,
     title: item.name,
+    originalTitle: item.origin_name,
     image: item.poster,
     link: item.iframe_url,
     year: item.year,
@@ -200,8 +202,11 @@ export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
 export async function fetchPosterFallback(title: string): Promise<string | null> {
   if (!title.trim()) return null;
   try {
-    const movies = await fetchLegacy({ name: title.trim(), limit: "1" });
-    return movies[0]?.image || null;
+    const movies = await fetchLegacy({ name: title.trim(), limit: "10" });
+    const normalize = (value: string) => value.toLocaleLowerCase().replace(/[«»“”'’:\-]/g, " ").replace(/\s+/g, " ").trim();
+    const wanted = normalize(title);
+    const exact = movies.find((movie) => normalize(movie.title) === wanted || (movie.originalTitle && normalize(movie.originalTitle) === wanted));
+    return exact?.image || null;
   } catch (error) {
     console.warn("Auxiliary poster lookup failed", error);
     return null;
