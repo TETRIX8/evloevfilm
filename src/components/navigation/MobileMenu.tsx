@@ -38,7 +38,7 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
       items: [
         { title: "Настройки", url: "/settings", icon: Settings },
         { title: "О сервисе", url: "/about", icon: Info },
-        { title: "Что такое API", url: "/api-info", icon: Code2 },
+        { title: "Что такое API", url: "/docs", icon: Code2 },
         { title: "Поддержка", url: "/support", icon: HelpCircle },
       ],
     },

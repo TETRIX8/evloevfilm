@@ -135,7 +135,7 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/api-info"
+        path="/docs"
         element={
           <PageTransition>
             <ApiInfo />

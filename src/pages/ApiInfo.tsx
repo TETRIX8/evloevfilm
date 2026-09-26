@@ -47,7 +47,7 @@ export default function ApiInfo() {
       <SEO
         title="Что такое API"
         description="Простое объяснение, как API tetrixfilm.ru получает фильмы, описания, постеры и данные для плеера."
-        path="/api-info"
+        path="/docs"
       />
       <Navigation />
       <main className="content-container pt-28 pb-16">
