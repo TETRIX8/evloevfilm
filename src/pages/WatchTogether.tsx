@@ -54,6 +54,7 @@ export default function WatchTogether() {
     changeMovie,
     sendChatMessage,
     toggleMic,
+    syncPlayer,
   } = useWatchTogether(iframeRef);
 
   const [inputCode, setInputCode] = useState("");
@@ -66,9 +67,7 @@ export default function WatchTogether() {
     setStoredRooms(rooms);
 
     fetchMovies("films", 2026, { limit: 6 }).then((res) => {
-      if (res?.results) {
-        setPopularMovies(res.results);
-      }
+      setPopularMovies(res || []);
     });
 
     const interval = setInterval(() => {
@@ -146,6 +145,7 @@ export default function WatchTogether() {
                   className="w-full h-full border-0"
                   allow="autoplay; fullscreen; microphone; camera; encrypted-media"
                   allowFullScreen
+                  onLoad={syncPlayer}
                   title={currentRoom.movieTitle}
                 />
               ) : (

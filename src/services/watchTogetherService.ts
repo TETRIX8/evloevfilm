@@ -474,6 +474,7 @@ class WatchTogetherManager {
     this.currentRoom.playbackState.status = "PLAYING";
     this.currentRoom.playbackState.currentTime = time;
     this.currentRoom.playbackState.updatedAt = Date.now();
+    this.notifyRoomUpdate();
     this.broadcastSignal({ type: "PLAY", senderPeerId: this.peerId, senderName: this.myName, timestamp: Date.now(), time });
     void this.updateRemotePlayback(true, time);
   }
@@ -483,6 +484,7 @@ class WatchTogetherManager {
     this.currentRoom.playbackState.status = "PAUSED";
     this.currentRoom.playbackState.currentTime = time;
     this.currentRoom.playbackState.updatedAt = Date.now();
+    this.notifyRoomUpdate();
     this.broadcastSignal({ type: "PAUSE", senderPeerId: this.peerId, senderName: this.myName, timestamp: Date.now(), time });
     void this.updateRemotePlayback(false, time);
   }
@@ -491,6 +493,7 @@ class WatchTogetherManager {
     if (!this.currentRoom) return;
     this.currentRoom.playbackState.currentTime = time;
     this.currentRoom.playbackState.updatedAt = Date.now();
+    this.notifyRoomUpdate();
     this.broadcastSignal({ type: "SEEK", senderPeerId: this.peerId, senderName: this.myName, timestamp: Date.now(), time });
     void this.updateRemotePlayback(this.currentRoom.playbackState.status === "PLAYING", time);
   }

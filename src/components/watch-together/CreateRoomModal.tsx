@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Users, Film, Radio, Sparkles, Copy, Check } from "lucide-react";
 import { watchTogetherService } from "@/services/watchTogetherService";
+import { fetchMovieDetails } from "@/services/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -36,10 +37,17 @@ export function CreateRoomModal({
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    const selectedTitle = movieInput || movieTitle;
+    const details = await fetchMovieDetails(selectedTitle);
+    const resolvedIframe = details?.iframe_url || (iframeInput !== iframeUrl ? iframeInput : "");
+    if (!resolvedIframe) {
+      toast.error("Не удалось найти плеер для этого фильма. Проверьте название.");
+      return;
+    }
     const room = await watchTogetherService.createRoom(
-      movieInput || movieTitle,
-      iframeInput || iframeUrl,
-      posterUrl,
+      selectedTitle,
+      resolvedIframe,
+      posterUrl || details?.poster,
       roomName
     );
 

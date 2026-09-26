@@ -126,6 +126,16 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
     [iframeRef, postPlayerCommand]
   );
 
+  const syncPlayer = useCallback(() => {
+    if (!currentRoom?.iframeUrl) return;
+    postPlayerCommand("seek", currentRoom.playbackState.currentTime);
+    if (currentRoom.playbackState.status === "PLAYING") postPlayerCommand("play", currentRoom.playbackState.currentTime);
+  }, [currentRoom, postPlayerCommand]);
+
+  useEffect(() => {
+    syncPlayer();
+  }, [syncPlayer]);
+
   // User Actions
   const createRoom = useCallback((movieTitle: string, iframeUrl: string, posterUrl?: string, customName?: string) => {
     const room = watchTogetherService.createRoom(movieTitle, iframeUrl, posterUrl, customName);
@@ -208,6 +218,7 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
     changeMovie,
     sendChatMessage,
     toggleMic,
+    syncPlayer,
   };
 }
 
