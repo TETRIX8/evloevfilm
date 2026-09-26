@@ -177,7 +177,8 @@ export async function fetchMovieDetails(title: string): Promise<MovieDetails | n
   );
   const movie = items[0];
   if (!movie || !movie.link) return null;
-  return { ...movie, iframe_url: movie.link, poster: movie.image };
+  const poster = movie.image !== "/placeholder.svg" ? movie.image : await fetchPosterFallback(movie.title);
+  return { ...movie, image: poster || "/placeholder.svg", iframe_url: movie.link, poster: poster || "/placeholder.svg" };
 }
 
 export async function fetchMovies(type: "films" | "serials" | "cartoon", year = "", options: FetchOptions = {}): Promise<MovieData[]> {
@@ -194,6 +195,17 @@ export async function searchMovies(searchTerm: string): Promise<MovieData[]> {
     () => fetchVeoCatalog({ q: searchTerm.trim(), pageSize: "30" }),
     () => fetchLegacy({ name: searchTerm.trim() }),
   );
+}
+
+export async function fetchPosterFallback(title: string): Promise<string | null> {
+  if (!title.trim()) return null;
+  try {
+    const movies = await fetchLegacy({ name: title.trim(), limit: "1" });
+    return movies[0]?.image || null;
+  } catch (error) {
+    console.warn("Auxiliary poster lookup failed", error);
+    return null;
+  }
 }
 
 export async function fetchMovieFilters(): Promise<unknown> {

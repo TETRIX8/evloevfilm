@@ -2,10 +2,11 @@ import { cn } from "@/lib/utils";
 import { Heart, Play, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { soundEffects } from "@/utils/soundEffects";
 import { useFirebaseAuth } from "@/hooks/use-firebase-auth";
 import { useFirebaseStorage } from "@/hooks/use-firebase-storage";
+import { fetchPosterFallback } from "@/services/api";
 
 interface MovieCardProps {
   title: string;
@@ -22,14 +23,39 @@ interface MovieCardProps {
 export function MovieCard({ title, image, link, className, type = "movie", year, rating, description }: MovieCardProps) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [posterSrc, setPosterSrc] = useState(image || "/placeholder.svg");
+  const [fallbackTried, setFallbackTried] = useState(false);
   const { user } = useFirebaseAuth();
   const { savedItems, isSaved, addToSaved, removeFromSaved, addToHistory } = useFirebaseStorage();
   const isLiked = isSaved(link);
 
+  useEffect(() => {
+    let active = true;
+    setPosterSrc(image || "/placeholder.svg");
+    setFallbackTried(false);
+    if (!image || image === "/placeholder.svg") {
+      fetchPosterFallback(title).then((fallback) => {
+        if (active && fallback) setPosterSrc(fallback);
+        if (active) setFallbackTried(true);
+      });
+    }
+    return () => { active = false; };
+  }, [image, title]);
+
+  const handlePosterError = async () => {
+    if (fallbackTried) {
+      setPosterSrc("/placeholder.svg");
+      return;
+    }
+    setFallbackTried(true);
+    const fallback = await fetchPosterFallback(title);
+    setPosterSrc(fallback || "/placeholder.svg");
+  };
+
   const handleOpen = async () => {
     try {
       soundEffects.play("click");
-      if (user) await addToHistory({ title, type, poster: image, year, rating, description, url: link, progress: 0 });
+      if (user) await addToHistory({ title, type, poster: posterSrc, year, rating, description, url: link, progress: 0 });
       navigate(`/movie/${encodeURIComponent(title)}`, { state: { title, image, iframeUrl: link, description, year, rating } });
     } catch (error) {
       console.error("Navigation error:", error);
@@ -47,7 +73,7 @@ export function MovieCard({ title, image, link, className, type = "movie", year,
       soundEffects.play("save");
       setIsLoading(true);
       if (!isLiked) {
-        const success = await addToSaved({ title, type, poster: image, year, rating, description, url: link });
+        const success = await addToSaved({ title, type, poster: posterSrc, year, rating, description, url: link });
         toast[success ? "success" : "error"](success ? "Добавлено в избранное" : "Не удалось сохранить фильм");
       } else {
         const savedItem = savedItems.find((item) => item.url === link);
@@ -82,7 +108,7 @@ export function MovieCard({ title, image, link, className, type = "movie", year,
     <article className={cn("group min-w-0", className)}>
       <div className="poster-frame relative aspect-[2/3] transition duration-300 group-hover:-translate-y-1 group-hover:border-primary/45 group-hover:shadow-[0_22px_45px_rgba(0,0,0,.36)]">
         <button type="button" onClick={handleOpen} className="absolute inset-0 z-0 block w-full text-left" aria-label={`Открыть «${title}»`}>
-          <img src={image || "/placeholder.svg"} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+          <img src={posterSrc} onError={handlePosterError} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
           <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,7,10,.08)_35%,rgba(6,7,10,.86)_100%)]" />
           <span className="absolute inset-x-0 bottom-0 flex translate-y-2 items-center gap-2 px-4 pb-4 text-xs font-extrabold text-white opacity-0 transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:opacity-100">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"><Play className="ml-0.5 h-3.5 w-3.5 fill-current" /></span> Смотреть
