@@ -67,6 +67,7 @@ export interface SyncSignal {
 }
 
 class WatchTogetherManager {
+  private readonly apiBase = "/api";
   private peer: Peer | null = null;
   private peerId: string = "";
   private myName: string = "Гость";
@@ -78,12 +79,85 @@ class WatchTogetherManager {
   private isMicMuted: boolean = true;
   private audioContext: AudioContext | null = null;
   private analyserNode: AnalyserNode | null = null;
+  private roomEvents: EventSource | null = null;
+  private roomHostToken = "";
+  private remoteRoomCode = "";
 
   private onRoomUpdateCallbacks: Set<(room: WatchRoom) => void> = new Set();
   private onPlaybackSignalCallbacks: Set<(signal: SyncSignal) => void> = new Set();
   private onChatMessageCallbacks: Set<(msg: ChatMessage) => void> = new Set();
   private onRemoteAudioStreamCallbacks: Set<(peerId: string, stream: MediaStream) => void> = new Set();
   private onSpeakingChangeCallbacks: Set<(peerId: string, isSpeaking: boolean) => void> = new Set();
+
+  private mapRemoteRoom(source: any): WatchRoom {
+    const state = source.state || {};
+    const isPlaying = Boolean(state.is_playing);
+    const roomCode = String(source.room_code || source.id || "");
+    const participant: RoomParticipant = {
+      peerId: this.peerId,
+      name: this.myName,
+      isHost: Boolean(this.roomHostToken),
+      isMicOn: !this.isMicMuted,
+      joinedAt: Date.now(),
+    };
+    return {
+      id: roomCode,
+      name: source.name || `Комната: ${source.movie_name || "Фильм"}`,
+      movieTitle: source.movie_name || "Фильм",
+      iframeUrl: source.movie_iframe_url || "",
+      posterUrl: source.movie_poster || undefined,
+      hostPeerId: source.creator_id || "host",
+      hostName: source.host_name || "Ведущий",
+      createdAt: Date.parse(source.created_at || "") || Date.now(),
+      participants: [participant],
+      playbackState: {
+        status: isPlaying ? "PLAYING" : state.playback_time ? "PAUSED" : "STOPPED",
+        currentTime: Number(state.playback_time || 0),
+        movieTitle: source.movie_name || "Фильм",
+        iframeUrl: source.movie_iframe_url || "",
+        posterUrl: source.movie_poster || undefined,
+        updatedAt: Date.parse(state.updated_at || "") || Date.now(),
+      },
+    };
+  }
+
+  private closeRoomEvents() {
+    this.roomEvents?.close();
+    this.roomEvents = null;
+  }
+
+  private connectRoomEvents(roomCode: string) {
+    this.closeRoomEvents();
+    if (typeof EventSource === "undefined") return;
+    const events = new EventSource(`${this.apiBase}/rooms/${encodeURIComponent(roomCode)}/events`);
+    events.addEventListener("playback", (event) => {
+      const state = JSON.parse((event as MessageEvent).data) as { is_playing: boolean; playback_time: number; updated_at: string };
+      if (!this.currentRoom) return;
+      this.currentRoom.playbackState.currentTime = Number(state.playback_time || 0);
+      this.currentRoom.playbackState.status = state.is_playing ? "PLAYING" : "PAUSED";
+      this.currentRoom.playbackState.updatedAt = Date.parse(state.updated_at) || Date.now();
+      this.notifyRoomUpdate();
+      this.notifyPlaybackSignal({
+        type: state.is_playing ? "PLAY" : "PAUSE",
+        senderPeerId: "server",
+        senderName: "Ведущий",
+        timestamp: Date.now(),
+        time: Number(state.playback_time || 0),
+      });
+    });
+    events.addEventListener("message", (event) => {
+      const message = JSON.parse((event as MessageEvent).data) as ChatMessage;
+      this.notifyChatMessage({
+        id: message.id,
+        senderName: message.senderName || (message as any).sender_nickname || "Гость",
+        senderPeerId: message.senderPeerId || "remote",
+        text: message.text || (message as any).message || "",
+        timestamp: message.timestamp || Date.parse((message as any).created_at || "") || Date.now(),
+      });
+    });
+    events.onerror = () => console.warn("[WatchTogether] SSE room connection interrupted");
+    this.roomEvents = events;
+  }
 
   constructor() {
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
@@ -214,7 +288,36 @@ class WatchTogetherManager {
   }
 
   // Room Creation
-  public createRoom(movieTitle: string, iframeUrl: string, posterUrl?: string, customName?: string): WatchRoom {
+  public async createRoom(movieTitle: string, iframeUrl: string, posterUrl?: string, customName?: string): Promise<WatchRoom> {
+    try {
+      const response = await fetch(`${this.apiBase}/rooms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          movie_name: movieTitle,
+          movie_iframe_url: iframeUrl,
+          movie_poster: posterUrl,
+          movie_type: "movie",
+          creator_id: this.peerId || `guest-${Math.random().toString(36).slice(2, 10)}`,
+          name: customName,
+          host_name: this.myName,
+        }),
+      });
+      if (!response.ok) throw new Error(`Room create failed: ${response.status}`);
+      const payload = await response.json();
+      this.roomHostToken = payload.hostToken || "";
+      this.remoteRoomCode = payload.room?.room_code || "";
+      const room = this.mapRemoteRoom(payload.room);
+      room.name = customName || room.name;
+      room.participants[0].isHost = true;
+      this.currentRoom = room;
+      this.saveRoomToStorage(room);
+      this.connectRoomEvents(room.id);
+      this.notifyRoomUpdate();
+      return room;
+    } catch (error) {
+      console.warn("[WatchTogether] Server room create failed; using local fallback", error);
+    }
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit code
     const roomName = customName || `Комната: ${movieTitle}`;
 
@@ -256,6 +359,23 @@ class WatchTogetherManager {
 
   // Join Room
   public async joinRoom(roomId: string): Promise<WatchRoom | null> {
+    try {
+      const response = await fetch(`${this.apiBase}/rooms/${encodeURIComponent(roomId.toUpperCase())}`);
+      if (response.ok) {
+        const payload = await response.json();
+        const remoteRoom = this.mapRemoteRoom(payload);
+        remoteRoom.id = String(payload.room_code || roomId).toUpperCase();
+        this.remoteRoomCode = remoteRoom.id;
+        this.roomHostToken = "";
+        this.currentRoom = remoteRoom;
+        this.saveRoomToStorage(remoteRoom);
+        this.connectRoomEvents(remoteRoom.id);
+        this.notifyRoomUpdate();
+        return remoteRoom;
+      }
+    } catch (error) {
+      console.warn("[WatchTogether] Server room join failed; trying local room", error);
+    }
     const rooms = this.getStoredRooms();
     let targetRoom = rooms.find((r) => r.id === roomId);
 
@@ -354,14 +474,8 @@ class WatchTogetherManager {
     this.currentRoom.playbackState.status = "PLAYING";
     this.currentRoom.playbackState.currentTime = time;
     this.currentRoom.playbackState.updatedAt = Date.now();
-
-    this.broadcastSignal({
-      type: "PLAY",
-      senderPeerId: this.peerId,
-      senderName: this.myName,
-      timestamp: Date.now(),
-      time,
-    });
+    this.broadcastSignal({ type: "PLAY", senderPeerId: this.peerId, senderName: this.myName, timestamp: Date.now(), time });
+    void this.updateRemotePlayback(true, time);
   }
 
   public sendPause(time: number) {
@@ -369,28 +483,29 @@ class WatchTogetherManager {
     this.currentRoom.playbackState.status = "PAUSED";
     this.currentRoom.playbackState.currentTime = time;
     this.currentRoom.playbackState.updatedAt = Date.now();
-
-    this.broadcastSignal({
-      type: "PAUSE",
-      senderPeerId: this.peerId,
-      senderName: this.myName,
-      timestamp: Date.now(),
-      time,
-    });
+    this.broadcastSignal({ type: "PAUSE", senderPeerId: this.peerId, senderName: this.myName, timestamp: Date.now(), time });
+    void this.updateRemotePlayback(false, time);
   }
 
   public sendSeek(time: number) {
     if (!this.currentRoom) return;
     this.currentRoom.playbackState.currentTime = time;
     this.currentRoom.playbackState.updatedAt = Date.now();
+    this.broadcastSignal({ type: "SEEK", senderPeerId: this.peerId, senderName: this.myName, timestamp: Date.now(), time });
+    void this.updateRemotePlayback(this.currentRoom.playbackState.status === "PLAYING", time);
+  }
 
-    this.broadcastSignal({
-      type: "SEEK",
-      senderPeerId: this.peerId,
-      senderName: this.myName,
-      timestamp: Date.now(),
-      time,
-    });
+  private async updateRemotePlayback(isPlaying: boolean, time: number) {
+    if (!this.currentRoom || !this.roomHostToken || !this.remoteRoomCode) return;
+    try {
+      await fetch(`${this.apiBase}/rooms/${encodeURIComponent(this.remoteRoomCode)}/state`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Room-Host-Token": this.roomHostToken },
+        body: JSON.stringify({ is_playing: isPlaying, playback_time: Math.max(0, Number(time) || 0) }),
+      });
+    } catch (error) {
+      console.warn("[WatchTogether] Could not persist playback state", error);
+    }
   }
 
   public sendChangeMovie(movieTitle: string, iframeUrl: string, posterUrl?: string) {
@@ -445,6 +560,13 @@ class WatchTogetherManager {
     });
 
     this.notifyChatMessage(msg);
+    if (this.remoteRoomCode) {
+      void fetch(`${this.apiBase}/rooms/${encodeURIComponent(this.remoteRoomCode)}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sender_nickname: this.myName, message: msg.text }),
+      }).catch((error) => console.warn("[WatchTogether] Could not persist chat message", error));
+    }
   }
 
   // Voice Chat (Microphone)

@@ -21,6 +21,19 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
 
   const remoteAudioRefs = useRef<Record<string, HTMLAudioElement>>({});
 
+  const postPlayerCommand = useCallback((api: "play" | "pause" | "seek", value?: number) => {
+    const iframe = iframeRef?.current;
+    if (!iframe?.contentWindow) return;
+    const message = { key: "playerjs", api, ...(value === undefined ? {} : { value }) };
+    const send = () => {
+      iframe.contentWindow?.postMessage(message, "*");
+      iframe.contentWindow?.postMessage(JSON.stringify(message), "*");
+    };
+    send();
+    window.setTimeout(send, 250);
+    window.setTimeout(send, 900);
+  }, [iframeRef]);
+
   // Initialize service
   useEffect(() => {
     watchTogetherService.init(userName).then((id) => {
@@ -71,6 +84,8 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
 
       if (signal.type === "PLAY") {
         toast.info(`▶️ ${signal.senderName} запустил воспроизведение`, { duration: 2500 });
+        postPlayerCommand("seek", signal.time);
+        postPlayerCommand("play", signal.time);
         if (iframe) {
           iframe.contentWindow?.postMessage(
             JSON.stringify({ key: "playerjs", api: "play", value: signal.time }),
@@ -84,6 +99,8 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
         setSyncStatus("SYNCED");
       } else if (signal.type === "PAUSE" || signal.type === "STOP") {
         toast.info(`⏸️ ${signal.senderName} поставил на паузу`, { duration: 2500 });
+        postPlayerCommand("seek", signal.time);
+        postPlayerCommand("pause", signal.time);
         if (iframe) {
           iframe.contentWindow?.postMessage(
             JSON.stringify({ key: "playerjs", api: "pause", value: signal.time }),
@@ -93,6 +110,7 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
         setSyncStatus("PAUSED");
       } else if (signal.type === "SEEK") {
         toast.info(`⏩ ${signal.senderName} перемотал на ${formatSeconds(signal.time || 0)}`, { duration: 2500 });
+        postPlayerCommand("seek", signal.time);
         if (iframe) {
           iframe.contentWindow?.postMessage(
             JSON.stringify({ key: "playerjs", api: "seek", value: signal.time }),
@@ -105,7 +123,7 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
         setSyncStatus("SYNCED");
       }
     },
-    [iframeRef]
+    [iframeRef, postPlayerCommand]
   );
 
   // User Actions
@@ -135,19 +153,22 @@ export function useWatchTogether(iframeRef?: React.RefObject<HTMLIFrameElement>)
   }, []);
 
   const playMovie = useCallback((time: number) => {
+    postPlayerCommand("play", time);
     watchTogetherService.sendPlay(time);
     setSyncStatus("SYNCED");
-  }, []);
+  }, [postPlayerCommand]);
 
   const pauseMovie = useCallback((time: number) => {
+    postPlayerCommand("pause", time);
     watchTogetherService.sendPause(time);
     setSyncStatus("PAUSED");
-  }, []);
+  }, [postPlayerCommand]);
 
   const seekMovie = useCallback((time: number) => {
+    postPlayerCommand("seek", time);
     watchTogetherService.sendSeek(time);
     setSyncStatus("SYNCED");
-  }, []);
+  }, [postPlayerCommand]);
 
   const changeMovie = useCallback((movieTitle: string, iframeUrl: string, posterUrl?: string) => {
     watchTogetherService.sendChangeMovie(movieTitle, iframeUrl, posterUrl);

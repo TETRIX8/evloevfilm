@@ -58,7 +58,7 @@ export function WatchPartyControlOverlay({
   onToggleMic,
   onSendMessage,
   onLeaveRoom,
-  currentTime = 0,
+  currentTime = room.playbackState.currentTime,
 }: WatchPartyControlOverlayProps) {
   const [showChat, setShowChat] = useState(false);
   const [showUsers, setShowUsers] = useState(false);

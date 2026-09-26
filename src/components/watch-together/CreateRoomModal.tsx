@@ -34,9 +34,9 @@ export function CreateRoomModal({
   const [iframeInput, setIframeInput] = useState(iframeUrl);
   const navigate = useNavigate();
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const room = watchTogetherService.createRoom(
+    const room = await watchTogetherService.createRoom(
       movieInput || movieTitle,
       iframeInput || iframeUrl,
       posterUrl,

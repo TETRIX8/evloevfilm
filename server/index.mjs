@@ -65,7 +65,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/filters" && req.method === "GET") return json(res, 200, await filters());
     if (url.pathname === "/api/rooms" && req.method === "POST") {
       const input = await body(req); const roomCode = code(); const hostToken = randomBytes(24).toString("hex");
-      const room = { id: randomUUID(), room_code: roomCode, movie_id: Number(input.movie_id || 0), movie_name: String(input.movie_name || "Фильм"), movie_iframe_url: String(input.movie_iframe_url || ""), movie_poster: input.movie_poster || null, movie_type: input.movie_type || "movie", movie_year: input.movie_year || null, creator_id: String(input.creator_id || ""), hostToken, is_active: true, state: { is_playing: false, playback_time: 0, updated_at: new Date().toISOString() }, messages: [], created_at: new Date().toISOString() };
+      const room = { id: randomUUID(), room_code: roomCode, name: String(input.name || `Комната: ${input.movie_name || "Фильм"}`), host_name: String(input.host_name || "Ведущий"), movie_id: Number(input.movie_id || 0), movie_name: String(input.movie_name || "Фильм"), movie_iframe_url: String(input.movie_iframe_url || ""), movie_poster: input.movie_poster || null, movie_type: input.movie_type || "movie", movie_year: input.movie_year || null, creator_id: String(input.creator_id || ""), hostToken, is_active: true, state: { is_playing: false, playback_time: 0, updated_at: new Date().toISOString() }, messages: [], created_at: new Date().toISOString() };
       rooms[roomCode] = room; await saveRooms(); return json(res, 201, { room: publicRoom(room), hostToken });
     }
     const roomMatch = url.pathname.match(/^\/api\/rooms\/([A-Z0-9]+)$/);
