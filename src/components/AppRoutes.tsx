@@ -14,6 +14,7 @@ import AnimeWatchNew from "@/pages/AnimeWatchNew";
 import History from "@/pages/History";
 import Auth from "@/pages/Auth";
 import About from "@/pages/About";
+import ApiInfo from "@/pages/ApiInfo";
 import Support from "@/pages/Support";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
@@ -130,6 +131,14 @@ export function AppRoutes() {
         element={
           <PageTransition>
             <About />
+          </PageTransition>
+        }
+      />
+      <Route
+        path="/api-info"
+        element={
+          <PageTransition>
+            <ApiInfo />
           </PageTransition>
         }
       />

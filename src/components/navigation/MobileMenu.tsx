@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, MessageCircle, Settings, X, Zap, Compass, Radio } from "lucide-react";
+import { Menu, User, Bookmark, History, Film, Info, HelpCircle, LogIn, BarChart, MessageCircle, Settings, X, Zap, Compass, Radio, Code2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ export function MobileMenu({ isAuthenticated, isAdmin }: MobileMenuProps) {
       items: [
         { title: "Настройки", url: "/settings", icon: Settings },
         { title: "О сервисе", url: "/about", icon: Info },
+        { title: "Что такое API", url: "/api-info", icon: Code2 },
         { title: "Поддержка", url: "/support", icon: HelpCircle },
       ],
     },
