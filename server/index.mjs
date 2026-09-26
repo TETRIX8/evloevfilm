@@ -75,7 +75,7 @@ const server = http.createServer(async (req, res) => {
     const room = rooms[(roomMatch || stateMatch || messagesMatch || eventsMatch)?.[1]];
     if (roomMatch && req.method === "GET") return room?.is_active ? json(res, 200, publicRoom(room)) : json(res, 404, { error: "Room not found" });
     if (stateMatch && req.method === "GET") return room ? json(res, 200, room.state) : json(res, 404, { error: "Room not found" });
-    if (stateMatch && req.method === "PUT") {
+    if (stateMatch && (req.method === "PUT" || req.method === "POST")) {
       if (!room) return json(res, 404, { error: "Room not found" }); if (!authHost(req, room)) return json(res, 403, { error: "Only the room creator can control playback" });
       const input = await body(req); room.state = { is_playing: Boolean(input.is_playing), playback_time: Number(input.playback_time || 0), updated_at: new Date().toISOString() }; await saveRooms(); emit(room.room_code, "playback", room.state); return json(res, 200, room.state);
     }

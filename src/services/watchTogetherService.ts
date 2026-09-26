@@ -499,7 +499,7 @@ class WatchTogetherManager {
     if (!this.currentRoom || !this.roomHostToken || !this.remoteRoomCode) return;
     try {
       await fetch(`${this.apiBase}/rooms/${encodeURIComponent(this.remoteRoomCode)}/state`, {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": "application/json", "X-Room-Host-Token": this.roomHostToken },
         body: JSON.stringify({ is_playing: isPlaying, playback_time: Math.max(0, Number(time) || 0) }),
       });
