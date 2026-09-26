@@ -370,6 +370,14 @@ class WatchTogetherManager {
         this.currentRoom = remoteRoom;
         this.saveRoomToStorage(remoteRoom);
         this.connectRoomEvents(remoteRoom.id);
+        if (remoteRoom.hostPeerId && remoteRoom.hostPeerId !== this.peerId && this.peer) {
+          try {
+            const connection = this.peer.connect(remoteRoom.hostPeerId);
+            this.setupDataConnection(connection);
+          } catch (error) {
+            console.warn("[WatchTogether] Could not connect to room host for voice chat", error);
+          }
+        }
         this.notifyRoomUpdate();
         return remoteRoom;
       }
