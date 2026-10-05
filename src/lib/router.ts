@@ -6,6 +6,7 @@ export type Route =
   | { name: "catalog"; category: Category; genre?: string }
   | { name: "library" }
   | { name: "api" }
+  | { name: "status" }
   | { name: "movie"; provider: ProviderId; id: string; title?: string; play?: boolean };
 
 const CATEGORIES: Category[] = ["films", "serials", "cartoon", "anime-serials"];
@@ -21,6 +22,8 @@ export function formatRoute(r: Route): string {
       return "#/library";
     case "api":
       return "#/api";
+    case "status":
+      return "/status";
     case "movie": {
       const q = new URLSearchParams();
       if (r.title) q.set("t", r.title);
@@ -34,6 +37,7 @@ export function formatRoute(r: Route): string {
 }
 
 export function parseRoute(hash: string): Route {
+  if (!hash && window.location.pathname === "/status") return { name: "status" };
   const raw = hash.replace(/^#/, "") || "/";
   const [path, search = ""] = raw.split("?");
   const parts = path.split("/").filter(Boolean).map((s) => {

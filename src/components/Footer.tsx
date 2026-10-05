@@ -1,4 +1,4 @@
-import { Database, Mail, Terminal } from "lucide-react";
+import { Activity, Database, Mail, Terminal } from "lucide-react";
 import { Logo } from "./Logo";
 import { CATEGORIES } from "../lib/meta";
 import { useProvider } from "../lib/provider-context";
@@ -45,6 +45,11 @@ export function Footer({ onNavigate }: { onNavigate: (r: Route) => void }) {
               <button type="button" className={`${link} inline-flex items-center gap-2`} onClick={() => onNavigate({ name: "api" })}>
                 <Terminal className="h-4 w-4 text-gold-400" /> API, статус и тесты
               </button>
+            </li>
+            <li>
+              <a href="/status" className={`${link} inline-flex items-center gap-2`}>
+                <Activity className="h-4 w-4 text-gold-400" /> Живая статистика
+              </a>
             </li>
             <li>
               <button type="button" className={`${link} inline-flex items-center gap-2`} onClick={openDialog}>

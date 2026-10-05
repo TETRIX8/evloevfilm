@@ -6,6 +6,7 @@ import { ProviderProvider, useProvider } from "./lib/provider-context";
 import { loadTrending } from "./lib/queries";
 import { navigate, routePath, useRoute, type Route } from "./lib/router";
 import { canonicalForHash, setSiteSeo } from "./lib/seo";
+import { startStatsTracking } from "./lib/stats";
 import { ApiPage } from "./components/ApiPage";
 import { CatalogView } from "./components/CatalogView";
 import { Footer } from "./components/Footer";
@@ -15,6 +16,7 @@ import { MoviePage } from "./components/MoviePage";
 import { Navbar } from "./components/Navbar";
 import { SearchView } from "./components/SearchView";
 import { Splash } from "./components/Splash";
+import { StatusPage } from "./components/StatusPage";
 
 function Shell() {
   const { provider } = useProvider();
@@ -27,6 +29,8 @@ function Shell() {
   const [splash, setSplash] = useState<"show" | "leaving" | "gone">("show");
   const [toast, setToast] = useState<string | null>(null);
   const previousProvider = useRef(provider.id);
+
+  useEffect(() => startStatsTracking(), []);
 
   const go = useCallback((next: Route) => {
     setQuery("");
@@ -82,6 +86,7 @@ function Shell() {
       "anime-serials": "Аниме онлайн — сериалы и новинки | TetrixFilm",
       library: "Моя коллекция фильмов | TetrixFilm",
       api: "TetrixFilm API — каталог фильмов и сериалов",
+      status: "Статистика TetrixFilm — онлайн",
     };
     const descriptions: Record<string, string> = {
       home: "TetrixFilm — онлайн-каталог фильмов, сериалов, мультфильмов и аниме: поиск, подборки, озвучки и просмотр в хорошем качестве.",
@@ -91,6 +96,7 @@ function Shell() {
       "anime-serials": "Смотрите аниме онлайн на TetrixFilm: популярные сериалы, новые релизы и удобный поиск по каталогу.",
       library: "Личная коллекция фильмов и сериалов на TetrixFilm — сохраняйте понравившиеся проекты и возвращайтесь к просмотру.",
       api: "Открытый TetrixFilm API для поиска и получения каталога фильмов, сериалов, мультфильмов и аниме.",
+      status: "Живая статистика TetrixFilm: переходы, пользователи, клики и зрители совместных просмотров.",
     };
     const key = route.name === "catalog" ? route.category : route.name;
     setSiteSeo({
@@ -129,6 +135,9 @@ function Shell() {
         break;
       case "api":
         page = <ApiPage onOpen={open} />;
+        break;
+      case "status":
+        page = <StatusPage />;
         break;
       case "movie":
         page = <MoviePage key={`${route.provider}:${route.id}`} route={route} onOpen={open} />;
