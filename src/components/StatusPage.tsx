@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, Eye, MousePointerClick, Radio, RefreshCw, Users, Wifi } from "lucide-react";
-import { loadSiteStats, type SiteStats } from "../lib/stats";
+import { loadSiteStats, type SiteStats, type StatDay } from "../lib/stats";
 import { setSiteSeo } from "../lib/seo";
 
 const EMPTY: SiteStats = {
@@ -10,6 +10,7 @@ const EMPTY: SiteStats = {
   activeUsers: 0,
   togetherViewers: 0,
   togetherRooms: 0,
+  history: [],
   updatedAt: new Date().toISOString(),
 };
 
@@ -32,12 +33,21 @@ function Metric({ icon: Icon, label, value, accent, note }: { icon: typeof Eye; 
   );
 }
 
-function Sparkline({ live }: { live: boolean }) {
-  const points = useMemo(() => [18, 35, 27, 43, 38, 66, 51, 74, 63, 86, 72, 94], []);
+function MonthChart({ history, live }: { history: StatDay[]; live: boolean }) {
+  const chart = useMemo(() => {
+    const days = history.length ? history : Array.from({ length: 30 }, (_, i) => ({ date: `day-${i}`, visits: 0, clicks: 0 }));
+    const max = Math.max(1, ...days.flatMap((d) => [d.visits, d.clicks]));
+    const x = (i: number) => days.length === 1 ? 300 : (i / (days.length - 1)) * 600;
+    const y = (value: number) => 176 - (value / max) * 142;
+    const visits = days.map((d, i) => `${x(i)},${y(d.visits)}`).join(" ");
+    const clicks = days.map((d, i) => `${x(i)},${y(d.clicks)}`).join(" ");
+    const area = `M0,176 L${days.map((d, i) => `${x(i)},${y(d.visits)}`).join(" L")} L600,176 Z`;
+    return { days, max, visits, clicks, area };
+  }, [history]);
   return (
-    <div className="relative h-28 overflow-hidden rounded-2xl bg-black/20 px-3 pt-4 ring-1 ring-white/5">
-      <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-white/10" />
-      <svg viewBox="0 0 360 100" preserveAspectRatio="none" className="h-full w-full">
+    <div className="relative overflow-hidden rounded-2xl bg-black/20 px-3 pb-3 pt-4 ring-1 ring-white/5">
+      <div className="mb-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500"><span>Переходы и клики</span><span>макс. {format(chart.max)}</span></div>
+      <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="h-48 w-full">
         <defs>
           <linearGradient id="status-line" x1="0" x2="1">
             <stop stopColor="#ffd08a" />
@@ -48,10 +58,13 @@ function Sparkline({ live }: { live: boolean }) {
             <stop offset="1" stopColor="#ffbb55" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path d={`M0,100 L${points.map((p, i) => `${i * 33},${100 - p}`).join(" L")} L360,100 Z`} fill="url(#status-fill)" />
-        <polyline points={points.map((p, i) => `${i * 33},${100 - p}`).join(" ")} fill="none" stroke="url(#status-line)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {[34, 81, 128, 176].map((y) => <line key={y} x1="0" x2="600" y1={y} y2={y} stroke="rgba(255,255,255,.08)" strokeDasharray="4 8" />)}
+        <path d={chart.area} fill="url(#status-fill)" />
+        <polyline points={chart.visits} fill="none" stroke="url(#status-line)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <polyline points={chart.clicks} fill="none" stroke="#8b7dff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 0" />
       </svg>
-      {live && <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" /> онлайн</span>}
+      <div className="mt-2 grid grid-cols-6 text-[10px] text-zinc-600">{chart.days.filter((_, i) => i % 5 === 0 || i === chart.days.length - 1).map((d) => <span key={d.date}>{new Date(`${d.date}T12:00:00`).toLocaleDateString("ru-RU", { day: "2-digit", month: "short" })}</span>)}</div>
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-zinc-400"><span className="inline-flex items-center gap-2"><i className="h-2 w-2 rounded-full bg-gold-300" /> Переходы</span><span className="inline-flex items-center gap-2"><i className="h-2 w-2 rounded-full bg-violet-400" /> Клики</span>{live && <span className="ml-auto inline-flex items-center gap-1.5 font-bold uppercase tracking-widest text-emerald-300"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" /> онлайн</span>}</div>
     </div>
   );
 }
@@ -101,8 +114,8 @@ export function StatusPage() {
 
         <section className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_.65fr]">
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-6 sm:p-8">
-            <div className="mb-6 flex items-center justify-between"><div><p className="text-sm font-semibold text-white">Пульс платформы</p><p className="mt-1 text-xs text-zinc-500">Активность пользователей в реальном времени</p></div><span className="text-xs font-semibold text-gold-300">сейчас</span></div>
-            <Sparkline live={!error} />
+            <div className="mb-6 flex items-center justify-between"><div><p className="text-sm font-semibold text-white">Пульс платформы</p><p className="mt-1 text-xs text-zinc-500">Полный период: последние 30 дней</p></div><span className="rounded-full bg-gold-400/10 px-3 py-1.5 text-xs font-semibold text-gold-300">месяц</span></div>
+            <MonthChart history={stats.history} live={!error} />
             <div className="mt-5 flex flex-wrap gap-3"><span className="rounded-xl bg-white/[0.05] px-3 py-2 text-xs text-zinc-400">Активны на сайте: <b className="text-white">{format(stats.activeUsers)}</b></span><span className="rounded-xl bg-white/[0.05] px-3 py-2 text-xs text-zinc-400">В комнатах: <b className="text-white">{format(stats.togetherRooms)}</b></span><span className="rounded-xl bg-white/[0.05] px-3 py-2 text-xs text-zinc-400">Обновление: <b className="text-white">15 сек</b></span></div>
           </div>
           <div className="relative overflow-hidden rounded-[2rem] border border-gold-400/20 bg-gradient-to-br from-gold-400/15 via-white/[0.045] to-violet-400/10 p-6 sm:p-8"><div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-gold-300/20" /><div className="absolute -right-8 -top-8 h-32 w-32 rounded-full border border-gold-300/20" /><div className="relative"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-gold-400 text-ink-950"><Radio className="h-6 w-6" /></div><p className="mt-8 text-xs font-bold uppercase tracking-[0.18em] text-gold-300">Together mode</p><h2 className="mt-3 font-display text-2xl font-bold text-white">Смотрим рядом,<br />даже если далеко</h2><p className="mt-4 text-sm leading-relaxed text-zinc-400">Комнаты синхронизируют плеер, чат и голосовую связь для общей киноночки.</p><a href="https://tetrixfilm.duckdns.org/" className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-extrabold text-ink-950 transition hover:-translate-y-0.5 hover:bg-gold-200">Открыть комнаты <Activity className="h-4 w-4" /></a></div></div>

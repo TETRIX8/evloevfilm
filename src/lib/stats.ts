@@ -1,3 +1,9 @@
+export interface StatDay {
+  date: string;
+  visits: number;
+  clicks: number;
+}
+
 export interface SiteStats {
   visits: number;
   users: number;
@@ -5,6 +11,7 @@ export interface SiteStats {
   activeUsers: number;
   togetherViewers: number;
   togetherRooms: number;
+  history: StatDay[];
   updatedAt: string;
 }
 
@@ -50,6 +57,7 @@ export async function loadSiteStats(): Promise<SiteStats> {
     activeUsers: Number(site.activeUsers || 0),
     togetherViewers: Number(together.viewers || 0),
     togetherRooms: Number(together.rooms || 0),
+    history: Array.isArray(site.history) ? site.history : [],
     updatedAt: new Date().toISOString(),
   };
 }
