@@ -1,0 +1,8 @@
+# Canonical host: keep one public origin for indexing and sharing.
+# The realtime watch-together domain is intentionally separate and is not redirected.
+http://tetrixfilm.ru, http://www.tetrixfilm.ru {
+    redir https://tetrixfilm.ru{uri} permanent
+}
+https://www.tetrixfilm.ru {
+    redir https://tetrixfilm.ru{uri} permanent
+}
