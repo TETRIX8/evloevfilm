@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://tetrixfilm.ru/$1",
+      "permanent": true
+    }
+  ]
+}
