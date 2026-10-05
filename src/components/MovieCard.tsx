@@ -99,6 +99,15 @@ export function MovieCard({ movie, onOpen, className }: CardProps) {
         </div>
       </button>
 
+      {movie.provider === "tetrix" && movie.player && (
+        <a
+          href={`https://tetrixfilm.duckdns.org/film=${encodeURIComponent(movie.player)}`}
+          className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-gold-400/15 px-3 py-2 text-xs font-extrabold text-gold-300 ring-1 ring-gold-400/30 transition hover:bg-gold-400/25"
+        >
+          Смотреть вместе
+        </a>
+      )}
+
       <button
         type="button"
         onClick={() => toggleFavorite(movie)}

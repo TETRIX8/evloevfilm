@@ -5,6 +5,7 @@ import { LibraryProvider, rememberMovie, useLibrary } from "./lib/library";
 import { ProviderProvider, useProvider } from "./lib/provider-context";
 import { loadTrending } from "./lib/queries";
 import { navigate, routePath, useRoute, type Route } from "./lib/router";
+import { canonicalForHash, setSiteSeo } from "./lib/seo";
 import { ApiPage } from "./components/ApiPage";
 import { CatalogView } from "./components/CatalogView";
 import { Footer } from "./components/Footer";
@@ -70,6 +71,34 @@ function Shell() {
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [path]);
+
+  useEffect(() => {
+    if (route.name === "movie") return;
+    const titles: Record<string, string> = {
+      home: "TetrixFilm — фильмы, сериалы и аниме онлайн",
+      films: "Фильмы онлайн — новинки и лучшие фильмы | TetrixFilm",
+      serials: "Сериалы онлайн — лучшие сезоны и новинки | TetrixFilm",
+      cartoon: "Мультфильмы онлайн для всей семьи | TetrixFilm",
+      "anime-serials": "Аниме онлайн — сериалы и новинки | TetrixFilm",
+      library: "Моя коллекция фильмов | TetrixFilm",
+      api: "TetrixFilm API — каталог фильмов и сериалов",
+    };
+    const descriptions: Record<string, string> = {
+      home: "TetrixFilm — онлайн-каталог фильмов, сериалов, мультфильмов и аниме: поиск, подборки, озвучки и просмотр в хорошем качестве.",
+      films: "Смотрите фильмы онлайн на TetrixFilm: свежие премьеры, популярные новинки, жанры и удобный поиск по каталогу.",
+      serials: "Сериалы онлайн на TetrixFilm: новые сезоны, популярные проекты и удобный каталог с описаниями и озвучками.",
+      cartoon: "Мультфильмы онлайн для детей и всей семьи: добрые истории, приключения и лучшие анимационные фильмы на TetrixFilm.",
+      "anime-serials": "Смотрите аниме онлайн на TetrixFilm: популярные сериалы, новые релизы и удобный поиск по каталогу.",
+      library: "Личная коллекция фильмов и сериалов на TetrixFilm — сохраняйте понравившиеся проекты и возвращайтесь к просмотру.",
+      api: "Открытый TetrixFilm API для поиска и получения каталога фильмов, сериалов, мультфильмов и аниме.",
+    };
+    const key = route.name === "catalog" ? route.category : route.name;
+    setSiteSeo({
+      title: titles[key] || titles.home,
+      description: descriptions[key] || descriptions.home,
+      canonical: canonicalForHash(),
+    });
+  }, [route]);
 
   useEffect(() => {
     if (previousProvider.current === provider.id) return undefined;

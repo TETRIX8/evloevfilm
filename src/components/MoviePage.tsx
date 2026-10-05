@@ -34,6 +34,7 @@ import {
 import { useAsync } from "../lib/hooks";
 import { recallMovie, rememberMovie, useLibrary } from "../lib/library";
 import { fmt } from "../lib/meta";
+import { canonicalForHash, setSiteSeo } from "../lib/seo";
 import { useProvider } from "../lib/provider-context";
 import { getProvider, PROVIDERS } from "../lib/providers/registry";
 import { navigate, type Route } from "../lib/router";
@@ -288,7 +289,31 @@ export function MoviePage({ route, onOpen }: Props) {
   useEffect(() => {
     if (!movie) return undefined;
     rememberMovie(movie);
-    document.title = `${movie.title} — EVOLVEFILM`;
+    const description =
+      movie.description?.replace(/\s+/g, " ").trim().slice(0, 155) ||
+      `${movie.title} — описание, рейтинг, озвучки и просмотр онлайн на TetrixFilm.`;
+    setSiteSeo({
+      title: `${movie.title} — смотреть онлайн | TetrixFilm`,
+      description,
+      canonical: canonicalForHash(),
+      image: movie.poster,
+      type: "video.movie",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "Movie",
+        name: movie.title,
+        alternateName: movie.originalTitle || undefined,
+        description,
+        image: movie.poster ? [movie.poster] : undefined,
+        dateCreated: movie.year ? String(movie.year) : undefined,
+        genre: movie.genres.length ? movie.genres : undefined,
+        inLanguage: "ru-RU",
+        url: canonicalForHash(),
+        aggregateRating: movie.kp
+          ? { "@type": "AggregateRating", ratingValue: movie.kp, ratingCount: movie.kpVotes || undefined }
+          : undefined,
+      },
+    });
     return () => {
       document.title = DEFAULT_TITLE;
     };
