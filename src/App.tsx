@@ -7,6 +7,7 @@ import { loadTrending } from "./lib/queries";
 import { navigate, routePath, useRoute, type Route } from "./lib/router";
 import { canonicalForHash, setSiteSeo } from "./lib/seo";
 import { startStatsTracking } from "./lib/stats";
+import { AuthProvider } from "./lib/auth-context";
 import { ApiPage } from "./components/ApiPage";
 import { CatalogView } from "./components/CatalogView";
 import { Footer } from "./components/Footer";
@@ -167,9 +168,11 @@ function Shell() {
 export default function App() {
   return (
     <LibraryProvider>
-      <ProviderProvider>
-        <Shell />
-      </ProviderProvider>
+      <AuthProvider>
+        <ProviderProvider>
+          <Shell />
+        </ProviderProvider>
+      </AuthProvider>
     </LibraryProvider>
   );
 }

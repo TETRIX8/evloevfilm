@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, ChevronDown, Database, Home, Search, Terminal, X } from "lucide-react";
+import { Bookmark, ChevronDown, Database, Home, LogIn, Search, Terminal, UserRound, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { CATEGORIES } from "../lib/meta";
 import { useProvider } from "../lib/provider-context";
 import type { Route } from "../lib/router";
 import { cn } from "../utils/cn";
+import { useAuth } from "../lib/auth-context";
 
 interface Props {
   route: Route;
@@ -17,6 +18,7 @@ interface Props {
 
 export function Navbar({ route, searching, query, onQuery, onNavigate, libraryCount }: Props) {
   const { provider, openDialog } = useProvider();
+  const { user, openLogin, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -132,6 +134,19 @@ export function Navbar({ route, searching, query, onQuery, onNavigate, libraryCo
             </span>
             <span className="hidden xl:inline">{provider.short}</span>
             <ChevronDown className="hidden h-3.5 w-3.5 text-zinc-400 transition group-hover:text-white sm:block" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => (user ? void logout() : openLogin())}
+            title={user ? "Выйти" : "Войти через Telegram"}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-sm font-semibold ring-1 transition",
+              user ? "bg-emerald-400/10 text-emerald-200 ring-emerald-400/25 hover:bg-rose-400/10 hover:text-rose-200" : "bg-sky-400/10 text-sky-200 ring-sky-400/25 hover:bg-sky-400/20",
+            )}
+          >
+            {user ? <UserRound className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+            <span className="hidden xl:inline">{user ? user.name.split(" ")[0] : "Войти"}</span>
           </button>
 
           <button

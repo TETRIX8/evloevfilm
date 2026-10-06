@@ -46,9 +46,10 @@ export function startStatsTracking() {
 }
 
 export async function loadSiteStats(): Promise<SiteStats> {
+  const cacheBust = `?cb=${Date.now()}`;
   const [site, together] = await Promise.all([
-    fetch("/api/stats", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error("stats")))),
-    fetch("/api/together-stats", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error("together")))),
+    fetch(`/api/stats${cacheBust}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error("stats")))),
+    fetch(`/api/together-stats${cacheBust}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error("together")))),
   ]);
   return {
     visits: Number(site.visits || 0),

@@ -43,6 +43,7 @@ import { Poster } from "./MovieCard";
 import { Row } from "./Row";
 import { EmptyState } from "./ui";
 import { cn } from "../utils/cn";
+import { useAuth } from "../lib/auth-context";
 
 type MovieRoute = Extract<Route, { name: "movie" }>;
 
@@ -221,6 +222,7 @@ function AltSources({ movie, onOpen }: { movie: Movie; onOpen: (m: Movie, play?:
 
 export function MoviePage({ route, onOpen }: Props) {
   const { openDialog } = useProvider();
+  const { user, openLogin } = useAuth();
   const { isFavorite, toggleFavorite, pushHistory } = useLibrary();
   const key = `${route.provider}:${route.id}`;
 
@@ -377,6 +379,7 @@ export function MoviePage({ route, onOpen }: Props) {
   const waitingDescription = !movie.hydrated && !movie.description;
 
   const play = () => {
+    if (!user) { openLogin(); return; }
     setSource("movie");
     setPlaying(true);
     requestAnimationFrame(() => playerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
@@ -439,7 +442,7 @@ export function MoviePage({ route, onOpen }: Props) {
         {/* ---- player ---- */}
         <section ref={playerRef} className="mt-4 animate-fade-up">
           <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-[0_40px_120px_-30px_rgba(0,0,0,0.95)] ring-1 ring-white/10 sm:rounded-3xl">
-            {playing && frameSrc ? (
+            {playing && user && frameSrc ? (
               <PlayerFrame key={frameSrc} src={frameSrc} title={`${source === "trailer" ? "Трейлер" : "Плеер"}: ${movie.title}`} poster={movie.poster} />
             ) : (
               <div className="absolute inset-0">
@@ -508,8 +511,9 @@ export function MoviePage({ route, onOpen }: Props) {
             {movie.trailer && (
               <button
                 type="button"
-                onClick={() => {
-                  setSource("trailer");
+              onClick={() => {
+                if (!user) { openLogin(); return; }
+                setSource("trailer");
                   setPlaying(true);
                 }}
                 aria-pressed={playing && source === "trailer"}
@@ -546,6 +550,7 @@ export function MoviePage({ route, onOpen }: Props) {
             seasons={movie.seasons}
             active={episode}
             onPick={(season, n, url) => {
+              if (!user) { openLogin(); return; }
               setEpisode({ season, n, url });
               setSource("movie");
               setPlaying(true);
